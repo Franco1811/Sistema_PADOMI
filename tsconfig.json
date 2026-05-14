@@ -1,0 +1,21 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "lib": ["ES2022", "DOM"],
+    "strict": true,
+    "paths": {
+      "@shared/*": ["./shared/*"],
+      "@modules/*": ["./apps/backend/src/modules/*"]
+    },
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "skipLibCheck": true,
+    "resolveJsonModule": true,
+    "allowImportingTsExtensions": true,
+    "noEmit": true
+  },
+  "include": ["apps/**/*", "shared/**/*", "functions/**/*"],
+  "exclude": ["node_modules"]
+}
