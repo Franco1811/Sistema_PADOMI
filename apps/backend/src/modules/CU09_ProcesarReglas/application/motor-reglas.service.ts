@@ -37,16 +37,22 @@ export class MotorReglasService {
       return null;
     }
 
-    // 2. Calcular severidad usando la entidad pura Evaluacion
+    // 2. Ejecutar la Lógica de Negocio (Core Domain)
+    // Usamos el método estático de la entidad para calcular la severidad. 
+    // De esta forma mantenemos las reglas médicas aisladas del framework o la BD.
     const severidad = Evaluacion.calcularSeveridad(lectura.valor, umbral.valorMin, umbral.valorMax);
 
-    // 3. Guardar la evaluación en el historial
+    // 3. Obtener al paciente para asignarle el médico responsable a la evaluación
+    const paciente = await this.pacienteRepository.buscarPorId(lectura.pacienteId);
+    if (!paciente) return null;
+
+    // 4. Guardar la evaluación en el historial
     const codigoEva = await this.evaluacionRepository.generarCodigo();
     const evaluacion = new Evaluacion(
       crypto.randomUUID(),
       codigoEva,
       lectura.pacienteId,
-      null, // Automático por el sistema
+      paciente.medicoAsignadoId, // Requerido por la BD (NOT NULL)
       new Date(),
       `Evaluación automática: Resultado ${severidad} para valor ${lectura.valor}`,
       'Monitoreo continuo.'
@@ -73,11 +79,9 @@ export class MotorReglasService {
 
       const savedAlerta = await this.alertaRepository.guardar(alerta);
 
-      // 5. Notificar al médico vía WebSockets
-      const paciente = await this.pacienteRepository.buscarPorId(lectura.pacienteId);
-      if (paciente) {
-        DashboardController.emitirNuevaAlerta(paciente.medicoAsignadoId, savedAlerta);
-      }
+      // 6. Notificar al médico vía WebSockets en tiempo real
+      // Esto empujará la alerta a la pantalla del Frontend de inmediato, sin que el doctor recargue la página.
+      DashboardController.emitirNuevaAlerta(paciente.medicoAsignadoId, savedAlerta);
     }
 
     return new EvaluacionDto(lectura.pacienteId, lectura.metricaId, severidad, lectura.id);

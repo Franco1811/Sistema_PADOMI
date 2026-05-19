@@ -20,5 +20,12 @@
     "useDefineForClassFields": false
   },
   "include": ["apps/**/*", "shared/**/*", "functions/**/*"],
-  "exclude": ["node_modules"]
+  "exclude": ["node_modules"],
+  "ts-node": {
+    "compilerOptions": {
+      "module": "CommonJS",
+      "moduleResolution": "node",
+      "allowImportingTsExtensions": false
+    }
+  }
 }

@@ -32,8 +32,10 @@ export class IngestaService {
     // 4. Guardar en base de datos
     const lecturaGuardada = await this.lecturaRepository.guardar(lectura);
 
-    // 5. Emitir evento asíncrono para el Motor de Reglas (CU-09)
-    // De esta manera el controlador HTTP puede responder instantáneamente.
+    // 5. Desacoplamiento mediante Eventos (Event-Driven Architecture)
+    // En lugar de procesar las reglas clínicas aquí mismo y hacer esperar al dispositivo IoT,
+    // emitimos un evento en segundo plano. Esto permite que el endpoint devuelva el '201 Created'
+    // instantáneamente, mientras que el Motor de Reglas hace el trabajo pesado por detrás.
     eventBus.emit('nueva_lectura', lecturaGuardada);
 
     return lecturaGuardada;

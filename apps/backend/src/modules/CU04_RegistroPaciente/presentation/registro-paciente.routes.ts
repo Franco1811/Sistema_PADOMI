@@ -7,6 +7,6 @@ import { RegistroPacienteController } from './registro-paciente.controller';
 const router = Router();
 const controller = new RegistroPacienteController();
 
-router.post('/pacientes', (req: any, res: any) => controller.registrar(req, res));
+router.post('/', (req: any, res: any) => controller.registrar(req, res));
 
 export default router;
