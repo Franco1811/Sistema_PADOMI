@@ -1,6 +1,6 @@
 # Catálogo de APIs REST - Sistema de Telemetría PADOMI
 
-Este documento es tu "chuleta" o mapa principal para saber qué consultar desde **Thunder Client** o **Postman** durante tu presentación.
+Consultar desde **Thunder Client** o **Postman** 
 
 > **Sobre los IDs (UUID vs Código Corto):**
 > En todas las URLs y JSONs donde veas `:id` o `pacienteId`, **SIEMPRE debes usar el código largo (UUID)** (ej. `AF9E4BA9-3CEC...`). El código corto (`PAC-0001`) es puramente visual para que el médico lo lea en la pantalla de React, pero las bases de datos relacionales seguras siempre se comunican mediante sus UUIDs reales.

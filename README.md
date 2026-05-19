@@ -4,7 +4,7 @@ Bienvenido al repositorio del backend del Sistema de Telemetría PADOMI. Este pr
 
 ---
 
-## ⚠️ AVISO IMPORTANTE: Uso Exclusivo de PNPM
+## AVISO IMPORTANTE: Uso Exclusivo de PNPM
 
 Para este proyecto **NO ESTÁ PERMITIDO EL USO DE `npm` O `yarn`**. 
 Hemos migrado toda la arquitectura a **`pnpm`** por las siguientes razones críticas:
@@ -16,7 +16,7 @@ Si intentas instalar paquetes usando `npm install`, romperás los enlaces de los
 
 ---
 
-## 🛠️ Requisitos Previos (Para Compañeros de Equipo)
+## Requisitos Previos (Para Compañeros de Equipo)
 
 Antes de empezar a trabajar en tu computadora, asegúrate de tener:
 - **Node.js** (Versión 20 o superior recomendada).
@@ -27,7 +27,7 @@ Antes de empezar a trabajar en tu computadora, asegúrate de tener:
 
 ---
 
-## 🚀 Pasos para Levantar el Proyecto Localmente
+## Pasos para Levantar el Proyecto Localmente
 
 Sigue estos pasos en orden estricto la primera vez que descargues (clones) el repositorio en tu PC:
 
