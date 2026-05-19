@@ -28,4 +28,10 @@ export class UmbralRepository implements IUmbralRepository {
     const models = await this.repository.find({ where: { pacienteId } });
     return models.map(model => UmbralMapping.toEntity(model));
   }
+
+  async generarCodigo(): Promise<string> {
+    const count = await this.repository.count();
+    const nextNumber = count + 1;
+    return `UMB-${String(nextNumber).padStart(4, "0")}`;
+  }
 }
