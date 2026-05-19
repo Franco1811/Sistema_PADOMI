@@ -16,6 +16,7 @@ export class PersonalController {
   async crear(req: Request, res: Response): Promise<void> {
     try {
       const dto = new RegistroPersonalDto();
+      dto.dni = req.body.dni;
       dto.nombre = req.body.nombre;
       dto.apellido = req.body.apellido;
       dto.email = req.body.email;
@@ -53,6 +54,7 @@ export class PersonalController {
       const { id } = req.params;
       const idStr = Array.isArray(id) ? id[0] : id;
       const dto: Partial<RegistroPersonalDto> = {
+        dni: req.body.dni,
         nombre: req.body.nombre,
         apellido: req.body.apellido,
         email: req.body.email,

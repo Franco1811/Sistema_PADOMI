@@ -63,8 +63,7 @@ export class MotorReglasService {
     if (severidad === 'CRITICO' || severidad === 'ADVERTENCIA') {
       const alertaId = crypto.randomUUID();
       // Generar un código único corto
-      const randomSuffix = Math.floor(Math.random() * 10000).toString().padStart(4, '0');
-      const codigoAlt = `ALT-${randomSuffix}`;
+      const codigoAlt = await this.alertaRepository.generarCodigo();
 
       const alerta = new Alerta(
         alertaId,

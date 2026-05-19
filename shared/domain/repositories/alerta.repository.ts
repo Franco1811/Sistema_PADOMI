@@ -5,4 +5,5 @@ export interface IAlertaRepository {
   buscarActivasPorPaciente(pacienteId: string): Promise<Alerta[]>;
   guardar(alerta: Alerta): Promise<Alerta>;
   atenderTransaccionalmente(alertaId: string): Promise<boolean>;
+  generarCodigo(): Promise<string>;
 }

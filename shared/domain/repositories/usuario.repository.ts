@@ -11,4 +11,5 @@ export interface IUsuarioRepository {
   actualizar(usuario: Usuario): Promise<Usuario>;
   listarTodos(especialidad?: string): Promise<Usuario[]>;
   buscarPorId(id: string): Promise<Usuario | null>;
+  generarCodigo(): Promise<string>;
 }

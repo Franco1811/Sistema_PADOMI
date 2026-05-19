@@ -50,4 +50,10 @@ export class UsuarioRepository implements IUsuarioRepository {
     const models = await this.repository.find({ where: whereClause });
     return models.map(model => UsuarioMapping.toEntity(model));
   }
+
+  async generarCodigo(): Promise<string> {
+    const count = await this.repository.count();
+    const nextNumber = count + 1;
+    return `USU-${String(nextNumber).padStart(4, '0')}`;
+  }
 }

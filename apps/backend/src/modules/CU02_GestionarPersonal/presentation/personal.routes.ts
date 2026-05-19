@@ -8,8 +8,8 @@ import { PersonalController } from './personal.controller';
 const router = Router();
 const controller = new PersonalController();
 
-router.post('/personal', (req: any, res: any) => controller.crear(req, res));
-router.get('/personal', (req: any, res: any) => controller.listar(req, res));
-router.put('/personal/:id', (req: any, res: any) => controller.actualizar(req, res));
+router.post('/', (req: any, res: any) => controller.crear(req, res));
+router.get('/', (req: any, res: any) => controller.listar(req, res));
+router.put('/:id', (req: any, res: any) => controller.actualizar(req, res));
 
 export default router;

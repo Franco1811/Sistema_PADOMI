@@ -39,4 +39,10 @@ export class AlertaRepository implements IAlertaRepository {
     );
     return result.affected ? result.affected > 0 : false;
   }
+
+  async generarCodigo(): Promise<string> {
+    const count = await this.repository.count();
+    const nextNumber = count + 1;
+    return `ALT-${String(nextNumber).padStart(4, "0")}`;
+  }
 }

@@ -45,4 +45,10 @@ export class MetricaRepository implements IMetricaRepository {
   async inactivar(id: string): Promise<void> {
     await this.repository.delete(id);
   }
+
+  async generarCodigo(): Promise<string> {
+    const count = await this.repository.count();
+    const nextNumber = count + 1;
+    return `MET-${String(nextNumber).padStart(4, "0")}`;
+  }
 }

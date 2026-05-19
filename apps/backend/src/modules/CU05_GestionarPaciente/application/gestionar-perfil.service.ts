@@ -58,7 +58,7 @@ export class GestionarPerfilService {
         
         const umbral = new Umbral(
           existente ? existente.id : crypto.randomUUID(),
-          existente ? existente.codigo : '',
+          existente ? existente.codigo : await this.umbralRepository.generarCodigo(),
           dto.pacienteId,
           uDto.metricaId,
           uDto.valorMin,

@@ -23,7 +23,7 @@ export class CatalogoService {
 
     const metrica = new Metrica(
       crypto.randomUUID(),
-      '', // código se generará después
+      await this.metricaRepository.generarCodigo(),
       dto.nombre,
       dto.unidad,
       dto.descripcion || '',

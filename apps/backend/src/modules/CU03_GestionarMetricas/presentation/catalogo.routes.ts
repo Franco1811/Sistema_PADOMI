@@ -8,9 +8,9 @@ import { CatalogoController } from './catalogo.controller';
 const router = Router();
 const controller = new CatalogoController();
 
-router.post('/catalogo', (req: any, res: any) => controller.crear(req, res));
-router.get('/catalogo', (req: any, res: any) => controller.listar(req, res));
-router.put('/catalogo/:id', (req: any, res: any) => controller.actualizar(req, res));
-router.delete('/catalogo/:id', (req: any, res: any) => controller.eliminar(req, res));
+router.post('/', (req: any, res: any) => controller.crear(req, res));
+router.get('/', (req: any, res: any) => controller.listar(req, res));
+router.put('/:id', (req: any, res: any) => controller.actualizar(req, res));
+router.delete('/:id', (req: any, res: any) => controller.eliminar(req, res));
 
 export default router;

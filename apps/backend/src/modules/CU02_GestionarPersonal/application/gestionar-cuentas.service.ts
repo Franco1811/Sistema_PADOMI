@@ -24,10 +24,11 @@ export class GestionarCuentasService {
     }
 
     const passwordHash = await bcrypt.hash(dto.password, 10);
+    const codigoGenerado = await this.usuarioRepository.generarCodigo();
 
     const usuario = new Usuario(
       crypto.randomUUID(),
-      '', // código se generará después
+      codigoGenerado,
       dto.dni,
       dto.nombre,
       dto.apellido,
