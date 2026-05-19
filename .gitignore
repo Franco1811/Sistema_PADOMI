@@ -1,0 +1,24 @@
+# Node modules (todas las ubicaciones)
+node_modules/
+apps/*/node_modules/
+shared/node_modules/
+
+# Builds y distribuciones
+/dist/
+/build/
+
+# Archivos de entorno y configuración sensible
+.env
+.env.*
+
+# Logs
+*.log
+
+# Archivos temporales y del sistema
+.DS_Store
+Thumbs.db
+
+# Otros
+*.local
+.idea/
+.vscode/

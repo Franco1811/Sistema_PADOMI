@@ -3,7 +3,8 @@
 // Permite registrar el valor, la fecha y la métrica asociada, facilitando el monitoreo histórico.
 export class Lectura {
   constructor(
-    public readonly id: string, // Código LEC-XXXX
+    public readonly id: string, // UUID
+    public readonly codigo: string, // Código LEC-XXXX
     public readonly pacienteId: string,
     public readonly metricaId: string,
     public readonly valor: number,

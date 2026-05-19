@@ -1,0 +1,85 @@
+import { IUmbralRepository } from '../../../../../../shared/domain/repositories/umbral.repository';
+import { UmbralRepository } from '../../../../../../shared/infrastructure/interfaces/umbral.interf';
+import { IEvaluacionRepository } from '../../../../../../shared/domain/repositories/evaluacion.repository';
+import { EvaluacionRepository } from '../../../../../../shared/infrastructure/interfaces/evaluacion.interf';
+import { IAlertaRepository } from '../../../../../../shared/domain/repositories/alerta.repository';
+import { AlertaRepository } from '../../../../../../shared/infrastructure/interfaces/alerta.interf';
+import { Evaluacion } from '../../../../../../shared/domain/entities/evaluacion.entity';
+import { Alerta } from '../../../../../../shared/domain/entities/alerta.entity';
+import { Lectura } from '../../../../../../shared/domain/entities/lectura.entity';
+import { EvaluacionDto } from './evaluacion.dto';
+import { IPacienteRepository } from '../../../../../../shared/domain/repositories/paciente.repository';
+import { PacienteRepository } from '../../../../../../shared/infrastructure/interfaces/paciente.interf';
+import { DashboardController } from '../../CU06_MonitorearDashboard/presentation/dashboard.controller';
+import * as crypto from 'crypto';
+
+export class MotorReglasService {
+  private umbralRepository: IUmbralRepository;
+  private evaluacionRepository: IEvaluacionRepository;
+  private alertaRepository: IAlertaRepository;
+  private pacienteRepository: IPacienteRepository;
+
+  constructor() {
+    this.umbralRepository = new UmbralRepository();
+    this.evaluacionRepository = new EvaluacionRepository();
+    this.alertaRepository = new AlertaRepository();
+    this.pacienteRepository = new PacienteRepository();
+  }
+
+  async procesarLectura(lectura: Lectura): Promise<EvaluacionDto | null> {
+    // 1. Obtener umbrales del paciente
+    const umbrales = await this.umbralRepository.buscarPorPacienteId(lectura.pacienteId);
+    
+    // Buscar el umbral específico de esta métrica
+    const umbral = umbrales.find(u => u.metricaId === lectura.metricaId);
+    if (!umbral) {
+      // Si no hay umbral, no se puede evaluar.
+      return null;
+    }
+
+    // 2. Calcular severidad usando la entidad pura Evaluacion
+    const severidad = Evaluacion.calcularSeveridad(lectura.valor, umbral.valorMin, umbral.valorMax);
+
+    // 3. Guardar la evaluación en el historial
+    const codigoEva = await this.evaluacionRepository.generarCodigo();
+    const evaluacion = new Evaluacion(
+      crypto.randomUUID(),
+      codigoEva,
+      lectura.pacienteId,
+      null, // Automático por el sistema
+      new Date(),
+      `Evaluación automática: Resultado ${severidad} para valor ${lectura.valor}`,
+      'Monitoreo continuo.'
+    );
+    await this.evaluacionRepository.guardar(evaluacion);
+
+    // 4. Si hay riesgo, generar alerta
+    if (severidad === 'CRITICO' || severidad === 'ADVERTENCIA') {
+      const alertaId = crypto.randomUUID();
+      // Generar un código único corto
+      const randomSuffix = Math.floor(Math.random() * 10000).toString().padStart(4, '0');
+      const codigoAlt = `ALT-${randomSuffix}`;
+
+      const alerta = new Alerta(
+        alertaId,
+        codigoAlt,
+        lectura.pacienteId,
+        lectura.id,
+        severidad,
+        `Valor biométrico anómalo: ${lectura.valor} (Esperado entre ${umbral.valorMin} y ${umbral.valorMax})`,
+        new Date(),
+        false
+      );
+
+      const savedAlerta = await this.alertaRepository.guardar(alerta);
+
+      // 5. Notificar al médico vía WebSockets
+      const paciente = await this.pacienteRepository.buscarPorId(lectura.pacienteId);
+      if (paciente) {
+        DashboardController.emitirNuevaAlerta(paciente.medicoAsignadoId, savedAlerta);
+      }
+    }
+
+    return new EvaluacionDto(lectura.pacienteId, lectura.metricaId, severidad, lectura.id);
+  }
+}

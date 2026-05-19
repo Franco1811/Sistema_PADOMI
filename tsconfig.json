@@ -14,7 +14,10 @@
     "skipLibCheck": true,
     "resolveJsonModule": true,
     "allowImportingTsExtensions": true,
-    "noEmit": true
+    "noEmit": true,
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "useDefineForClassFields": false
   },
   "include": ["apps/**/*", "shared/**/*", "functions/**/*"],
   "exclude": ["node_modules"]

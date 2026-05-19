@@ -2,7 +2,9 @@ export class Usuario {
   // Entidad compartida utilizada en CU-01 (Iniciar Sesión) y CU-02 (Gestionar Cuentas de Personal).
   // Representa al usuario del sistema y contiene la lógica de validación de negocio.
   constructor(
-    public readonly id: string, // Puede ser el DNI o UUID
+    public readonly id: string, // UUID
+    public readonly codigo: string, // Código USU-XXXX (opcional)
+    public readonly dni: string,
     public readonly nombre: string,
     public readonly apellido: string,
     public readonly email: string,
@@ -16,10 +18,14 @@ export class Usuario {
 
   // Reglas de Negocio (Capa 3)
   private validarReglasNegocio(): void {
+    if (!/^\d{8}$/.test(this.dni)) {
+      throw new Error("El DNI debe contener exactamente 8 dígitos numéricos.");
+    }
+
     if (!this.email.includes('@')) {
       throw new Error("Formato de email institucional de EsSalud inválido.");
     }
-    
+
     if (this.rol === 'MEDICO' && !this.especialidad) {
       throw new Error("Un usuario con rol MEDICO debe tener una especialidad asignada.");
     }

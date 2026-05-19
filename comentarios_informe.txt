@@ -1,0 +1,908 @@
+Comentarios sobre el informe
+===========================
+Problemática Empresarial
+Problemática:
+   En el sector salud actual, específicamente en el modelo de atención de EsSalud, existe una deficiencia crítica en el monitoreo proactivo de los pacientes con enfermedades crónicas (como hipertensión, diabetes o arritmias) adscritos al Programa de Atención Domiciliaria (PADOMI). Al encontrarse fuera del entorno hospitalario, el modelo de atención vigente es predominantemente reactivo, dependiendo de que el paciente se auto evalúe (usando tensiómetros o smartwatches) y acuda a emergencias cuando la complicación ya es grave. Esta situación se ve agravada por limitaciones tecnológicas, operativas y humanas significativas:
+Deficiencias Operativas y Tiempos de Respuesta:
+Dependencia de la Revisión Manual: Actualmente, cruzar los datos de los síntomas recientes con el historial clínico del paciente requiere una revisión manual que toma un promedio de 15 a 20 minutos por atención.
+Lentitud en Búsqueda de Antecedentes: La falta de un sistema centralizado provoca que un médico demore hasta 10 minutos buscando los antecedentes de un paciente en archivos físicos o sistemas fragmentados antes de poder emitir un diagnóstico preciso.
+Ausencia de Alertas Automatizadas: Al depender de consultas programadas o de la iniciativa del paciente, existe un "punto ciego" de horas o incluso días desde que ocurre una lectura anómala en casa hasta que el médico es notificado.
+Limitaciones Tecnológicas y de Infraestructura:
+Procesamiento Diferido Ineficiente: Los sistemas hospitalarios tradicionales no están diseñados para recibir y procesar flujos de telemetría asíncrona proveniente de dispositivos externos, lo que genera cuellos de botella cuando múltiples pacientes registran sus datos simultáneamente.
+Desconexión de Datos: Existe un alto riesgo de subregistro o pérdida de datos críticos al transcribir la información del dispositivo casero al sistema del hospital.
+Factores Humanos:
+Sobrecarga y fatiga: El personal de salud debe analizar manualmente grandes volúmenes de datos crudos (ej. tablas de presión arterial de todo un mes), lo que aumenta exponencialmente el riesgo de omitir tendencias de deterioro por fatiga visual o exceso de trabajo.
+Árbol de problemas:
+
+
+
+Diagrama de Ishikawa:
+
+Herramientas:
+Frontend: React.
+Backend: Node.js 
+Persistencia (ORM): TypeORM
+Serverless: Azure Functions
+Entorno de Pruebas: Postman (Documentación y validación de endpoints).
+Control de versiones: GitHub.
+2. Requerimientos de Software  
+2.1. Lista de requerimientos No Funcionales
+Bloque de Rendimiento, Latencia y Eficiencia Operativa
+RNF-01: El sistema posee un límite de tiempo de validación y respuesta de inicio de sesión menor a 1 segundo.
+RNF-02: La latencia interna para la validación de permisos de roles a nivel de servidor está restringida a un máximo de 50 milisegundos.
+RNF-03:  El proceso de registro de auditoría se delega a una cola de tareas en segundo plano (Background Job), garantizando que la orden no bloquee el hilo principal de la interfaz del usuario por más de 50 milisegundos al momento de la confirmación.
+RNF-04: La validación sintáctica estructural del DNI exige un tiempo de procesamiento del lado del cliente (Frontend) menor a 200 milisegundos antes de autorizar el envío.
+RNF-05: El tiempo de recuperación en caché de los umbrales personalizados de un paciente requiere un tiempo de ejecución menor a 100 milisegundos.
+RNF-06: La validación computacional de la estructura JSON entrante tiene una restricción de tiempo límite de 1 segundo.
+RNF-07: La consulta de búsqueda sobre tablas particionadas con docenas de miles de registros exige un tiempo de retorno menor a 2 segundos.
+RNF-08: La inserción masiva en base de datos de múltiples métricas tiene un tiempo máximo de consolidación de 1 segundo.
+RNF-09: El motor de reglas en la nube debe procesar el cálculo matemático de hasta 5 signos vitales simultáneos contra sus umbrales en un tiempo menor a 150 milisegundos por lectura.
+RNF-10: La carga inicial del Dashboard (recuperación del DOM, archivos estáticos y los primeros 50 pacientes) no debe superar los 3 segundos en conexiones de banda ancha estándar (10 Mbps).
+RNF-11: El algoritmo de ordenamiento de pacientes por estado de severidad está restringido a consumir menos de 500 milisegundos del motor SQL.
+RNF-12: El tiempo de respuesta de red desde la búsqueda interactiva de un paciente hasta la impresión en pantalla está limitado a 2 segundos.
+RNF-13: La latencia de red end-to-end (desde el servidor hasta la interfaz del médico) para alertas críticas exige un límite de 5 segundos.
+RNF-14: El proceso de filtrado y descarga del historial inmutable de 6 meses de emergencias posee un tiempo máximo de 2 segundos.
+Bloque de Escalabilidad, Concurrencia y Límite de Volúmenes
+RNF-15: La infraestructura de autenticación garantiza una tasa de procesamiento de 100 solicitudes simultáneas por segundo sin colapsos.
+RNF-16: El mecanismo anti-ataques cuenta con una restricción de umbral que bloquea la IP si recibe más de 10 intentos por segundo.
+RNF-17: El modelo de base de datos de gestión de personal está dimensionado para soportar fluidamente hasta 500 cuentas activas conectadas simultáneamente.
+RNF-18: El canal de grabación de auditoría soporta una tasa de ingesta máxima escalable de 1,000 registros por minuto.
+RNF-19: El diseño de esquema de datos de la aplicación estandariza una longitud fija y estricta (ej. PAC-0000) para los códigos de paciente.
+RNF-20: La regla de negocio exige emitir una alerta preventiva de saturación si un médico supera el límite de 500 pacientes asignados.
+RNF-21: La estructura física de la base de datos define el campo de diagnóstico con el tipo de dato 'TEXT' para soportar descripciones clínicas extensas sin límites de caracteres predefinidos.
+RNF-22: El procesamiento de desactivación de un paciente con una carga de datos histórica pesada (50,000 registros) tiene una tolerancia máxima de ejecución de 10 segundos, ejecutándose como tarea en segundo plano (Background Job).
+RNF-23: El servidor receptor IoT API está configurado para manejar un tráfico concurrente realista de 200 cargas JSON por segundo.
+RNF-24: El servicio receptor cuenta con un límite de intercepción configurado en 2 Megabytes máximos por archivo.
+RNF-25: El servicio de validación restringe el tamaño de los arreglos JSON a un máximo de 100 lecturas por petición para prevenir cuellos de botella.
+RNF-26: La arquitectura en la nube (Serverless) posee una propiedad de escalabilidad que dispara la creación automática de hilos paralelos si la cola supera los 100 datos.
+RNF-27: El almacenamiento de la clasificación de severidad utiliza una optimización espacial de 1 byte en la base de datos, en lugar de cadenas de texto.
+RNF-28: La base de datos garantiza la ejecución de 50 actualizaciones concurrentes de nivel de riesgo por segundo, sin producir interrupciones (Deadlocks).
+RNF-29: El motor de renderizado web asegura una fluidez visual continua de 30 cuadros por segundo (FPS) incluso al procesar 200 filas activas.
+RNF-30: La conexión bidireccional persistente (Websocket) posee un consumo de ancho de banda restringido a 1 Kilobyte por segundo en estado de espera.
+ Bloque de Integridad de Datos y Tolerancia a Fallos Operativos
+RNF-31: El servidor interrumpe (Timeout abortivo) cualquier intento de inicio de sesión tras 3 segundos de falta de respuesta del motor SQL.
+RNF-32: La restricción de bloqueo por intentos fallidos posee una duración inalterable de 30 minutos cronometrados.
+RNF-33: El sistema aplica una revocación inmediata (Invalidation) de la sesión en vivo si se detecta un cambio de rol operativo por un administrador.
+RNF-34: El modelo lógico contiene un bloqueo estricto anti-auto-desactivación, impidiendo que el último Administrador se elimine a sí mismo.
+RNF-35: El sistema despliega un proceso nocturno automático para el archivado en frío de los registros de auditoría que superen los 5 años.
+RNF-36: La asignación de identificadores autoincrementales está delegada de manera exclusiva al gestor transaccional (ACID) del servidor SQL.
+RNF-37: La baja de un médico exige la ejecución de un proceso de actualización en cascada, dejando a sus pacientes huérfanos en un tiempo menor a 5 segundos.
+RNF-38: Las tablas de texto clínico exigen el estándar de codificación de caracteres UTF-8 completos en toda la infraestructura.
+RNF-39: El API cuenta con un buffer de encolamiento temporal en memoria RAM (hasta 5 minutos) ante pérdidas intermitentes de conectividad con la base de datos.
+RNF-40: El sistema reemplaza automáticamente el tiempo de captura con el horario actual del servidor si detecta una desincronización mayor a 24 horas en el dispositivo emisor.
+RNF-41: El filtro estructural de validación de datos garantiza un índice de 0% en falsos positivos de rechazo.
+RNF-42: El Cortafuegos (Firewall) de red bloquea temporalmente las IPs emisoras de más de 500 paquetes corruptos por minuto.
+RNF-43: La política de respaldo ante desastres establece un Punto de Recuperación (RPO) máximo de 15 minutos de pérdida clínica garantizada.
+RNF-44: El validador aplica una regla de tolerancia a fallos parciales, procesando lecturas válidas de un arreglo y omitiendo solo los objetos corruptos del mismo.
+RNF-45: El analizador ejecuta una rutina de evasión de errores de 50ms si recibe una métrica sin diccionario configurado, suprimiendo la interrupción del sistema.
+RNF-46: El analizador procesa evaluaciones de riesgo funcional aun si faltan valores parciales en signos vitales compuestos (tolerancia a tuplas nulas).
+RNF-47: El sistema condensa y suprime cualquier alerta Crítica redundante generada en un intervalo menor a 10 segundos del mismo paciente.
+RNF-48: El servicio central asigna temporalmente el estado "Advertencia" (Fallback mode) si el motor de evaluación en la nube presenta un Timeout superior a 5 segundos.
+RNF-49: La configuración administrativa bloquea mediante índice único (Unique Constraint) cualquier intento de colisión de nombres al crear métricas repetidas.
+RNF-50: El motor de ordenamiento aplica un cálculo determinista y de desempate usando la marca de tiempo (timestamp) ante la colisión de dos pacientes críticos.
+RNF-51: La interfaz procesa variables nulas (Null values) provenientes del backend imprimiendo inofensivamente "Sin lectura", evadiendo el colapso del script (Crash).
+RNF-52: La API transaccional cuenta con una condición de carrera que rechaza el segundo clic interactivo si dos médicos atienden la misma alerta simultáneamente.
+RNF-53: El cliente web activa una cola de reintento en segundo plano de 3 segundos de cadencia si el clic de atención falla por cortesía de la red local.
+Bloque de Seguridad Estricta y Cumplimiento Legal
+RNF-54: El túnel de comunicación web impone encriptación en tránsito estricta bajo el estándar TLS 1.2+.
+RNF-55: El registro de cuentas restringidas persiste a nivel del servidor caché (Redis), impidiendo su evasión mediante la eliminación de cookies del navegador.
+RNF-56: La interrupción del servidor de verificación de permisos desencadena un perfil defensivo "Fail-Closed", denegando cualquier visualización de datos por defecto.
+RNF-57: Las modificaciones destructivas de usuarios demandan un paso adicional de re-autenticación de seguridad obligatoria.
+RNF-58: La arquitectura de la base de datos de auditoría debe estar preparada estructuralmente para una futura integración con repositorios de inmutabilidad física (WORM) en siguientes fases.
+RNF-59: El flujo de registro ejecuta una sanitización automática pre-envío eliminando metacaracteres no numéricos del documento DNI.
+RNF-60: Los repositorios de datos médicos residen en discos duros provistos de cifrado de datos en reposo (AES-256).
+RNF-61: El servicio Backend somete todos los textos ingresados a filtros de sanitización contra vulnerabilidades de inyección de código (XSS/SQLi).
+RNF-62: La inhabilitación clínica está restringida al cumplimiento previo de la exportación de un documento médico-legal inalterable (PDF) del historial del paciente.
+RNF-63: El sistema graba de forma persistente el ID de usuario del Médico responsable junto con cada modificación paramétrica de los umbrales de riesgo.
+RNF-64: El filtro de ingreso restringe el procesamiento, exigiendo estrictamente Tipos de Dato correspondientes (ej. rechaza Strings en valores que deban ser Float).
+RNF-65: Las lecturas biométricas estandarizan una marca de tiempo inalterable basada en el Horario Universal (UTC) por reglas de auditoría clínica.
+RNF-66: Las respuestas HTTP correspondientes a fallos operacionales en la ingesta suprimen totalmente la impresión del Stack-Trace de depuración técnica.
+RNF-67: Los historiales clínicos archivados ejecutan una compresión paramétrica y cifrado tras superar los 12 meses de antigüedad.
+RNF-68: La plataforma exige la generación de un token JWT exclusivamente para la gestión de la sesión tras el login, sin requerir re-validación token por token en el backend para eventos internos como "atender paciente".
+RNF-69: El esquema relacional anula programáticamente el comando SQL "DELETE" para asegurar la inmutabilidad de eventos críticos.
+RNF-70: Las políticas de cumplimiento imponen la preservación íntegra de la pista de auditoría médica de emergencias por un lapso de 10 años continuos.
+Bloque de Arquitectura Dinámica y Experiencia de Usuario
+RNF-71: El límite físico de escritura de texto provoca una barrera blanda de detención visual (Truncamiento preventivo) en la interfaz web alertando del tope de caracteres.
+RNF-72: La configuración matemática cuenta con restricciones lógicas algorítmicas que prohíben categóricamente establecer un "mínimo" numérico superior a un "máximo".
+RNF-73: La interfaz receptora garantiza la ingesta asumiendo la retrocompatibilidad (Backward compatibility) API, ignorando campos JSON irrelevantes de versiones de firmware antiguas.
+RNF-74: Las operaciones matemáticas y de base de datos se ejecutan conservando fracciones flotantes de hasta 2 decimales sin redondeo automático destructivo.
+RNF-75: El motor clínico despliega un diccionario de métricas indexado en una memoria caché temporal de acceso ultrarrápido (tipo Redis).
+RNF-76: El diseño de celdas visuales escala dinámicamente para absorber la inserción de acrónimos clínicos de hasta 10 caracteres sin desfigurar la estructura.
+RNF-77: Las interfaces tabulares de pacientes integran restricciones algorítmicas de visualización por lotes (Paginación dura de máximo 50 resultados).
+RNF-78: Las prioridades semánticas incluyen obligatoriamente iconografía clínica estandarizada, actuando como 
+
+2.2. Lista de requerimientos Funcionales
+Módulo 01: Seguridad y control de acceso 
+RF-01: El sistema debe permitir el inicio de sesión del personal de salud (médicos y enfermeros de PADOMI) mediante credenciales únicas (usuario y contraseña).
+RF-02: El sistema debe bloquear temporalmente la cuenta de un usuario tras 3 intentos fallidos consecutivos de inicio de sesión por motivos de seguridad.
+RF-03: El sistema debe gestionar tres roles de usuario con distintos privilegios: Administrador del Sistema, Médico Tratante y Personal de Monitoreo.
+RF-04: El sistema debe permitir al rol administrador registrar, modificar y deshabilitar cuentas de personal médico.
+RF-05: El sistema debe generar un log de auditoría automático que registre la fecha, hora, usuario y acción realizada (ej. inicio de sesión, modificación de datos).
+Módulo 02: Gestión de pacientes
+RF-06: El sistema debe permitir el registro de nuevos pacientes crónicos ingresando su DNI, nombres completos, edad, dirección y contacto de emergencia.
+RF-07: El sistema debe generar y asignar automáticamente un código único autoincremental a cada paciente al momento de completar su registro, para su correcta identificación en el historial.
+RF-08: El sistema debe permitir asociar formalmente a un paciente con un Médico Tratante específico responsable de su caso.
+RF-09: El sistema debe permitir el registro y actualización del diagnóstico principal y las comorbilidades del paciente.
+RF-10: El sistema debe permitir cambiar el estado de un paciente a "Inactivo" o "Alta" para excluirlo temporal o definitivamente del panel de monitoreo activo.
+RF-11: El sistema debe permitir asignar umbrales biométricos de riesgo personalizados para cada paciente (ej. límite máximo de presión arterial específico según su condición).
+Módulo 03: Recepción e integración de datos biométricos 
+RF-12: El sistema debe permitir la recepción automática y continua de los datos biométricos enviados por los dispositivos de monitoreo de los pacientes.
+RF-13: El sistema debe verificar que los datos biométricos recibidos contengan toda la estructura de información obligatoria antes de ser procesados.
+RF-14: El sistema debe registrar de cada lectura biométrica: el identificador del paciente, el tipo de métrica (enfermedad o signo), los valores registrados, la unidad de medida y la fecha/hora exacta de la medición.
+RF-15: El sistema debe rechazar y descartar automáticamente los registros biométricos entrantes que estén incompletos o presenten formatos de datos inválidos.
+RF-16: El sistema debe almacenar el historial completo de todas las lecturas biométricas validadas, vinculados automáticamente al expediente clínico del paciente correspondiente.
+RF-17:  El sistema debe permitir la recepción simultánea de múltiples tipos de métricas (ej. presión y glucosa al mismo tiempo) de un mismo paciente en un solo envío.
+Módulo 04: Módulo de Triaje Automatizado y Evaluación Clínica
+RF-18: El sistema debe identificar dinámicamente el tipo de métrica recibido y aplicar exclusivamente la lógica de validación correspondiente a esa condición clínica (ej. reglas de diabetes para la glucosa, ignorando las reglas de hipertensión).
+RF-19: El sistema debe evaluar los valores biométricos recibidos comparándolos matemáticamente contra los umbrales máximos y mínimos configurados para el paciente.
+RF-20: El sistema debe clasificar el resultado de la lectura en tres estados de severidad estandarizados: Normal (Verde), Advertencia (Amarillo) o Crítico (Rojo), independientemente de la enfermedad analizada.
+RF-21: El sistema debe soportar la agregación de nuevos tipos_metrica (ej. si en el futuro EsSalud decide monitorear la temperatura corporal) mediante la interfaz administrativa, sin necesidad de reprogramar el código fuente del motor de reglas.
+RF-22: El sistema debe actualizar el nivel de riesgo global del paciente en la base de datos inmediatamente después de procesar una lectura que resulte en estado "Crítico".
+Módulo 05: Módulo de Monitoreo Clínico
+RF-23: El sistema debe mostrar al médico una tabla central (Dashboard) con la lista de pacientes, indicando su diagnóstico principal y su estado de riesgo actual.
+RF-24: El sistema debe ordenar automáticamente a los pacientes, priorizando en la parte superior a aquellos que presenten métricas en estado "Crítico" o "Advertencia".
+RF-25: El sistema debe incluir un buscador en tiempo real (respuesta < 2 segundos) para filtrar pacientes por nombre o DNI.
+RF-26: El sistema debe renderizar dinámicamente las unidades de medida en la interfaz gráfica según la enfermedad del paciente (ej. mostrando "mg/dL" si el paciente es diabético, o "mmHg" si es hipertenso).
+RF-27: El sistema debe generar gráficos de evolución históricos, permitiendo al médico usar un menú desplegable para alternar entre las diferentes métricas registradas para un mismo paciente (ej. ver curva de glucosa y luego cambiar a curva de peso).
+Módulo 06: Gestión de alertas
+RF-28: El sistema debe emitir una alerta visual destacada (color rojo) en el dashboard indicando no sólo el nombre del paciente, sino el contexto clínico exacto de la emergencia (ej. "Alerta Glucosa crítica: 320 mg/dL" o "Alerta Presión arterial crítica: 180/110 mmHg").
+RF-29: El sistema debe requerir que el usuario médico ejecute una acción afirmativa (clic en "Marcar como Atendido") para silenciar la notificación en curso.
+RF-30: El sistema debe registrar un historial inmutable de alertas que detalle el tipo_metrica que falló, el valor crítico registrado, la hora exacta y qué profesional de la salud validó la emergencia.
+3.1 Diagrama de casos de uso de negocio  
+3.1.1 Actores del Sistema
+El sistema interactúa con tres entidades principales (dos humanas y una de hardware):
+Administrador del Sistema: Personal de TI encargado de la configuración de la plataforma, roles y catálogos de parámetros médicos.
+Personal Médico: Agrupa a los médicos tratantes y enfermeros de PADOMI encargados de registrar pacientes y monitorear el dashboard de alertas.
+Dispositivo IoT / Gateway: Actor de sistema (No humano) que emite automáticamente las cargas de datos (JSON) con los signos vitales.
+3.1.2 Casos de Uso Principales
+Actor: Administrador del Sistema y Personal Médico (Ambos)
+CU-01: Iniciar Sesión en la Plataforma. Permite al usuario autenticarse para ingresar al sistema.
+Actor: Administrador del Sistema
+CU-02: Gestionar Cuentas de Personal. Permite crear, editar o inactivar cuentas de médicos y asignarles roles.
+CU-03: Gestionar Catálogo de Métricas. Permite agregar nuevas enfermedades o signos vitales al sistema.
+Actor: Personal Médico
+CU-04: Registrar Paciente Crónico. Permite ingresar los datos iniciales y asignar un médico tratante a un nuevo paciente de PADOMI.
+CU-05: Gestionar Perfil del Paciente. Permite visualizar y editar la información clínica base del paciente.
+CU-06: Monitorear Dashboard Clínico. Permite observar la tabla de pacientes ordenados por nivel de riesgo en tiempo real.
+CU-07: Atender Emergencia Médica. Permite al médico confirmar la recepción y gestión de una alerta crítica.
+Actor: Dispositivo IoT / Gateway
+CU-08: Ingestar Datos Biométricos. Acción donde el sistema recibe el paquete de datos del exterior.
+CU-09: Procesar Reglas Clínicas. Acción donde el motor en la nube analiza si los datos representan un peligro.
+3.1.3 Relaciones de Inclusión y Extensión (<<include>> y <<extend>>)
+Relaciones del CU-01 (Iniciar Sesión)
+<<include>> CU-10: Validar Credenciales. (Obligatorio: El sistema siempre debe consultar la base de datos).
+<<extend>> CU-11: Bloquear Cuenta. (Condicional: Solo se activa SI el usuario falla 3 veces).
+Relaciones del CU-04 (Registrar Paciente)
+<<include>> CU-12: Generar Código Autoincremental. (Obligatorio: Ningún paciente se guarda sin que el sistema le asigne su código PAC-XXXX).
+Relaciones del CU-05 (Gestionar Perfil)
+<<extend>> CU-13: Configurar Umbrales Personalizados. (Condicional: El médico puede entrar a cambiarlos, pero si no lo hace, se usan los estándar).
+<<extend>> CU-14: Cambiar Estado a Inactivo. (Condicional: Es un flujo excepcional que solo ocurre si el paciente es dado de alta o fallece).
+Relaciones del CU-06 (Monitorear Dashboard)
+<<extend>> CU-15: Filtrar Paciente por Buscador. (Condicional: Sólo ocurre si el médico decide usar la barra de búsqueda).
+<<extend>> CU-16: Visualizar Histórico Gráfico. (Condicional: Sólo ocurre si el médico hace clic en el nombre de un paciente para ver sus curvas).
+Relaciones del CU-07 (Atender Emergencia)
+<<include>> CU-17: Registrar Acción en Auditoría. (Obligatorio: Siempre que alguien apaga una alerta, el sistema debe guardar inmutablemente quién lo hizo).
+Relaciones de los CU-08 y CU-09 (Ingesta y Triaje - Dispositivo IoT)
+El CU-08 <<include>> CU-18: Validar Formato JSON. (Obligatorio: Antes de procesar nada, el servidor revisa que el archivo esté bien armado).
+El CU-08 <<extend>> CU-19: Rechazar Paquete de Datos. (Condicional: Sólo ocurre SI el JSON viene corrupto).
+El CU-09 <<extend>> CU-20: Disparar Alerta Visual. (Condicional: Solo se enciende la alerta roja en el dashboard SI el cálculo matemático resulta en "Crítico").
+
+
+3.6 Diseño de software  
+3.6.1. Arquitectura General 
+
+3.6.2. Arquitectura Detallada por Caso de Uso 
+CU-01: Iniciar Sesión  
+Capa 1: Presentación
+Es el punto de contacto donde el personal médico o administrativo ingresa sus credenciales.
+auth.routes.ts: Define la ruta de acceso (ej. POST /auth/login). Mapea la solicitud hacia el controlador de autenticación.
+auth.controller.ts: Recibe el Request con las credenciales, las envía al servicio de aplicación y espera el resultado. Si es exitoso, retorna el Token JWT con un estado 200 OK. Si falla, retorna un 401 Unauthorized.
+Capa 2: Aplicación
+Orquestación de la seguridad y validación de formatos.
+auth.service.ts: Coordina el proceso: llama al repositorio para buscar al usuario por su correo/DNI, solicita a la entidad que valide la contraseña y, si todo es correcto, genera el token de acceso.
+login.dto.ts: Valida que el cuerpo de la petición contenga un correo con formato válido y una contraseña que cumpla con el mínimo de caracteres, protegiendo al controlador de datos malformados.
+Capa 3: Dominio 
+Reglas esenciales de identidad y acceso.
+usuario.entity.ts: Entidad pura que representa al usuario. Contiene métodos de validación de negocio, como comparar el hash de la contraseña recibida con el almacenado y verificar si la cuenta está activa o bloqueada.
+usuario.repository.ts: Interfaz que define las operaciones necesarias para la autenticación, principalmente el método buscarPorEmail() o buscarPorDni().
+Capa 4: Infraestructura 
+Detalles de persistencia y herramientas externas (TypeORM/Bcrypt).
+usuario.model.ts: Modelo del ORM que define la tabla de usuarios en Azure SQL (columnas para email, password hash, rol, etc.).
+usuario.mapping.ts: Transforma el modelo de la base de datos (que trae el hash) a la entidad de dominio para que el servicio pueda operar con ella de forma segura.
+usuario.interf.ts: Implementación real que realiza la consulta SQL mediante TypeORM para recuperar los datos del usuario
+
+
+CU-02: Gestionar Cuentas de Personal  
+Capa 1: Presentación
+Es la interfaz para el Administrador de EsSalud.
+personal.routes.ts: Define rutas como POST /personal (crear), GET /personal (listar) o PUT /personal/:id (editar).
+personal.controller.ts: Recibe las peticiones del administrador. Llama al servicio de gestión de cuentas y devuelve la respuesta (201 para creación, 200 para listados). No contiene lógica, solo gestiona la entrada y salida de la API.
+Capa 2: Aplicación
+Orquestación de las acciones administrativas.
+gestionar-cuentas.service.ts: Es el cerebro que coordina: llama al repositorio para verificar si el DNI del nuevo médico ya existe, cifra la contraseña inicial y solicita guardar. Reutiliza la lógica de validación de otros servicios si es necesario.
+registro-personal.dto.ts: Valida que el body traiga datos correctos (DNI de 8 dígitos, correo institucional válido, rol asignado: 'MEDICO', 'ADMIN', etc.).
+Capa 3: Dominio 
+Aplicamos la reutilización de entidades.
+usuario.entity.ts: Es la misma entidad pura que definimos para el CU-01. Contiene los atributos (nombre, cargo, especialidad) y métodos de validación (ej. validar que el médico tenga un número de colegiatura válido). Al ser la misma, garantizamos que las reglas de usuario sean consistentes en todo el sistema.
+usuario.repository.ts: La interfaz que define métodos como save(), update() y findAll().
+Capa 4: Infraestructura 
+Implementación técnica con TypeORM.
+usuario.model.ts: El mismo modelo de base de datos que mapea a la tabla de usuarios en SQL.
+usuario.mapping.ts: El traductor que convierte los datos de la base de datos a la entidad para que el servicio pueda mostrarlos en el dashboard del administrador.
+personal.interf.ts: Contiene la implementación real de las consultas de gestión (ej. la lógica específica para listar a todo el personal con filtros por especialidad).
+
+
+CU-03: Gestionar Catálogo de Métricas
+Capa 1: Presentación
+Es el punto donde el Administrador configura qué signos vitales puede procesar el sistema.
+catalogo.routes.ts: Define los endpoints para el mantenimiento (ej. POST /catalogo para crear una métrica o GET /catalogo para ver el listado).
+catalogo.controller.ts: Recibe la solicitud del administrador, la envía al servicio de aplicación y retorna la respuesta (201 si se creó una métrica o 200 si se listaron). No contiene lógica de validación, solo gestiona la comunicación
+Capa 2: Aplicación
+Orquestación de la gestión de parámetros clínicos.
+catalogo.service.ts: Coordina el flujo: llama a la interfaz del repositorio para verificar que el nombre de la métrica no esté duplicado y guarda la nueva configuración. También se encarga de actualizar la caché (Redis) para que el motor de reglas (CU-09) lea los datos rápido.
+metrica.dto.ts: Valida los datos del body (nombre de la métrica, unidad de medida como mg/dL o mmHg, y los rangos estándar). Asegurar que no lleguen campos vacíos al servicio.
+Capa 3: Dominio 
+Reglas de negocio clínico independientes de la tecnología.
+metrica.entity.ts: Entidad pura con propiedades y métodos de validación de negocio. Aquí aplicamos el RNF-72: la entidad tiene un método que prohíbe guardar si el valor "mínimo" ingresado es superior al "máximo".
+metrica.repository.ts: Define la interfaz de persistencia conectada a la entidad. Indica qué operaciones se pueden hacer con el catálogo (guardar, editar, inactivar).
+Capa 4: Infraestructura 
+Detalles técnicos y persistencia con TypeORM.
+metrica.model.ts: Define la estructura de la tabla en SQL, incluyendo restricciones como el Unique Constraint (RNF-49) para evitar nombres de métricas repetidos.
+metrica.mapping.ts: El "traductor" que transforma la Entidad (con su lógica de rangos) al Modelo (para la base de datos) y viceversa.
+metrica.interf.ts: Implementación real de la persistencia. Aquí se conecta con el repositorio de TypeORM para ejecutar el guardado físico en la base de datos.
+
+
+CU-04: Registrar Paciente Crónico
+Capa 1: Presentación
+Es el punto donde el Médico ingresa los datos del nuevo paciente de PADOMI.
+registro-paciente.routes.ts: Define el endpoint POST /pacientes. Recibe la solicitud y la dirige al controlador.
+registro-paciente.controller.ts: Su función es recibir el Request, enviarlo al servicio de aplicación y retornar la respuesta (201 Created si el registro es exitoso). Se encarga de manejar los códigos de estado HTTP según el resultado.
+Capa 2: Aplicación
+Orquestación del flujo de registro y validación inicial.
+registrar-paciente.service.ts: Coordina el proceso: verifica mediante la interfaz si el DNI ya existe , solicita la generación del código correlativo automático (PAC-XXXX) e invoca al repositorio para guardar. También verifica si el médico asignado excede su límite de carga laboral (RNF-20).
+paciente.dto.ts: Contiene los datos del body (DNI, nombres, edad, diagnóstico). Aquí se aplican las validaciones de formato (DNI de 8 dígitos) y la sanitización de caracteres no numéricos (RNF-59).
+Capa 3: Dominio 
+Reglas de negocio clínico y propiedades esenciales del paciente.
+paciente.entity.ts: Entidad pura con atributos y métodos de validación de negocio. Aquí reside la lógica que asegura la integridad de los datos médicos antes de que lleguen a la infraestructura.
+paciente.repository.ts: Interfaz que define las operaciones de persistencia (como save y findByDni) conectada directamente a la entidad.
+Capa 4: Infraestructura 
+Detalles técnicos y persistencia física en SQL.
+paciente.model.ts: Define la estructura de la tabla de pacientes en la base de datos de Azure usando TypeORM. No contiene lógica, solo la definición física de los campos.
+paciente.mapping.ts: El "traductor" que transforma el Modelo de la base de datos a la Entidad pura y viceversa.
+paciente.interf.ts: Implementación real de la persistencia que se comunica con SQL. Aquí se gestiona la generación del ID autoincremental PAC-XXXX delegado al gestor transaccional (RNF-36).
+
+
+
+CU-05: Gestionar Perfil del Paciente
+Capa 1: Presentación
+Es la interfaz donde el médico visualiza y modifica la información clínica detallada.
+gestionar-perfil.routes.ts: Define rutas como GET /pacientes/:id para ver el perfil y PATCH /pacientes/:id para actualizaciones parciales.
+gestionar-perfil.controller.ts: Recibe la solicitud de búsqueda o edición, la envía al servicio y retorna los datos del paciente o la confirmación del cambio con un estado 200 OK.
+Capa 2: Aplicación
+Orquestación de la actualización clínica y configuración de alertas.
+gestionar-perfil.service.ts: Coordina la recuperación de datos desde la caché para visualización instantánea (menor a 100ms) y procesa la actualización de antecedentes o umbrales.
+actualizar-perfil.dto.ts: Valida que los datos de edición (comorbilidades, medicación) y los nuevos umbrales biométricos tengan el formato correcto antes de ser procesados.
+Capa 3: Dominio 
+Reglas de negocio clínico y validación de parámetros de riesgo.
+paciente.entity.ts: Incluye la lógica para asegurar que el perfil sea coherente. Aquí se aplica el método que impide dar de alta a un paciente si tiene alertas críticas pendientes.
+umbral.entity.ts: Entidad que valida la coherencia matemática de los límites (mínimo < máximo) y conserva la precisión de hasta 2 decimales
+Capa 4: Infraestructura 
+Persistencia técnica y optimización de acceso.
+paciente.model.ts: Define la estructura física de la tabla en SQL, permitiendo campos de texto extenso para diagnósticos.
+paciente.mapping.ts: Traduce el modelo de base de datos a la entidad pura para que el médico vea la información procesada.
+paciente.interf.ts: Implementación que graba de forma persistente el ID del médico responsable de cada modificación de umbrales para fines de auditoría.
+
+
+CU-06: Monitorear Dashboard Clínico
+Capa 1: Presentación
+Es la vista principal del médico donde observa el estado de todos sus pacientes.
+dashboard.routes.ts: Define el acceso al panel principal.
+dashboard.controller.ts: Gestiona la carga inicial del Dashboard. Establece la conexión WebSocket para recibir actualizaciones asíncronas de alertas críticas sin que el médico tenga que refrescar la página.
+Capa 2: Aplicación
+Orquestación de la consulta priorizada y filtrado.
+monitoreo.service.ts: Ejecuta la lógica de visualización: solicita al repositorio la lista de pacientes, asegurando que el ordenamiento priorice a aquellos en estado "Crítico" o "Advertencia".
+filtro-paciente.dto.ts: Valida los parámetros de búsqueda (Nombre o DNI) para asegurar que la consulta sea precisa y rápida (menor a 2 segundos).
+Capa 3: Dominio 
+Reglas de clasificación y lógica de visualización clínica.
+alerta.entity.ts: Aunque la alerta nace en el CU-09, aquí se utiliza para determinar el color de la fila en el Dashboard (Rojo, Amarillo, Verde) basado en el nivel de riesgo global del paciente.
+dashboard.repository.ts: Interfaz que define los métodos de consulta masiva y filtrado, manteniendo la independencia de la base de datos SQL.
+Capa 4: Infraestructura 
+Optimización de consultas y persistencia.
+alerta.model.ts: Representación física de las alertas en la base de datos de Azure SQL.
+alerta.mapping.ts: Transforma los estados de la base de datos (generalmente códigos numéricos para ahorrar espacio) en etiquetas semánticas de dominio para el médico.
+monitoreo.interf.ts: Implementación de la consulta SQL optimizada. Utiliza Paginación (máximo 50 resultados por lote) para garantizar fluidez visual y no saturar la memoria del servidor.
+
+
+CU-07: Atender Emergencia Médica
+Capa 1: Presentación
+Es el punto donde el médico interactúa con la alerta visual para gestionarla.
+atencion.routes.ts: Define el endpoint POST /alertas/:id/atender. Mapea la acción de "silenciar" o gestionar la emergencia.
+atencion.controller.ts: Recibe la instrucción del médico (clic en "Marcar como Atendido"). Envía la petición al servicio y retorna una confirmación visual de éxito o un error si la alerta ya fue gestionada por otro colega.
+Capa 2: Aplicación
+Orquestación de la respuesta ante la crisis y prevención de duplicidad.
+atender-alerta.service.ts: Coordina el flujo crítico: verifica que la alerta no haya sido atendida previamente por otro médico (evitando colisiones) , solicita el cambio de estado y dispara obligatoriamente el registro en la auditoría.
+atencion.dto.ts: Valida los datos del body (ID de la alerta, ID del médico, comentario opcional de atención) antes de procesar la transacción.
+Capa 3: Dominio 
+Reglas de integridad y validación de la gestión médica.
+alerta.entity.ts: Contiene la lógica para cambiar el estado de "Crítico" a "Gestionado". Incluye validaciones para asegurar que una alerta no pueda ser eliminada, solo actualizada en su estado de atención.
+alerta.repository.ts: Interfaz que define el método de actualización transaccional, garantizando que el registro de la emergencia sea permanente para fines médico-legales.
+Capa 4: Infraestructura 
+Persistencia física y control de concurrencia.
+alerta.model.ts: Representación de la alerta en SQL. Aquí se configura el bloqueo lógico que anula el comando DELETE para asegurar la inmutabilidad.
+alerta.mapping.ts: Traduce la entidad de alerta gestionada al formato de persistencia.
+atencion.interf.ts: Implementación real que maneja la condición de carrera. Si dos médicos intentan atender la misma alerta al mismo tiempo, esta capa rechaza el segundo intento mediante bloqueos transaccionales (ACID).
+
+
+CU-08: Ingestar Datos Biométricos 
+Capa 1: Presentación
+Es la puerta de entrada para los paquetes JSON del IoT.
+ingesta.routes.ts: Define la ruta del API (ej. POST /ingesta). Indica que la petición debe ser enviada al controlador correspondiente.
+ingesta.controller.ts: Llama al servicio de la capa de aplicación. Su única función es recibir el Request, pasar los datos al servicio y retornar la respuesta HTTP (201 Created o 400 Bad Request). No valida datos, solo redirige.
+Capa 2: Aplicación 
+Aquí reside la orquestación del caso de uso.
+ingesta.service.ts: Es el archivo que llama a las interfaces de la capa de infraestructura. Coordina el flujo: recibe los datos, usa el DTO para validarlos, crea la entidad de dominio y ordena al repositorio que la guarde.
+ingesta.dto.ts: Contiene los datos del body. Es aquí donde se validan los tipos de datos (ej. que el ID del paciente sea una cadena y el valor biométrico un número) para evitar que el controlador procesa información que no le corresponde.
+Capa 3: Dominio 
+Representa las reglas puras del negocio de salud, independientes de la tecnología.
+lectura.entity.ts: Entidad pura que contiene las propiedades, atributos y métodos de validación del negocio. Por ejemplo, valida que la frecuencia cardíaca esté en un rango humano posible antes de permitir su creación.
+lectura.repository.ts: Define la interfaz de persistencia. Está conectada directamente a la entidad y no a los modelos de infraestructura.
+Capa 4: Infraestructura 
+Es la capa de los detalles técnicos y el ORM (TypeORM).
+lectura.model.ts: Define las propiedades con las tablas de la base de datos para el ORM. No contiene métodos de lógica, solo la estructura de datos que se mapea a SQL.
+lectura.mapping.ts: Es el "traductor". Se encarga de transformar la entidad a modelo (para guardar en la DB) y el modelo a entidad (para procesar en el dominio).
+lectura.interf.ts: Contiene la implementación real de los servicios que se llaman desde las interfaces, ya que están conectadas al repositorio para persistir los datos físicamente.
+
+
+CU-09: Procesar Reglas Clínicas
+Capa 1: Presentación
+Esta capa no es necesariamente una ruta HTTP externa, sino el punto de entrada del proceso.
+reglas.event.ts: Actúa como el disparador que recibe la señal del CU-08 indicando que hay una nueva lectura lista para ser evaluada.
+reglas.controller.ts: Recibe el evento con los datos de la lectura y los entrega al servicio de aplicación para iniciar el análisis clínico.
+Capa 2: Aplicación 
+Es donde se coordina la "inteligencia" del sistema.
+motor-reglas.service.ts: Orquestador que recupera los umbrales personalizados del paciente (usando la interfaz del repositorio) y llama a la entidad para realizar la comparación matemática. Si se detecta un riesgo, decide si se debe notificar al médico.
+evaluacion.dto.ts: Define la estructura de salida del análisis (ej. pacienteId, estado: 'CRITICO', metrica: 'Glucosa') para asegurar que la información viaje limpia hacia el Dashboard.
+Capa 3: Dominio 
+Contiene la lógica médica pura, el corazón de las alertas.
+evaluacion.entity.ts: Entidad pura que realiza el cálculo determinista. Aquí se aplica la lógica de comparar el valor recibido contra el umbral_min y umbral_max. Clasifica el resultado en Normal, Advertencia o Crítico.
+evaluacion.repository.ts: Interfaz que define las operaciones para actualizar el nivel de riesgo global del paciente en el sistema.
+Capa 4: Infraestructura 
+Detalles técnicos y optimización de datos para misión crítica.
+evaluacion.model.ts: Define la tabla donde se guardan los estados de severidad y las marcas de tiempo en la base de datos SQL.
+evaluacion.mapping.ts: Traduce el resultado del análisis (Entidad) al formato que la base de datos entiende, asegurando que se use optimización espacial (ej. 1 byte para el nivel de riesgo).
+reglas.interf.ts: Implementación real de la persistencia. Se conecta con la base de datos para actualizar el estado del paciente y, si es crítico, activa el envío mediante WebSockets hacia el médico
+
+
+3.7 Especificación de casos de uso
+Para evitar redundancia técnica, las especificaciones se centran en los Casos de Uso Principales (CU-01 al CU-09). Los casos de uso de inclusión  y extensión se detallan íntegramente dentro de los flujos de sus respectivos casos de uso raíz. 
+
+Caso de Uso 
+CU01- Iniciar Sesión en la plataforma 
+Descripción 
+Permite que el Administrador o el Personal Médico se autentiquen para acceder a las funciones del sistema según su rol. 
+Actores
+Administrador del Sistema, Personal Médico 
+Precondiciones
+El usuario debe estar registrado en el sistema y tener estado "Activo". 
+RF Asociados
+RF-01:El sistema debe permitir el inicio de sesión del personal de salud (médicos y enfermeros de PADOMI) mediante credenciales únicas 
+RF-02: El sistema debe bloquear temporalmente la cuenta de un usuario tras 3 intentos fallidos consecutivos de inicio de sesión por motivos de seguridad 
+RF-03: El sistema debe gestionar tres roles de usuario con distintos privilegios: Administrador del Sistema, Médico Tratante y Personal de Monitoreo. 
+RNF Asociados 
+RNF-01: El sistema posee un límite de tiempo de validación y respuesta de inicio de sesión menor a 1 segundo. 
+RNF-32: La restricción de bloqueo por intentos fallidos posee una duración inalterable de 30 minutos cronometrados. 
+RNF-68: La plataforma exige la generación de un token JWT exclusivamente para la gestión de la sesión .
+Flujo Básico 
+1. El usuario ingresa su DNI y contraseña en la interfaz de login.
+2. El sistema invoca al CU-10 (Validar Credenciales) para verificar la identidad.
+3. El sistema genera un Token JWT para la sesión (RNF-68).
+4. El sistema registra el acceso en la auditoría (RF-05).
+5. El sistema redirige al usuario al Dashboard correspondiente según su rol.
+Flujos Alternos 
+A1: Credenciales Incorrectas: Si los datos no coinciden, el sistema muestra un mensaje de error de credenciales inválidas (RNF-01) e incrementa el contador de fallos.
+A2: Bloqueo de Cuenta: Si el contador llega a 3 fallos consecutivos, el sistema invoca al CU-11 (Bloquear Cuenta) por 30 minutos (RNF-32)
+Postcondiciones
+El usuario accede al sistema con una sesión activa y segura. 
+
+
+
+Caso de Uso 
+CU02- Gestionar Cuentas de Personal 
+Descripción 
+Permite al Administrador del sistema realizar el mantenimiento (registro, edición o inhabilitación) de las cuentas de los profesionales de salud.
+Actores
+Administrador del Sistema. 
+Precondiciones
+El Administrador debe haber iniciado sesión exitosamente (CU-01) y contar con los permisos de rol correspondientes. 
+RF Asociados
+RF-03: El sistema debe gestionar tres roles de usuario con distintos privilegios: Administrador del Sistema, Médico Tratante y Personal de Monitoreo. 
+RF-04: El sistema debe permitir al rol administrador registrar, modificar y deshabilitar cuentas de personal médico. 
+RF-05: El sistema debe generar un log de auditoría automático que registre la fecha, hora, usuario y acción realizada (ej. inicio de sesión, modificación de datos). 
+RNF Asociados 
+RNF-02: La latencia interna para la validación de permisos de roles a nivel de servidor está restringida a un máximo de 50 milisegundos. 
+RNF-17: El modelo de base de datos de gestión de personal está dimensionado para soportar fluidamente hasta 500 cuentas activas conectadas simultáneamente. 
+RNF-34: El modelo lógico contiene un bloqueo estricto anti-auto-desactivación, impidiendo que el último Administrador se elimine a sí mismo. 
+RNF-57: Las modificaciones destructivas de usuarios demandan un paso adicional de re-autenticación de seguridad obligatoria. 
+Flujo Básico 
+1. El Administrador ingresa al módulo de "Gestión de Personal".
+2. El sistema recupera y muestra la lista de usuarios actuales (RNF-17).
+3. El Administrador selecciona una operación: Crear, Editar o Inactivar.
+4. El sistema valida los datos ingresados (DNI único, formato de correo).
+5. El sistema persiste los cambios en la base de datos.
+6. El sistema invoca automáticamente al CU-17 (Registrar Acción en Auditoría) para grabar la operación (RF-05).
+7. El sistema confirma el éxito de la operación en pantalla.
+Flujos Alternos 
+A1: Intento de auto-eliminación: Si el último Administrador intenta inactivar su propia cuenta, el sistema bloquea la acción y muestra un error “Operación no permitida” (RNF-34).
+A2: Usuario ya existente: Si se intenta registrar un DNI que ya existe, el sistema rechaza la operación y notifica al usuario.
+A3: Error de red: Si el motor SQL no responde en 3 segundos, el sistema aborta la transacción (RNF-31).
+Postcondiciones
+La base de datos de personal se actualiza y se genera un registro inmutable en el log de auditoría 
+
+
+
+
+
+Caso de Uso 
+CU-03: Gestionar Catálogo de Métricas
+Descripción 
+Permite al Administrador gestionar (crear, editar o inactivar) el catálogo de enfermedades y signos vitales que el sistema es capaz de procesar, definiendo sus unidades de medida y parámetros base. 
+Actores
+Administrador del Sistema. 
+Precondiciones
+El Administrador debe estar autenticado en la plataforma (CU-01)
+RF Asociados
+RF-18: El sistema debe identificar dinámicamente el tipo de métrica recibido y aplicar exclusivamente la lógica de validación correspondiente a esa condición clínica.
+RF-21: El sistema debe soportar la agregación de nuevos tipos_metrica mediante la interfaz administrativa, sin necesidad de reprogramar el código fuente del motor de reglas. 
+RF-26: El sistema debe renderizar dinámicamente las unidades de medida en la interfaz gráfica según la enfermedad del paciente (ej. mostrando "mg/dL" si el paciente es diabético, o "mmHg" si es hipertenso). 
+RNF Asociados 
+RNF-49: La configuración administrativa bloquea mediante índice único (Unique Constraint) cualquier intento de colisión de nombres al crear métricas repetidas. 
+RNF-72: La configuración matemática cuenta con restricciones lógicas algorítmicas que prohíben categóricamente establecer un "mínimo" numérico superior a un "máximo". 
+RNF-75: Almacenamiento del diccionario de métricas en caché de acceso ultrarrápido (Redis).
+Flujo Básico 
+1. El Administrador ingresa al módulo de "Catálogo de Métricas".
+2. El sistema recupera la lista de métricas disponibles desde la caché de Redis para mayor velocidad (RNF-75).
+3. El Administrador selecciona una operación: Crear Nueva Métrica, Editar o Inactivar.
+4. El Administrador define el nombre, la unidad de medida y los rangos estándar.
+5. El sistema valida que no exista otra métrica con el mismo nombre (RNF-49) y que la lógica numérica sea coherente (RNF-72).
+6. El sistema guarda la configuración y actualiza la caché.
+7. El sistema invoca al CU-17 (Registrar Acción en Auditoría) para dejar constancia del cambio.
+Flujos Alternos 
+A1: Métrica en uso: Si el Administrador intenta inactivar una métrica que ya está asignada a pacientes con monitoreo activo, el sistema rechaza la acción para evitar inconsistencias clínicas.
+A2: Incoherencia Numérica: Si el usuario intenta guardar un límite mínimo mayor al máximo, el sistema dispara una alerta visual y bloquea el registro (RNF-72).
+Postcondiciones
+El motor de reglas queda habilitado para procesar e interpretar los nuevos tipos de datos biométricos de forma inmediata. 
+
+
+
+Caso de Uso 
+CU-04: Registrar Paciente Crónico 
+Descripción 
+Permite al Personal Médico ingresar a un nuevo paciente de PADOMI al sistema, capturando sus datos personales, clínicos y asignándole un médico tratante responsable. 
+Actores
+Personal Médico. 
+Precondiciones
+El médico debe estar autenticado (CU-01) y el paciente no debe existir previamente en la base de datos. 
+RF Asociados
+RF-06: El sistema debe permitir el registro de nuevos pacientes crónicos ingresando su DNI, nombres completos, edad, dirección y contacto de emergencia 
+RF-07: El sistema debe generar y asignar automáticamente un código único autoincremental a cada paciente al momento de completar su registro, para su correcta identificación en el historial. 
+RF-08: El sistema debe permitir asociar formalmente a un paciente con un Médico Tratante específico responsable de su caso. 
+RF-09: El sistema debe permitir el registro y actualización del diagnóstico principal y las comorbilidades del paciente. 
+RNF Asociados 
+RNF-04: La validación sintáctica estructural del DNI exige un tiempo de procesamiento del lado del cliente (Frontend) menor a 200 milisegundos antes de autorizar el envío. 
+RNF-19: El diseño de esquema de datos de la aplicación estandariza una longitud fija y estricta (ej. PAC-0000) para los códigos de paciente. 
+RNF-20: La regla de negocio exige emitir una alerta preventiva de saturación si un médico supera el límite de 500 pacientes asignados. 
+RNF-59: El flujo de registro ejecuta una sanitización automática pre-envío eliminando metacaracteres no numéricos del documento DNI. 
+Flujo Básico 
+1. El médico ingresa al módulo de "Pacientes" y selecciona "Nuevo Registro".
+2. El sistema valida en tiempo real la estructura del DNI (RNF-04) y limpia caracteres no numéricos (RNF-59).
+3. El médico completa los datos personales y el diagnóstico clínico (RF-09).
+4. El sistema invoca al CU-12 (Generar Código Autoincremental) para asignar el nuevo ID correlativo (RF-07).
+5. El sistema valida si el médico responsable excede el límite de carga laboral (RNF-20).
+6. El sistema guarda el expediente y dispara el CU-17 (Registrar Acción en Auditoría).
+7. El sistema confirma la creación del registro y muestra el código generado.
+Flujos Alternos 
+A1: Paciente duplicado: Si el DNI ya está registrado, el sistema bloquea el ingreso y sugiere buscar el expediente existente.
+A2: Saturación de Médico Tratante: Si el médico asignado tiene más de 500 pacientes, el sistema emite una advertencia pero permite continuar bajo responsabilidad administrativa (RNF-20).
+Postcondiciones
+El paciente queda habilitado para la recepción de telemetría y su nombre aparece en el Dashboard clínico. 
+
+
+
+Caso de Uso 
+CU-05: Gestionar Perfil del Paciente 
+Descripción 
+Permite al Personal Médico visualizar, editar los antecedentes clínicos y, fundamentalmente, configurar los umbrales de riesgo personalizados para un paciente específico. 
+Actores
+Personal Médico. 
+Precondiciones
+El médico debe estar autenticado (CU-01) y el paciente debe estar previamente registrado en el sistema (CU-04). 
+RF Asociados
+RF-09: El sistema debe permitir el registro y actualización del diagnóstico principal y las comorbilidades del paciente. 
+RF-10: El sistema debe permitir cambiar el estado de un paciente a "Inactivo" o "Alta" para excluirlo temporal o definitivamente del panel de monitoreo activo. 
+RF-11: El sistema debe permitir asignar umbrales biométricos de riesgo personalizados para cada paciente (ej. límite máximo de presión arterial específico según su condición). 
+RNF Asociados 
+RNF-05: El tiempo de recuperación en caché de los umbrales personalizados de un paciente requiere un tiempo de ejecución menor a 100 milisegundos. 
+RNF-63: El sistema graba de forma persistente el ID de usuario del Médico responsable junto con cada modificación paramétrica de los umbrales de riesgo. 
+RNF-72: La configuración matemática cuenta con restricciones lógicas algorítmicas que prohíben categóricamente establecer un "mínimo" numérico superior a un "máximo". 
+RNF-74: Las operaciones matemáticas y de base de datos se ejecutan conservando fracciones flotantes de hasta 2 decimales sin redondeo automático destructivo. 
+Flujo Básico 
+1. El médico busca al paciente por DNI o código (CU-15) e ingresa a su perfil detallado.
+2. El sistema recupera los datos y umbrales actuales de la caché de Redis para una visualización instantánea (RNF-05).
+3. El médico selecciona la opción Configurar Umbrales (CU-13) o Editar Historial.
+4. El médico modifica los valores y el sistema valida la coherencia lógica (RNF-72) y la precisión decimal (RNF-74).
+5. El sistema guarda los cambios invocando al CU-17 (Registrar Acción en Auditoría), grabando qué médico hizo el cambio (RNF-63).
+6. El sistema confirma la actualización y refresca la vista del perfil.
+Flujos Alternos 
+A1: Paciente con alerta activa: Si el médico intenta dar de alta (CU-14) a un paciente que tiene una alerta crítica pendiente, el sistema bloquea la acción hasta que la emergencia sea gestionada.
+A2: Error de validación: Si los nuevos umbrales violan las reglas del RNF-72, el sistema resalta el campo en rojo y no permite guardar.
+Postcondiciones
+Los nuevos parámetros de riesgo se aplican inmediatamente al motor de reglas para las siguientes lecturas de telemetría. 
+
+
+
+
+
+Caso de Uso 
+CU-06: Monitorear Dashboard Clínico. 
+Descripción 
+Permite al Personal Médico visualizar de forma centralizada el estado de salud de todos sus pacientes asignados, priorizando automáticamente a aquellos en situación de riesgo. 
+Actores
+Personal Médico. 
+Precondiciones
+El médico debe haber iniciado sesión (CU-01) y tener una conexión a internet estable para mantener el canal de datos activo. 
+RF Asociados
+RF-23: El sistema debe mostrar al médico una tabla central (Dashboard) con la lista de pacientes, indicando su diagnóstico principal y su estado de riesgo actual. 
+RF-24: El sistema debe ordenar automáticamente a los pacientes, priorizando en la parte superior a aquellos que presenten métricas en estado "Crítico" o "Advertencia". 
+RF-25: El sistema debe incluir un buscador en tiempo real (respuesta < 2 segundos) para filtrar pacientes por nombre o DNI. 
+RF-27: El sistema debe generar gráficos de evolución históricos, permitiendo al médico usar un menú desplegable para alternar entre las diferentes métricas registradas para un mismo paciente. 
+RF-28: El sistema debe emitir una alerta visual destacada (color rojo) en el dashboard indicando no sólo el nombre del paciente, sino el contexto clínico exacto de la emergencia.
+RNF Asociados 
+RNF-10: La carga inicial del Dashboard (archivos estáticos y los pacientes) no debe superar los 3 segundos en conexiones de banda ancha estándar (10 Mbps). 
+RNF-12: El tiempo de respuesta de red desde la búsqueda interactiva de un paciente hasta la impresión en pantalla está limitado a 2 segundos. 
+RNF-13: La latencia de red end-to-end (desde el servidor hasta la interfaz del médico) para alertas críticas exige un límite de 5 segundos. 
+RNF-29: El motor de renderizado web asegura una fluidez visual continua de 30 cuadros por segundo (FPS) incluso al procesar 200 filas activas. 
+RNF-30: La conexión bidireccional persistente (Websocket) posee un consumo de ancho de banda restringido a 1 Kilobyte por segundo en estado de espera. 
+Flujo Básico 
+1. El médico accede al módulo "Dashboard".
+2. El sistema verifica el Token JWT y establece una conexión bidireccional persistente (WebSocket).
+3. El sistema ejecuta una consulta SQL priorizada y renderiza la lista de pacientes en menos de 3 segundos (RNF-10).
+4. El sistema queda en estado de escucha asíncrona (RNF-30).
+5. Al recibir una lectura crítica desde el CU-09, el sistema invoca al CU-20 (Disparar Alerta Visual).
+6. El Dashboard actualiza la fila del paciente a color rojo y posiciona el registro en la parte superior de la lista sin recargar la página (RF-24, RF-28).
+Flujos Alternos 
+A1: Uso de Buscador ( CU-15): Si el médico requiere ubicar a un paciente específico, ingresa el DNI/Nombre en la barra y el sistema filtra los resultados en menos de 2s (RNF-12).
+A2: Análisis de Tendencias ( CU-16): Si el médico desea ver la evolución clínica, hace clic en el paciente y el sistema genera la curva gráfica de signos vitales (RF-27).
+A3: Atención de Alerta: Si el médico decide gestionar un rojo, invoca al CU-07.
+Postcondiciones
+El médico mantiene una vigilancia constante y proactiva, reduciendo el tiempo de detección de crisis médicas. 
+
+
+
+
+
+
+Caso de Uso
+CU-07: Atender Emergencia Médica.
+Descripción 
+Permite al médico tratante confirmar la recepción de una alerta crítica, registrar las acciones tomadas y silenciar la notificación visual en el Dashboard. 
+Actores
+Personal Médico. 
+Precondiciones
+El Dashboard debe haber emitido una alerta visual roja (CU-20) producto de una lectura anómala procesada por el motor de reglas (CU-09) 
+RF Asociados
+RF-28: El sistema debe emitir una alerta visual destacada (color rojo) en el dashboard indicando no sólo el nombre del paciente, sino el contexto clínico exacto de la emergencia 
+RF-29: El sistema debe requerir que el usuario médico ejecute una acción afirmativa (clic en "Marcar como Atendido") para silenciar la notificación en curso. 
+RF-30: El sistema debe registrar un historial inmutable de alertas que detalle el tipo_metrica que falló, el valor crítico registrado, la hora exacta y qué profesional de la salud validó la emergencia. 
+RNF Asociados 
+RNF-52: La API transaccional cuenta con una condición de carrera que rechaza el segundo clic interactivo si dos médicos atienden la misma alerta simultáneamente. 
+RNF-53: El cliente web activa una cola de reintento en segundo plano de 3 segundos de cadencia si el clic de atención falla por cortesía de la red local. 
+RNF-69: El esquema relacional anula programáticamente el comando SQL "DELETE" para asegurar la inmutabilidad de eventos críticos. 
+Flujo Básico 
+1. El médico visualiza la tarjeta roja parpadeante en el Dashboard con el contexto clínico del paciente (RF-28).
+2. El médico hace clic en el botón "Marcar como Atendido".
+3. El sistema intercepta la petición y valida que ningún otro médico esté gestionando la misma alerta simultáneamente (RNF-52).
+4. El sistema invoca obligatoriamente al CU-17 (Registrar Acción en Auditoría) para guardar quién atendió y a qué hora.
+5. El sistema actualiza el estado de la alerta en la base de datos sin borrar el registro anterior (RNF-69).
+6. La alerta visual desaparece del Dashboard del médico y de cualquier otro usuario que visualice al mismo paciente.
+Flujos Alternos 
+A1: Colisión de atención: Si otro médico atendió la alerta milisegundos antes, el sistema muestra un mensaje: "Esta alerta ya fue gestionada por el Dr. [Nombre]" y bloquea el botón (RNF-52).
+A2: Fallo de red local: Si el clic falla por intermitencia, el sistema activa una cola de reintento automático por 3 segundos antes de mostrar un error de conexión (RNF-53).
+Postcondiciones
+El estado crítico del paciente se actualiza en el historial y la alerta queda registrada permanentemente para futuras auditorías médico-legales. 
+
+
+
+
+Caso de Uso
+CU08: Ingestar Datos Biométricos
+Descripción 
+Permite la recepción asíncrona de paquetes de datos (JSON) provenientes de los dispositivos IoT de los pacientes, validando su estructura antes de almacenarlos. 
+Actores
+Dispositivo IoT / Gateway 
+Precondiciones
+El dispositivo debe tener un token de acceso válido y el paciente debe estar en estado "Activo". 
+RF Asociados
+RF-12: El sistema debe permitir la recepción automática y continua de los datos biométricos enviados por los dispositivos de monitoreo de los pacientes.
+RF-13: El sistema debe verificar que los datos biométricos recibidos contengan la estructura de información obligatoria antes de ser procesados.
+RF-14: El sistema debe registrar cada lectura biométrica con el identificador del paciente, tipo de métrica, valores, unidad de medida y fecha y hora exacta.
+RF-15: El sistema debe rechazar y descartar automáticamente los registros biométricos que estén incompletos o tengan formato inválido.
+RF-16: El sistema debe almacenar el historial completo de las lecturas biométricas validadas, asociadas al expediente clínico del paciente.
+RF-17: El sistema debe permitir la recepción simultánea de múltiples métricas en un solo envío sin afectar el procesamiento de datos.
+RNF Asociados 
+RNF-06: La validación computacional de la estructura JSON entrante tiene una restricción de tiempo límite de 1 segundo. 
+RNF-23: El servidor receptor IoT API está configurado para manejar un tráfico concurrente realista de 200 cargas JSON por segundo. 
+RNF-24: El servicio receptor cuenta con un límite de intercepción configurado en 2 Megabytes máximos por archivo. 
+RNF-39: El API cuenta con un buffer de encolamiento temporal en memoria RAM (hasta 5 minutos) ante pérdidas intermitentes de conectividad con la base de datos. 
+RNF-44: El validador aplica una regla de tolerancia a fallos parciales, procesando lecturas válidas de un arreglo y omitiendo solo los objetos corruptos del mismo. 
+Flujo Básico 
+1. El dispositivo IoT recopila los signos vitales del paciente y envía un paquete JSON al API del sistema. 
+2. El sistema recibe la solicitud y verifica la estructura del JSON. 
+3. El sistema valida la existencia del paciente asociado al identificador recibido. 
+4. El sistema normaliza y valida cada métrica, incluyendo tipo de dato, unidad y tiempo en formato UTC. 
+5. Las lecturas válidas se almacenan en la base de datos clínica del paciente. 
+6. El sistema genera un evento interno para enviar los datos al CU-09 Procesar Reglas Clínicas. 
+Flujos Alternos 
+A1: Error en formato o estructura (CU-19): Si el sistema detecta que el JSON excede los 2 MB o tiene una sintaxis corrupta, rechaza la solicitud devolviendo un código HTTP 400 o 413 y registra el intento fallido en el log de seguridad (RNF-42). 
+A2: Paciente no válido o Inactivo: En caso de no encontrar el ID o detectar que el paciente ha sido dado de alta (RF-10), el paquete de datos es descartado automáticamente para proteger la integridad del repositorio clínico. 
+A3: Gestión de Fallos Parciales y Buffer (RNF-44, RNF-39): Si el envío contiene múltiples métricas y algunas son inválidas, el sistema procesa solo las correctas y descarta las corruptas (RNF-44). Si existe una pérdida intermitente de conexión con la base de datos, el sistema activa el buffer en RAM para retener los datos hasta 5 minutos antes de reportar un fallo de persistencia (RNF-39).
+Postcondiciones
+Las lecturas biométricas válidas quedan almacenadas en la base de datos clínica del paciente y se genera un evento de evaluación clínica para su procesamiento. 
+
+
+
+
+
+
+
+
+
+
+Caso de Uso
+CU-09: Procesar Reglas Clínicas. 
+Descripción 
+Acción donde el motor en la nube analiza si los datos representan un peligro.
+Actores
+Dispositivo IoT, Gateway
+Precondiciones
+1. El paciente debe estar registrado y activo en el sistema.
+2. El paciente debe tener umbrales biométricos configurados.
+3. Debe existir al menos una lectura biométrica válida recibida.
+4. El sistema debe haber identificado correctamente el tipo de métrica.
+5. El sistema debe contar con conexión activa al motor de reglas en la nube.
+6. Los datos biométricos deben estar completamente estructurados.
+RF Asociados
+RF-18: El sistema debe identificar dinámicamente el tipo de métrica recibido y aplicar la lógica de validación correspondiente a esa condición clínica.
+RF-19: El sistema debe evaluar los valores biométricos comparándolos contra los umbrales mínimos y máximos configurados para el paciente.
+RF-20: El sistema debe clasificar el resultado en estados de severidad: Normal (Verde), Advertencia (Amarillo) o Crítico (Rojo).
+RF-21: El sistema debe permitir la incorporación de nuevos tipos de métricas sin necesidad de reprogramar el motor de reglas.
+RF-22: El sistema debe actualizar el nivel de riesgo del paciente inmediatamente después de una lectura crítica.
+RNF Asociados 
+RNF-06: La validación estructural de los datos JSON entrantes debe ejecutarse en un tiempo menor o igual a 1 segundo antes de ser procesados por el motor de reglas.
+RNF-09: El motor de reglas en la nube debe procesar el cálculo de hasta 5 signos vitales simultáneamente contra sus umbrales en un tiempo menor a 150 milisegundos por lectura.
+RNF-48: El sistema debe contar con un modo de degradación (fallback) que permita continuar la operación con estado “Advertencia” si el motor de reglas en la nube presenta un timeout mayor a 5 segundos.
+Flujo Básico 
+1. El sistema recibe lecturas biométricas que han pasado validación estructural previa.
+2. El sistema identifica el tipo de métrica recibida (ej. glucosa, presión arterial, etc.).
+3. El motor de reglas en la nube recupera los umbrales configurados del paciente.
+4. El sistema compara los valores biométricos con los rangos mínimos y máximos establecidos.
+5. El motor de reglas evalúa los datos y determina el nivel de severidad.
+6. El sistema almacena el resultado del análisis asociado al paciente.
+7. El sistema actualiza el estado de riesgo del paciente si corresponde.
+8. El resultado queda disponible para el módulo de monitoreo (dashboard y alertas).
+Flujos Alternos 
+A1: Métrica Incompleta o Inválida: Si la lectura biométrica no cumple con la estructura obligatoria o contiene datos incompletos, el sistema la rechaza automáticamente y no ejecuta el análisis.
+A2: Tipo de Métrica no Reconocida: Si el sistema no puede identificar el tipo de métrica recibida, no se aplica ninguna lógica de validación clínica y la lectura no es evaluada por el motor de reglas (RF-18).
+A3: Ausencia de umbrales del paciente: Si el paciente no tiene configurados valores mínimos o máximos, el sistema no puede realizar la comparación matemática y se omite la evaluación de severidad (RF-19).
+A4: Resultado Crítico Detectado: Si la evaluación del motor de reglas determina estado “Crítico”, el sistema activa el CU-20 (Disparar Alerta Visual), mostrando una alerta roja en el dashboard del médico y actualizando inmediatamente el nivel de riesgo del paciente en la base de datos (RF-20, RF-22, RF-28).
+Postcondiciones
+El sistema registra el resultado del análisis clínico, actualiza el nivel de riesgo del paciente cuando corresponde y deja disponible la información procesada para los módulos de monitoreo y alertas, garantizando la persistencia del estado evaluado.
+
+
+
+
+Análisis de Arquitecturas Evaluadas
+Para la definición de la infraestructura del sistema PADOMI, se evaluaron cuatro enfoques arquitectónicos cruzando los requerimientos de telemetría de misión crítica con la viabilidad operativa y financiera del proyecto:
+1.Arquitectura Monolítica 
+Es un modelo en el que la interfaz de usuario, la lógica de negocio y el acceso a los datos están combinados en un único código base y compilados en un solo programa ejecutable que se despliega en un único servidor.
+Ventajas: Curva de aprendizaje mínima para el equipo de desarrollo. El despliegue de producción es sumamente sencillo y económico (requiere un solo servicio de alojamiento). Facilita las pruebas de integración end-to-end al no tener dependencias de red internas.
+Desventajas: Carencia de escalabilidad selectiva. Ante una alta concurrencia (ej. 200 JSON por segundo desde dispositivos IoT), los hilos del servidor se agotan, provocando un colapso general del sistema que inhabilita incluso las funciones administrativas de bajo consumo.
+2. Arquitectura por Capas (Layers)
+Es un patrón de diseño lógico que organiza el código en divisiones horizontales (Presentación, Lógica de Negocio y Datos). El flujo de información es unidireccional, garantizando que cada capa tiene una responsabilidad estricta.
+Ventajas: Fomenta un código ordenado, mantenible y la separación de responsabilidades. Permite al equipo paralelizar el desarrollo estructurando el backend de forma estandarizada e independiente de la base de datos.
+Desventajas: Es una solución de diseño de software, no de infraestructura. A nivel de despliegue, la aplicación generalmente sigue operando en un solo bloque físico, por lo que hereda la misma vulnerabilidad de colapso por saturación de red que un monolito tradicional.
+3. Arquitectura Orientada a Servicios:
+Diseño a nivel corporativo utilizado para integrar múltiples aplicaciones empresariales heterogéneas preexistentes.
+Ventajas: Excelente para la interoperabilidad entre sistemas heredados de grandes organizaciones y para la reutilización de servicios en corporaciones con múltiples departamentos autónomos.
+Desventajas: Representa una sobre ingeniería extrema para un proyecto desarrollado desde cero. Su implementación implica una complejidad operativa injustificable, requerimientos de hardware pesados y costos de licenciamiento inasumibles para un entorno académico.
+4. Arquitectura Orientada a Microservicios 
+Enfoque donde el sistema se descompone en pequeños servicios autónomos, débilmente acoplados, cada uno con su propia base de datos y ejecutando un proceso de negocio único.
+Ventajas: Escalabilidad y resiliencia absolutas. Permite asignar recursos computacionales exclusivamente al módulo de "Ingesta IoT" sin afectar al "Dashboard Médico". Si un microservicio falla, el resto del sistema sigue operando con normalidad.
+Desventajas: Complejidad operativa crítica (DevOps). Exige gestionar consistencia eventual de datos, rastreo distribuido y configurar API Gateways. Además, mantener múltiples bases de datos y servidores simultáneos genera un costo de infraestructura en la nube (Cloud Hosting) que resulta financieramente inviable y excede cualquier nivel gratuito estudiantil.
+Justificación de la Arquitectura Seleccionada
+Arquitectura Híbrida (Monolito Modular por Capas + Ingesta Serverless)
+La selección de la arquitectura base para el "Sistema de Telemetría y Gestión de Alertas para Salud Crítica (PADOMI)" representa el desafío de ingeniería más crítico del proyecto. Tras evaluar los enfoques tradicionales (Monolítico, Capas, SOA y Microservicios), se ha determinado que adoptar un único paradigma de forma purista condena al proyecto al fracaso operativo (por saturación de recursos) o al fracaso financiero (por sobrecostos de infraestructura).
+Por consiguiente, se ha diseñado una Arquitectura Híbrida Orientada a Eventos, la cual fusiona la mantenibilidad de un Monolito Modular estructurado en Capas para el núcleo administrativo, con la elasticidad infinita de un Microservicio Serverless (Azure Functions) para la ingesta de telemetría IoT. Esta decisión se fundamenta a través de cinco dimensiones de análisis crítico:
+1. Dimensión de Concurrencia y Resolución del Cuello de Botella
+El análisis de los Requerimientos No Funcionales del sistema revela la existencia de dos patrones de tráfico de red mutuamente excluyentes que deben coexistir en la misma plataforma:
+Tráfico Transaccional Administrativo (Bajo-Moderado): Interacciones de los médicos con el sistema, tales como la autenticación de usuarios, la actualización de historiales clínicos y la gestión de umbrales. Este tráfico requiere alta consistencia de datos pero tiene una tasa de peticiones predecible.
+Tráfico de Telemetría IoT (Alta Concurrencia): Envíos constantes e impredecibles de paquetes JSON emitidos por los dispositivos de los pacientes. Según el RNF-23, el sistema debe soportar hasta 200 ingestas por segundo.
+Implementar una Arquitectura Monolítica pura para ambos flujos representa un riesgo inminente de inoperatividad . Si los miles de dispositivos envían datos simultáneamente, agotarían rápidamente los hilos de ejecución disponibles y las conexiones a la base de datos en el servidor principal. Como consecuencia directa, si un médico intenta ingresar al Dashboard durante un pico de telemetría, el sistema no responderá, impidiendo la atención de emergencias. La solución arquitectónica adoptada mitiga este riesgo aislando la carga pesada mediante la separación del cómputo.
+2. Dimensión de Resiliencia: El Escudo Serverless (Azure Functions)
+Para evitar la saturación del núcleo del sistema, se ha delegado la responsabilidad exclusiva de la ingesta de datos a una capa externa utilizando tecnología Serverless (Azure Functions). Esta capa actúa como un "Escudo Perimetral" o amortiguador frente al tráfico del hardware.
+Aislamiento de Carga: Cuando el sistema recibe las 200 peticiones por segundo, es la infraestructura distribuida de la nube (Azure) la que escala horizontalmente en milisegundos para absorber el impacto. La función Serverless intercepta el JSON, ejecuta las validaciones de seguridad (peso, sintaxis) y encola el dato procesado.
+Protección del Servidor Central: Al delegar esta tarea de alto consumo de CPU a Azure Functions, el servidor donde reside el Core Médico se mantiene en estado óptimo, con el 100% de su memoria RAM y capacidad de procesamiento dedicada exclusivamente a atender las consultas de los médicos y mantener vivas las conexiones de alertas en tiempo real (WebSockets).
+3. Dimensión de Mantenibilidad y Calidad de Código (Monolito Modular por Capas)
+Si bien el problema de escalabilidad del IoT podría resolverse implementando una Arquitectura de Microservicios pura para todo el sistema, dicha decisión fue descartada por su desproporcionada complejidad. Dividir la gestión de pacientes, médicos, umbrales y auditoría en múltiples microservicios introduciría problemas de redes (latencia interna), exigiría manejar transacciones distribuidas y requeriría estrategias complejas de consistencia eventual que no aportan valor real al negocio hospitalario.
+Para centralizar estas reglas de negocio, se ha optado por un Monolito Modular estructurado internamente en Capas.
+Separación de Responsabilidades: El código del backend se divide estrictamente en Capa de Presentación (Controladores API), Capa de Negocio (Servicios y Lógica Médica) y Capa de Acceso a Datos (Repositorios y ORM).
+Desarrollo Ágil: Esta estructura permite que el equipo de desarrollo universitario trabaje de forma simultánea sin generar conflictos en el código fuente. A nivel de despliegue físico, se comporta como un monolito (un solo servidor, fácil de monitorear y actualizar), pero a nivel lógico, tiene la limpieza y el desacoplamiento de un sistema de nivel empresarial.
+4. Dimensión de Viabilidad Financiera y Sostenibilidad
+En el contexto de un proyecto desarrollado por estudiantes universitarios, y proyectado para una entidad de salud pública (EsSalud) donde la optimización de recursos presupuestarios es vital, el factor financiero de la arquitectura es decisivo.
+El problema del sobre-aprovisionamiento: Alojar un sistema de telemetría en servidores tradicionales requeriría rentar máquinas virtuales de muy alta capacidad para soportar los picos de tráfico. Sin embargo, durante las horas de madrugada o de baja actividad, dichos servidores estarían ociosos, generando un gasto fijo innecesario.
+Eficiencia del Pago por Consumo: La integración de la capa Serverless transforma los costos fijos en costos variables. Azure Functions factura únicamente por los milisegundos exactos en los que el código se ejecuta. Si el tráfico IoT disminuye, el costo de la infraestructura de ingesta se reduce automáticamente a cero. Esta arquitectura híbrida garantiza que el crecimiento exponencial de los pacientes monitoreados no se traduzca en un gasto de infraestructura descontrolado, logrando una viabilidad financiera a largo plazo insuperable por otros modelos.
+5. Dimensión de Garantía de Alertas Clínicas (WebSockets Ininterrumpidos)
+El objetivo supremo del proyecto PADOMI no es solo guardar datos, sino salvar vidas a través de la emisión de notificaciones de riesgo con una latencia menor. Para lograr esto, el frontend (React) mantiene una conexión bidireccional persistente (WebSockets) con el backend. Al emplear esta Arquitectura Híbrida, se garantiza que el canal de WebSockets jamás sea interrumpido por operaciones de entrada/salida bloqueantes provenientes del IoT. El flujo de telemetría ocurre de manera asíncrona, permitiendo que el motor de reglas evalúe el peligro y empuje la alerta visual (Color Rojo) a la pantalla del médico con una fluidez inmediata, cumpliendo estrictamente con el requerimiento de misión crítica del sector salud.
+Conclusión Arquitectónica: La Arquitectura Híbrida propuesta se posiciona como la única alternativa que satisface integralmente las necesidades del proyecto. Rechaza la rigidez y vulnerabilidad del Monolito tradicional, evita la complejidad operativa y el alto costo de los Microservicios puros, y desecha la sobre ingeniería de un modelo SOA. Al fusionar la escalabilidad elástica de Azure Functions con la robustez y mantenibilidad de un backend ordenado por capas, se entrega una plataforma tecnológica resiliente, segura, altamente rentable y lista para revolucionar el modelo de atención domiciliaria de EsSalud.
+
+Arquitectura del backend 
+1.  presentación (aquí vienen las apis y se decide que ruta va)
+routes (me muestra hacia donde tengo q apuntar) lo mandó al controlador 
+controllers (se llama desde controlador a los  servicios)
+
+2 aplicación
+servicios ( llama a interft) 
+dto (los datos del body) para cada cu cuando quiera insertar o responder algo no queremos q en el controlador se validen los datos pq llegarian datos que no le corresponden.
+
+3 dominio 
+Entidades (puras) propiedades, atributos y metodos de validacion del negocio
+Repository (es donde vamos a persistir la base de datos) no lo manejamos a nivel de model , sino conectado a la entidad.
+
+4 Infraestructura
+Models (definir propiedades con las tablas pero no métodos ) son como entidades del orm, tenemos que trabajar estas entidades como objetos.
+Mapping(transforma de entidad a modelo y modelo a entidad va a pasar por mapping)
+Interf (los servicios se llaman desde las interfaces , ya que las interfaces están conectadas al repositorio)
+
+
+por ejemplo usuario debería tener las 4 capas
+el auth tmbn
+tipo hexagonal layers
+
+La paquetería como quedará: 
+trabajaremos a nivel de caso de uso 
+SI cu : usuario tendra una carpeta y 4 sub carpetas presentacion, aplicacion, dominio e infraestructura
+CU CalculoM si usa el usuario , no queremos generar codigo de mas , sino reutilizar el codigo. 
+
+
+
+
+
+
+estructura de la bd 
+-- USUARIO
+CREATE TABLE Usuario (
+    id UNIQUEIDENTIFIER PRIMARY KEY DEFAULT NEWID(),
+    codigo NVARCHAR(20) NULL UNIQUE, -- Ejemplo: USU-0001 (opcional)
+    dni CHAR(8) NOT NULL UNIQUE,     -- ¡Nuevo campo agregado!
+    nombre NVARCHAR(100) NOT NULL,
+    apellido NVARCHAR(100) NOT NULL,
+    email NVARCHAR(100) NOT NULL UNIQUE,
+    passwordHash NVARCHAR(255) NOT NULL,
+    rol NVARCHAR(30) NOT NULL, -- 'MEDICO', 'ENFERMERO', 'ADMINISTRATIVO'
+    activo BIT NOT NULL DEFAULT 1,
+    especialidad NVARCHAR(100) NULL
+);
+
+-- PACIENTE
+CREATE TABLE Paciente (
+    id UNIQUEIDENTIFIER PRIMARY KEY DEFAULT NEWID(),
+    codigo NVARCHAR(20) NOT NULL UNIQUE, -- Ejemplo: PAC-0001
+    dni CHAR(8) NOT NULL UNIQUE,
+    nombres NVARCHAR(100) NOT NULL,
+    edad INT NOT NULL,
+    diagnostico NVARCHAR(255),
+    medicoAsignadoId UNIQUEIDENTIFIER NOT NULL,
+    FOREIGN KEY (medicoAsignadoId) REFERENCES Usuario(id)
+);
+
+-- METRICA
+CREATE TABLE Metrica (
+    id UNIQUEIDENTIFIER PRIMARY KEY DEFAULT NEWID(),
+    codigo NVARCHAR(20) NOT NULL UNIQUE, -- Ejemplo: MET-0001
+    nombre NVARCHAR(100) NOT NULL UNIQUE,
+    unidad NVARCHAR(20) NOT NULL,
+    descripcion NVARCHAR(255),
+    rangoMin FLOAT NOT NULL,
+    rangoMax FLOAT NOT NULL
+);
+
+-- ENFERMEDAD CRONICA
+CREATE TABLE EnfermedadCronica (
+    id UNIQUEIDENTIFIER PRIMARY KEY DEFAULT NEWID(),
+    codigo NVARCHAR(20) NOT NULL UNIQUE, -- Ejemplo: ENF-0001
+    nombre NVARCHAR(100) NOT NULL UNIQUE,
+    descripcion NVARCHAR(255)
+);
+
+-- PACIENTE-ENFERMEDAD (relación N:M)
+CREATE TABLE PacienteEnfermedad (
+    pacienteId UNIQUEIDENTIFIER NOT NULL,
+    enfermedadId UNIQUEIDENTIFIER NOT NULL,
+    PRIMARY KEY (pacienteId, enfermedadId),
+    FOREIGN KEY (pacienteId) REFERENCES Paciente(id),
+    FOREIGN KEY (enfermedadId) REFERENCES EnfermedadCronica(id)
+);
+
+-- UMBRAL (personalizado por paciente y métrica)
+CREATE TABLE Umbral (
+    id UNIQUEIDENTIFIER PRIMARY KEY DEFAULT NEWID(),
+    codigo NVARCHAR(20) NULL UNIQUE, -- Ejemplo: UMB-0001 (opcional)
+    pacienteId UNIQUEIDENTIFIER NOT NULL,
+    metricaId UNIQUEIDENTIFIER NOT NULL,
+    valorMin FLOAT NOT NULL,
+    valorMax FLOAT NOT NULL,
+    FOREIGN KEY (pacienteId) REFERENCES Paciente(id),
+    FOREIGN KEY (metricaId) REFERENCES Metrica(id),
+    CONSTRAINT UQ_Umbral_Paciente_Metrica UNIQUE (pacienteId, metricaId)
+);
+
+-- LECTURA
+CREATE TABLE Lectura (
+    id UNIQUEIDENTIFIER PRIMARY KEY DEFAULT NEWID(),
+    codigo NVARCHAR(20) NOT NULL UNIQUE, -- Ejemplo: LEC-0001
+    pacienteId UNIQUEIDENTIFIER NOT NULL,
+    metricaId UNIQUEIDENTIFIER NOT NULL,
+    valor FLOAT NOT NULL,
+    fecha DATETIME2 NOT NULL DEFAULT SYSDATETIME(),
+    FOREIGN KEY (pacienteId) REFERENCES Paciente(id),
+    FOREIGN KEY (metricaId) REFERENCES Metrica(id)
+);
+
+-- ALERTA
+CREATE TABLE Alerta (
+    id UNIQUEIDENTIFIER PRIMARY KEY DEFAULT NEWID(),
+    codigo NVARCHAR(20) NOT NULL UNIQUE, -- Ejemplo: ALT-0001
+    pacienteId UNIQUEIDENTIFIER NOT NULL,
+    lecturaId UNIQUEIDENTIFIER NOT NULL,
+    severidad NVARCHAR(20) NOT NULL, -- 'NORMAL', 'ADVERTENCIA', 'CRITICO'
+    mensaje NVARCHAR(255),
+    fecha DATETIME2 NOT NULL DEFAULT SYSDATETIME(),
+    atendida BIT NOT NULL DEFAULT 0,
+    FOREIGN KEY (pacienteId) REFERENCES Paciente(id),
+    FOREIGN KEY (lecturaId) REFERENCES Lectura(id)
+);
+
+-- EVALUACION
+CREATE TABLE Evaluacion (
+    id UNIQUEIDENTIFIER PRIMARY KEY DEFAULT NEWID(),
+    codigo NVARCHAR(20) NOT NULL UNIQUE, -- Ejemplo: EVA-0001
+    pacienteId UNIQUEIDENTIFIER NOT NULL,
+    medicoId UNIQUEIDENTIFIER NOT NULL,
+    fecha DATETIME2 NOT NULL DEFAULT SYSDATETIME(),
+    resumen NVARCHAR(500),
+    recomendaciones NVARCHAR(500),
+    FOREIGN KEY (pacienteId) REFERENCES Paciente(id),
+    FOREIGN KEY (medicoId) REFERENCES Usuario(id)
+);
+
+
+-- Ejemplos de datos de prueba
+-- Insertar un médico (Agregado el campo DNI en la consulta)
+INSERT INTO Usuario (id, codigo, dni, nombre, apellido, email, passwordHash, rol, activo, especialidad)
+VALUES (NEWID(), 'USU-0001', '40556677', 'Juan', 'Pérez', 'juan.perez@hospital.com', 'hash123', 'MEDICO', 1, 'Cardiología');
+
+-- Insertar métricas
+INSERT INTO Metrica (id, codigo, nombre, unidad, descripcion, rangoMin, rangoMax)
+VALUES (NEWID(), 'MET-0001', 'Glucosa', 'mg/dL', 'Nivel de glucosa en sangre', 70, 110),
+       (NEWID(), 'MET-0002', 'Presión Arterial', 'mmHg', 'Presión sistólica', 90, 140);
+
+-- Insertar un paciente
+INSERT INTO Paciente (id, codigo, dni, nombres, edad, diagnostico, medicoAsignadoId)
+VALUES (NEWID(), 'PAC-0001', '12345678', 'Ana Torres', 65, 'Diabetes tipo 2', 
+        (SELECT TOP 1 id FROM Usuario WHERE codigo = 'USU-0001'));
+
+-- Insertar un umbral para el paciente y la métrica de glucosa
+INSERT INTO Umbral (id, codigo, pacienteId, metricaId, valorMin, valorMax)
+VALUES (NEWID(), 'UMB-0001',
+        (SELECT TOP 1 id FROM Paciente WHERE codigo = 'PAC-0001'),
+        (SELECT TOP 1 id FROM Metrica WHERE codigo = 'MET-0001'),
+        80, 120);

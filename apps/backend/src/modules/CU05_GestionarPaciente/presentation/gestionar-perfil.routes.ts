@@ -1,4 +1,10 @@
-// Rutas para CU-05 (Gestionar Perfil del Paciente)
-// Solo define las rutas GET /pacientes/:id y PATCH /pacientes/:id
+import { Router } from 'express';
+import { GestionarPerfilController } from './gestionar-perfil.controller';
 
-// ...aquí se implementará la definición de las rutas GET y PATCH
+const router = Router();
+const controller = new GestionarPerfilController();
+
+router.get('/:id', controller.obtenerPerfil);
+router.patch('/:id', controller.actualizarPerfil);
+
+export default router;

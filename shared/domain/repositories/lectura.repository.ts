@@ -1,5 +1,6 @@
-// Interfaz de repositorio para la entidad Lectura
-// Utilizada en CU-08 (Ingestar Datos Biométricos)
-// Define las operaciones de persistencia para lecturas biométricas.
+import { Lectura } from '../entities/lectura.entity';
 
-// ...aquí se definirá la interfaz del repositorio
+export interface ILecturaRepository {
+  guardar(lectura: Lectura): Promise<Lectura>;
+  generarCodigo(): Promise<string>;
+}

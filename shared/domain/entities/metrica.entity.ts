@@ -3,7 +3,8 @@
 // Entidad utilizada en CU-03 (Gestionar Catálogo de Métricas).
 export class Metrica {
   constructor(
-    public readonly id: string, // Código MET-XXXX
+    public readonly id: string, // UUID
+    public readonly codigo: string, // Código MET-XXXX
     public readonly nombre: string,
     public readonly unidad: string, // Ej: mg/dL, %
     public readonly descripcion: string,

@@ -1,5 +1,11 @@
-// Interfaz de repositorio para la entidad Paciente
-// Compartida y utilizada en CU-04 (Registrar Paciente Crónico) y CU-05 (Gestionar Perfil del Paciente).
-// Define operaciones como save, findByDni, update, etc.
+import { Paciente } from '../entities/paciente.entity';
 
-// ...aquí se definirá la interfaz del repositorio
+export interface IPacienteRepository {
+  guardar(paciente: Paciente): Promise<Paciente>;
+  actualizar(paciente: Paciente): Promise<Paciente>;
+  buscarPorDni(dni: string): Promise<Paciente | null>;
+  buscarPorId(id: string): Promise<Paciente | null>;
+  generarCodigo(): Promise<string>;
+  contarPorMedicoAsignado(medicoId: string): Promise<number>;
+  listarPorMedicoAsignado(medicoId: string): Promise<Paciente[]>;
+}

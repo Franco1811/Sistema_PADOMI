@@ -1,6 +1,10 @@
-// Archivo de rutas para la atención de emergencias médicas
-// Utilizado en CU-07 (Atender Emergencia Médica)
-// Define el endpoint POST /alertas/:id/atender.
-// Mapea la acción de "silenciar" o gestionar la emergencia.
+import { Router } from 'express';
+import { AtencionController } from './atencion.controller';
 
-// ...aquí se definirán las rutas usando el framework correspondiente
+const router = Router();
+const controller = new AtencionController();
+
+// POST /alertas/:id/atender
+router.post('/:id/atender', controller.atenderAlerta);
+
+export default router;

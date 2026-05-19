@@ -3,11 +3,28 @@
 // Permite registrar el resumen clínico y recomendaciones tras la revisión de métricas y alertas.
 export class Evaluacion {
   constructor(
-    public readonly id: string, // Código EVA-XXXX
+    public readonly id: string, // UUID
+    public readonly codigo: string, // Código EVA-XXXX
     public readonly pacienteId: string,
-    public readonly medicoId: string,
+    public readonly medicoId: string | null,
     public readonly fecha: Date,
     public readonly resumen: string,
     public readonly recomendaciones: string
   ) {}
+
+  public static calcularSeveridad(valor: number, umbralMin: number, umbralMax: number): 'NORMAL' | 'ADVERTENCIA' | 'CRITICO' {
+    if (valor >= umbralMin && valor <= umbralMax) {
+      return 'NORMAL';
+    }
+
+    // 10% tolerance
+    const margenMin = umbralMin * 0.9;
+    const margenMax = umbralMax * 1.1;
+
+    if (valor >= margenMin && valor <= margenMax) {
+      return 'ADVERTENCIA';
+    }
+
+    return 'CRITICO';
+  }
 }

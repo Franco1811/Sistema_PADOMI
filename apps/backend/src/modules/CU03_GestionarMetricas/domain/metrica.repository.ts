@@ -1,4 +1,13 @@
 // Interfaz de repositorio para la métrica clínica (CU-03)
 // Define operaciones como guardar, editar e inactivar métricas.
 
-// ...aquí se definirá la interfaz del repositorio
+import { Metrica } from '../../../../../../shared/domain/entities/metrica.entity';
+
+export interface IMetricaRepository {
+  guardar(metrica: Metrica): Promise<Metrica>;
+  actualizar(metrica: Metrica): Promise<Metrica>;
+  buscarPorId(id: string): Promise<Metrica | null>;
+  buscarPorNombre(nombre: string): Promise<Metrica | null>;
+  listarTodas(): Promise<Metrica[]>;
+  inactivar(id: string): Promise<void>;
+}

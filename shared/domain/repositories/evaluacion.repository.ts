@@ -1,5 +1,6 @@
-// Interfaz de repositorio para la entidad Evaluacion
-// Utilizada en CU-09 (Procesar Reglas Clínicas)
-// Define las operaciones para actualizar el nivel de riesgo global del paciente.
+import { Evaluacion } from '../entities/evaluacion.entity';
 
-// ...aquí se definirá la interfaz del repositorio
+export interface IEvaluacionRepository {
+  guardar(evaluacion: Evaluacion): Promise<Evaluacion>;
+  generarCodigo(): Promise<string>;
+}

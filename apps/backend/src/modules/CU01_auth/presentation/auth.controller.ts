@@ -2,4 +2,28 @@
 // Recibe las solicitudes de inicio de sesión, valida el request y delega la lógica al servicio de aplicación.
 // Retorna el token JWT si la autenticación es exitosa o un error si falla.
 
-// ...aquí se implementará la clase o funciones del controlador
+import { Request, Response } from 'express';
+import { AuthService } from '../application/auth.service';
+import { LoginDto } from '../application/login.dto';
+
+export class AuthController {
+  private authService: AuthService;
+
+  constructor() {
+    this.authService = new AuthService();
+  }
+
+  async login(req: Request, res: Response): Promise<void> {
+    try {
+      const dto = new LoginDto();
+      dto.email = req.body.email;
+      dto.password = req.body.password;
+
+      const result = await this.authService.login(dto);
+
+      res.status(200).json(result);
+    } catch (error) {
+      res.status(401).json({ error: error instanceof Error ? error.message : 'Error de autenticación' });
+    }
+  }
+}
