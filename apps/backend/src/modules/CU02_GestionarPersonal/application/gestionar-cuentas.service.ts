@@ -23,11 +23,16 @@ export class GestionarCuentasService {
       throw new Error("El DNI ya está registrado");
     }
 
+    const existeEmail = await this.usuarioRepository.buscarPorEmail(dto.email);
+    if (existeEmail) {
+      throw new Error("El correo electrónico ya está registrado");
+    }
+
     const passwordHash = await bcrypt.hash(dto.password, 10);
     const codigoGenerado = await this.usuarioRepository.generarCodigo();
 
     const usuario = new Usuario(
-      crypto.randomUUID(),
+      crypto.randomUUID(),  //funcion nativa de node.js para generar UUIDs 
       codigoGenerado,
       dto.dni,
       dto.nombre,
@@ -73,5 +78,37 @@ export class GestionarCuentasService {
     );
 
     return await this.usuarioRepository.actualizar(usuarioActualizado);
+  }
+
+  async deshabilitarPersonal(id: string): Promise<Usuario> {
+    const usuario = await this.usuarioRepository.buscarPorId(id);
+    if (!usuario) {
+      throw new Error("Usuario no encontrado");
+    }
+
+    // RNF-34: El modelo lógico contiene un bloqueo estricto anti-auto-desactivación,
+    // impidiendo que el último Administrador activo sea desactivado del sistema.
+    if (usuario.rol === 'ADMINISTRATIVO' && usuario.activo) {
+      const todos = await this.usuarioRepository.listarTodos();
+      const adminsActivos = todos.filter(u => u.rol === 'ADMINISTRATIVO' && u.activo);
+      if (adminsActivos.length <= 1) {
+        throw new Error("Operación no permitida: No se puede desactivar al único Administrador activo del sistema");
+      }
+    }
+
+    const usuarioDeshabilitado = new Usuario(
+      usuario.id,
+      usuario.codigo,
+      usuario.dni,
+      usuario.nombre,
+      usuario.apellido,
+      usuario.email,
+      usuario.passwordHash,
+      usuario.rol,
+      false, // Desactivado
+      usuario.especialidad
+    );
+
+    return await this.usuarioRepository.actualizar(usuarioDeshabilitado);
   }
 }

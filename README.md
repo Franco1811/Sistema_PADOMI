@@ -46,7 +46,7 @@ Ese archivo debe contener las credenciales de conexión a Azure SQL. *(Pídele l
 ```env
 DB_HOST=padomi-sql-server.database.windows.net
 DB_PORT=1433
-DB_USER=tucorreo@...
+DB_USERNAME=adminpadomi
 DB_PASSWORD=tu_password
 DB_NAME=free-sql-db-7168518
 ```

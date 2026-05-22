@@ -70,4 +70,18 @@ export class PersonalController {
       res.status(400).json({ error: error instanceof Error ? error.message : 'Error al actualizar personal' });
     }
   }
+
+  async deshabilitar(req: Request, res: Response): Promise<void> {
+    try {
+      const { id } = req.params;
+      const idStr = Array.isArray(id) ? id[0] : id;
+
+      const usuario = await this.service.deshabilitarPersonal(idStr);
+      const { passwordHash, ...usuarioSinPassword } = usuario;
+
+      res.status(200).json(usuarioSinPassword);
+    } catch (error) {
+      res.status(400).json({ error: error instanceof Error ? error.message : 'Error al deshabilitar personal' });
+    }
+  }
 }

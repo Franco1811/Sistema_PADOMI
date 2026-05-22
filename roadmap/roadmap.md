@@ -3,13 +3,13 @@
 ## Fase 1: Cimientos de Persistencia (La Base de Datos)
 **Objetivo:** Transformar entidades lógicas en tablas físicas en Azure SQL usando TypeORM y poblar el sistema con datos falsos (Seeders).
 
-- [ ] **Paso 1.1: Modelado TypeORM (shared/infrastructure/models)**
+- [x] **Paso 1.1: Modelado TypeORM (shared/infrastructure/models)**
   - Crear archivos .model.ts para Usuario, Paciente, Metrica y Lectura.
   - Configurar restricciones como Unique Constraint (RNF-49) en métricas.
-- [ ] **Paso 1.2: Conexión y Mappings (shared/infrastructure)**
+- [x] **Paso 1.2: Conexión y Mappings (shared/infrastructure)**
   - Configurar data-source.ts para Azure SQL.
   - Desarrollar mapping.ts para traducir Modelos de DB a Entidades Puras.
-- [ ] **Paso 1.3: Generación de Datos Ficticios (Seeders)**
+- [x] **Paso 1.3: Generación de Datos Ficticios (Seeders)**
   - Crear scripts en database/seeders/ para médicos, métricas y pacientes de prueba.
 - [ ] **Paso 1.4: Pruebas Unitarias de Modelos y Seeders**
   - Implementar pruebas unitarias para modelos y scripts de seeders.
@@ -17,15 +17,15 @@
 ## Fase 2: Desarrollo del Monolito Modular (El Núcleo API)
 **Objetivo:** Construir los CU administrativos (CU-01 al CU-05) y probarlos con Postman.
 
-- [ ] **Paso 2.1: Módulo de Seguridad (CU-01)**
+- [x] **Paso 2.1: Módulo de Seguridad (CU-01)**
   - Programar login: DTOs, Bcrypt, JWT (RNF-68).
   - Validar seguridad de endpoints y sanitización de datos.
-- [ ] **Paso 2.2: Módulo de Gestión (CU-02 y CU-03)**
+- [x] **Paso 2.2: Módulo de Gestión (CU-02 y CU-03)**
   - CRUD para personal médico y catálogo de métricas clínicas.
-- [ ] **Paso 2.3: Módulo de Pacientes (CU-04 y CU-05)**
+- [x] **Paso 2.3: Módulo de Pacientes (CU-04 y CU-05)**
   - Registrar paciente validando DNI (RNF-04) y código PAC-XXXX.
   - Configurar umbrales de riesgo personalizados (RNF-72).
-- [ ] **Paso 2.4: Validación de Endpoints**
+- [x] **Paso 2.4: Validación de Endpoints**
   - Usar Postman para documentar y verificar rutas HTTP.
 - [ ] **Paso 2.5: Pruebas Unitarias y de Integración de API**
   - Implementar pruebas unitarias y de integración para los CU y endpoints.
@@ -63,7 +63,8 @@
 - [ ] **Paso 5.2: Pruebas de Carga Locales**
   - Simular envío de JSONs corruptos/válidos para tolerancia a fallos (RNF-44).
 - [ ] **Paso 5.3: Seguridad y Revisión Final**
-  - Validar JWT, protección de endpoints, sanitización y revisión de seguridad.
+  - Implementar middleware de autenticación (JWT) y autorización por roles (RBAC) para proteger los endpoints administrativos (`/api/personal` y `/api/metricas`), asegurando que solo usuarios con rol `'ADMINISTRATIVO'` puedan crear, editar o deshabilitar.
+  - Validar sanitización de datos, protección de endpoints y revisión de seguridad general.
 - [ ] **Paso 5.4: Documentación Técnica y Manuales**
   - Completar README, OpenAPI/Swagger y manuales de usuario.
 - [ ] **Paso 5.5: CI/CD y Monitoreo**
@@ -71,4 +72,4 @@
 
 ---
 
-**Punto actual:** _(Marca aquí el paso en el que te encuentras para llevar seguimiento)_
+**Punto actual:** Fase 3 - Paso 3.1: Azure Functions Setup (functions/ingesta-biometrica)

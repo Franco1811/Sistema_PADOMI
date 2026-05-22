@@ -11,5 +11,6 @@ const controller = new PersonalController();
 router.post('/', (req: any, res: any) => controller.crear(req, res));
 router.get('/', (req: any, res: any) => controller.listar(req, res));
 router.put('/:id', (req: any, res: any) => controller.actualizar(req, res));
+router.delete('/:id', (req: any, res: any) => controller.deshabilitar(req, res));
 
 export default router;

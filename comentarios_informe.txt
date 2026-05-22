@@ -215,11 +215,11 @@ usuario.interf.ts: Implementación real que realiza la consulta SQL mediante Typ
 CU-02: Gestionar Cuentas de Personal  
 Capa 1: Presentación
 Es la interfaz para el Administrador de EsSalud.
-personal.routes.ts: Define rutas como POST /personal (crear), GET /personal (listar) o PUT /personal/:id (editar).
-personal.controller.ts: Recibe las peticiones del administrador. Llama al servicio de gestión de cuentas y devuelve la respuesta (201 para creación, 200 para listados). No contiene lógica, solo gestiona la entrada y salida de la API.
+personal.routes.ts: Define rutas como POST /personal (crear), GET /personal (listar), PUT /personal/:id (editar) y DELETE /personal/:id (deshabilitar cuenta).
+personal.controller.ts: Recibe las peticiones del administrador, llama al servicio y devuelve la respuesta (201 para creación, 200 para edición/desactivación).
 Capa 2: Aplicación
 Orquestación de las acciones administrativas.
-gestionar-cuentas.service.ts: Es el cerebro que coordina: llama al repositorio para verificar si el DNI del nuevo médico ya existe, cifra la contraseña inicial y solicita guardar. Reutiliza la lógica de validación de otros servicios si es necesario.
+gestionar-cuentas.service.ts: Es el cerebro que coordina: cifra la contraseña inicial, verifica si el DNI del nuevo médico ya existe e implementa la regla RNF-34 (bloqueo para impedir desactivar al último administrador activo).
 registro-personal.dto.ts: Valida que el body traiga datos correctos (DNI de 8 dígitos, correo institucional válido, rol asignado: 'MEDICO', 'ADMIN', etc.).
 Capa 3: Dominio 
 Aplicamos la reutilización de entidades.
@@ -353,11 +353,10 @@ lectura.mapping.ts: Es el "traductor". Se encarga de transformar la entidad a mo
 lectura.interf.ts: Contiene la implementación real de los servicios que se llaman desde las interfaces, ya que están conectadas al repositorio para persistir los datos físicamente.
 
 
-CU-09: Procesar Reglas Clínicas
+CU-09: Procesar Reglas Clínicas  
 Capa 1: Presentación
-Esta capa no es necesariamente una ruta HTTP externa, sino el punto de entrada del proceso.
-reglas.event.ts: Actúa como el disparador que recibe la señal del CU-08 indicando que hay una nueva lectura lista para ser evaluada.
-reglas.controller.ts: Recibe el evento con los datos de la lectura y los entrega al servicio de aplicación para iniciar el análisis clínico.
+Esta capa no posee una ruta HTTP externa, sino que es reactiva a eventos internos.
+reglas.event.ts: Suscriptor y manejador de eventos que escucha las nuevas lecturas publicadas por el CU-08 y delega su ejecución de forma directa al servicio de aplicación, actuando como la puerta de entrada asíncrona al caso de uso.
 Capa 2: Aplicación 
 Es donde se coordina la "inteligencia" del sistema.
 motor-reglas.service.ts: Orquestador que recupera los umbrales personalizados del paciente (usando la interfaz del repositorio) y llama a la entidad para realizar la comparación matemática. Si se detecta un riesgo, decide si se debe notificar al médico.

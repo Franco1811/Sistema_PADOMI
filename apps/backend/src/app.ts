@@ -1,6 +1,9 @@
 import express, { Application } from 'express';
 import cors from 'cors';
 
+// CU-01 Iniciar Sesión (Autenticación)
+import authRoutes from './modules/CU01_auth/presentation/auth.routes';
+
 // CU-02 Gestionar Personal
 import personalRoutes from './modules/CU02_GestionarPersonal/presentation/personal.routes';
 
@@ -26,9 +29,10 @@ const app: Application = express();
 
 // Middlewares Globales
 app.use(cors()); // Permite peticiones cruzadas (frontend)
-app.use(express.json()); // Parsea body a JSON
+app.use(express.json({ limit: '50kb' })); // Parsea body y protege contra payloads gigantes (DoS)
 
 // Montaje de Rutas
+app.use('/api/auth', authRoutes);
 app.use('/api/personal', personalRoutes);
 app.use('/api/metricas', metricaRoutes);
 app.use('/api/pacientes/registro', registroPacienteRoutes);
