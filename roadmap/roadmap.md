@@ -62,8 +62,8 @@
   - Registro de auditoría en casos críticos (RNF-03).
 - [ ] **Paso 5.2: Pruebas de Carga Locales**
   - Simular envío de JSONs corruptos/válidos para tolerancia a fallos (RNF-44).
-- [ ] **Paso 5.3: Seguridad y Revisión Final**
-  - Implementar middleware de autenticación (JWT) y autorización por roles (RBAC) para proteger los endpoints administrativos (`/api/personal` y `/api/metricas`), asegurando que solo usuarios con rol `'ADMINISTRATIVO'` puedan crear, editar o deshabilitar.
+- [x] **Paso 5.3: Seguridad y Revisión Final**
+  - Implementar middleware de autenticación (JWT) y autorización por roles (RBAC) para proteger los endpoints administrativos (`/api/personal` y `/api/metricas`), asegurando que solo usuarios con rol `'ADMINISTRATIVO'` puedan crear, editar o deshabilitar. (Completado anticipadamente)
   - Validar sanitización de datos, protección de endpoints y revisión de seguridad general.
 - [ ] **Paso 5.4: Documentación Técnica y Manuales**
   - Completar README, OpenAPI/Swagger y manuales de usuario.

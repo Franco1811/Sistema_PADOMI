@@ -58,6 +58,13 @@ export class GestionarCuentasService {
     }
 
     // Actualizar campos si se proporcionan
+    if (dto.email && dto.email !== usuario.email) {
+      const existeEmail = await this.usuarioRepository.buscarPorEmail(dto.email);
+      if (existeEmail) {
+        throw new Error("El correo electrónico ya está registrado por otro usuario");
+      }
+    }
+
     const nombre = dto.nombre || usuario.nombre;
     const apellido = dto.apellido || usuario.apellido;
     const email = dto.email || usuario.email;

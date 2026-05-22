@@ -4,13 +4,16 @@
 
 import { Router } from 'express';
 import { PersonalController } from './personal.controller';
+import { autenticarToken } from '../../../middleware/auth.middleware';
+import { autorizarRoles } from '../../../middleware/role.middleware';
 
 const router = Router();
 const controller = new PersonalController();
 
-router.post('/', (req: any, res: any) => controller.crear(req, res));
-router.get('/', (req: any, res: any) => controller.listar(req, res));
-router.put('/:id', (req: any, res: any) => controller.actualizar(req, res));
-router.delete('/:id', (req: any, res: any) => controller.deshabilitar(req, res));
+// Todas las rutas de personal requieren ser ADMINISTRATIVO
+router.post('/', autenticarToken, autorizarRoles('ADMINISTRATIVO'), (req: any, res: any) => controller.crear(req, res));
+router.get('/', autenticarToken, autorizarRoles('ADMINISTRATIVO'), (req: any, res: any) => controller.listar(req, res));
+router.put('/:id', autenticarToken, autorizarRoles('ADMINISTRATIVO'), (req: any, res: any) => controller.actualizar(req, res));
+router.delete('/:id', autenticarToken, autorizarRoles('ADMINISTRATIVO'), (req: any, res: any) => controller.deshabilitar(req, res));
 
 export default router;

@@ -44,20 +44,48 @@ export class CatalogoService {
       throw new Error("Métrica no encontrada");
     }
 
+    // 1. Validar nombre duplicado si se intenta cambiar
+    if (dto.nombre && dto.nombre !== metrica.nombre) {
+      const existe = await this.metricaRepository.buscarPorNombre(dto.nombre);
+      if (existe) {
+        throw new Error("Ya existe una métrica con ese nombre");
+      }
+    }
+
+    // 2. Validaciones de formato
+    if (dto.nombre !== undefined && dto.nombre.length < 2) {
+      throw new Error("Nombre de métrica inválido");
+    }
+    if (dto.unidad !== undefined && dto.unidad.length < 1) {
+      throw new Error("Unidad de medida inválida");
+    }
+    const nuevoMin = dto.rangoMin !== undefined ? dto.rangoMin : metrica.rangoMin;
+    const nuevoMax = dto.rangoMax !== undefined ? dto.rangoMax : metrica.rangoMax;
+    if (nuevoMin < 0) {
+      throw new Error("El rango mínimo debe ser positivo");
+    }
+    if (nuevoMax <= nuevoMin) {
+      throw new Error("El rango máximo debe ser mayor al mínimo");
+    }
+
     const metricaActualizada = new Metrica(
       metrica.id,
       metrica.codigo,
       dto.nombre || metrica.nombre,
       dto.unidad || metrica.unidad,
       dto.descripcion !== undefined ? dto.descripcion : metrica.descripcion,
-      dto.rangoMin !== undefined ? dto.rangoMin : metrica.rangoMin,
-      dto.rangoMax !== undefined ? dto.rangoMax : metrica.rangoMax
+      nuevoMin,
+      nuevoMax
     );
 
     return await this.metricaRepository.actualizar(metricaActualizada);
   }
 
   async eliminarMetrica(id: string): Promise<void> {
+    const enUso = await this.metricaRepository.estaEnUso(id);
+    if (enUso) {
+      throw new Error("No se puede eliminar la métrica porque está en uso por algún paciente o tiene lecturas registradas");
+    }
     await this.metricaRepository.inactivar(id);
   }
 }

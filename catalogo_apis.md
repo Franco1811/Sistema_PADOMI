@@ -10,10 +10,28 @@ Consultar desde **Thunder Client** o **Postman**
 ### CU-01: Iniciar Sesión (Autenticación)
 Sirve para autenticar a los profesionales de la salud en la plataforma y recibir el Token JWT. 
 
-#### Paso 1: Registrar al Profesional de Prueba 
+> [!NOTE]
+> El sistema siembra automáticamente un usuario administrador en el inicio del servidor para pruebas.
+> * **Email:** `admin.padomi@essalud.gob.pe`
+> * **Password:** `admin_secreto`
+> * **Rol:** `ADMINISTRATIVO`
 
+#### Paso 1: Iniciar Sesión como Administrador Sembrado
+* **Endpoint para Iniciar Sesión:**
+  * `POST http://localhost:3000/api/auth/login`
+  * **Cuerpo (JSON):**
+    ```json
+    {
+      "email": "admin.padomi@essalud.gob.pe",
+      "password": "admin_secreto"
+    }
+    ```
+  * **Respuesta Exitosa (JSON):** Retorna un `"token": "eyJhbG..."`. Copia este token para los siguientes pasos.
+
+#### Paso 2: Registrar un Médico usando el Token del Administrador (CU-02)
 * **Endpoint para Crear Personal:**
   * `POST http://localhost:3000/api/personal`
+  * **Cabeceras:** `Authorization: Bearer <TOKEN_DE_ADMIN_PASO_1>`
   * **Cuerpo (JSON):**
     ```json
     {
@@ -27,9 +45,7 @@ Sirve para autenticar a los profesionales de la salud en la plataforma y recibir
     }
     ```
 
-#### Paso 2: Iniciar Sesión con el Usuario Creado
-Una vez registrado, ya puedes autenticarte usando las mismas credenciales.
-
+#### Paso 3: Iniciar Sesión con el Médico Creado (CU-01)
 * **Endpoint para Iniciar Sesión:**
   * `POST http://localhost:3000/api/auth/login`
   * **Cuerpo (JSON):**
@@ -39,12 +55,26 @@ Una vez registrado, ya puedes autenticarte usando las mismas credenciales.
       "password": "mi_contraseña_secreta2"
     }
     ```
-  * **Respuesta Exitosa (JSON - HTTP 200):**
+  * **Respuesta Exitosa (JSON):** Retorna el token JWT del médico. Copia este token para el siguiente paso de prueba de seguridad.
+
+#### Paso 4: Probar Privilegios de Seguridad (Rechazo a Médicos en CU-02)
+Si intentas crear personal utilizando el token del Médico (quien no tiene privilegios de administración), la API te bloqueará:
+* **Endpoint para Crear Personal:**
+  * `POST http://localhost:3000/api/personal`
+  * **Cabeceras:** `Authorization: Bearer <TOKEN_DE_MEDICO_PASO_3>`
+  * **Cuerpo (JSON):** (cualquier usuario)
+  * **Respuesta de Error (HTTP 403 Forbidden):**
+    ```json
+    {
+      "error": "Acceso denegado: Se requiere rol ADMINISTRATIVO"
+    }
+    ```
 
 ---
 
 ### CU-02: Gestionar Personal (Médicos, Enfermeros)
 Sirve para registrar a los profesionales de la salud.
+* **Seguridad:** Requiere cabecera `Authorization: Bearer <TOKEN_JWT>` firmado con rol `'ADMINISTRATIVO'`.
 
 * **Listar Personal**
   * `GET http://localhost:3000/api/personal`
@@ -87,6 +117,9 @@ Sirve para registrar a los profesionales de la salud.
 
 ### CU-03: Gestionar Métricas
 Sirve para administrar el catálogo base (Presión Arterial, Ritmo Cardíaco, Temperatura, etc).
+* **Seguridad:** 
+  * `GET` requiere `Authorization: Bearer <TOKEN_JWT>` firmado con cualquier rol (`ADMINISTRATIVO`, `MEDICO`, `ENFERMERO`).
+  * `POST`, `PUT`, `DELETE` requieren `Authorization: Bearer <TOKEN_JWT>` firmado con rol `'ADMINISTRATIVO'`.
 
 * **Listar todas las Métricas**
   * `GET http://localhost:3000/api/metricas`

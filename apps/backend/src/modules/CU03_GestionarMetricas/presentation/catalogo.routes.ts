@@ -4,13 +4,18 @@
 
 import { Router } from 'express';
 import { CatalogoController } from './catalogo.controller';
+import { autenticarToken } from '../../../middleware/auth.middleware';
+import { autorizarRoles } from '../../../middleware/role.middleware';
 
 const router = Router();
 const controller = new CatalogoController();
 
-router.post('/', (req: any, res: any) => controller.crear(req, res));
-router.get('/', (req: any, res: any) => controller.listar(req, res));
-router.put('/:id', (req: any, res: any) => controller.actualizar(req, res));
-router.delete('/:id', (req: any, res: any) => controller.eliminar(req, res));
+// Permitir listar a cualquier personal autenticado (Administrativos, Médicos, Enfermeros)
+router.get('/', autenticarToken, autorizarRoles('ADMINISTRATIVO', 'MEDICO', 'ENFERMERO'), (req: any, res: any) => controller.listar(req, res));
+
+// Solo los Administrativos pueden modificar el catálogo de métricas
+router.post('/', autenticarToken, autorizarRoles('ADMINISTRATIVO'), (req: any, res: any) => controller.crear(req, res));
+router.put('/:id', autenticarToken, autorizarRoles('ADMINISTRATIVO'), (req: any, res: any) => controller.actualizar(req, res));
+router.delete('/:id', autenticarToken, autorizarRoles('ADMINISTRATIVO'), (req: any, res: any) => controller.eliminar(req, res));
 
 export default router;

@@ -11,4 +11,5 @@ export interface IMetricaRepository {
   buscarPorNombre(nombre: string): Promise<Metrica | null>;
   listarTodas(): Promise<Metrica[]>;
   inactivar(id: string): Promise<void>;
+  estaEnUso(id: string): Promise<boolean>;
 }
