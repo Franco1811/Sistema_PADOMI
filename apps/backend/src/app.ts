@@ -31,6 +31,15 @@ const app: Application = express();
 app.use(cors()); // Permite peticiones cruzadas (frontend)
 app.use(express.json({ limit: '50kb' })); // Parsea body y protege contra payloads gigantes (DoS)
 
+// Interceptor global de errores de sintaxis JSON (evita fugas de información en stack traces)
+app.use((err: any, req: any, res: any, next: any): void => {
+  if (err instanceof SyntaxError && 'status' in err && err.status === 400 && 'body' in err) {
+    res.status(400).json({ error: 'Sintaxis JSON inválida: verifique comas, comillas o formato' });
+    return;
+  }
+  next();
+});
+
 // Montaje de Rutas
 app.use('/api/auth', authRoutes);
 app.use('/api/personal', personalRoutes);

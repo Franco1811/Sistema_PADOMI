@@ -4,18 +4,31 @@
 
 import { IPacienteRepository } from '../../../../../../shared/domain/repositories/paciente.repository';
 import { PacienteRepository } from '../../../../../../shared/infrastructure/interfaces/paciente.interf';
+import { IUsuarioRepository } from '../../../../../../shared/domain/repositories/usuario.repository';
+import { UsuarioRepository } from '../../../../../../shared/infrastructure/interfaces/usuario.interf';
 import { Paciente } from '../../../../../../shared/domain/entities/paciente.entity';
 import { PacienteDto } from './paciente.dto';
 
 export class RegistrarPacienteService {
   private pacienteRepository: IPacienteRepository;
+  private usuarioRepository: IUsuarioRepository;
 
   constructor() {
     this.pacienteRepository = new PacienteRepository();
+    this.usuarioRepository = new UsuarioRepository();
   }
 
   async registrarPaciente(dto: PacienteDto): Promise<Paciente> {
     dto.validar();
+
+    // Verificar si el médico asignado existe y tiene rol MEDICO
+    const medico = await this.usuarioRepository.buscarPorId(dto.medicoAsignadoId);
+    if (!medico) {
+      throw new Error("El médico asignado no existe.");
+    }
+    if (medico.rol !== 'MEDICO') {
+      throw new Error("El usuario asignado debe tener el rol de MEDICO.");
+    }
 
     // Verificar si el DNI ya existe
     const existe = await this.pacienteRepository.buscarPorDni(dto.dni);

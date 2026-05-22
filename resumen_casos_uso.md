@@ -1,4 +1,4 @@
-# Resumen Técnico de Casos de Uso Implementados (CU-01 al CU-03)
+# Resumen Técnico de Casos de Uso Implementados (CU-01 al CU-04)
 
 Este documento detalla la lógica de negocio, las reglas clínicas, las medidas de seguridad y los mecanismos de integridad implementados en el backend del Sistema de Telemetría PADOMI para la sustentación.
 
@@ -58,6 +58,30 @@ Este documento detalla la lógica de negocio, las reglas clínicas, las medidas 
 
 ---
 
+## 🏥 CU-04: Registrar Paciente Crónico
+* **Objetivo:** Registrar pacientes con enfermedades crónicas en el programa PADOMI, asignándoles un médico de cabecera responsable de su telemonitoreo.
+
+### ⚙️ Lógica e Integridad Implementada:
+1. **Control de Privilegios Segmentado (RBAC):**
+   * El registro está restringido mediante JWT a los roles `'ADMINISTRATIVO'` (Admisión) y `'MEDICO'` (Responsable del diagnóstico clínico).
+   * Los `'ENFERMERO'` son bloqueados con `403 Forbidden` si intentan registrar pacientes.
+2. **Validación de Carga Laboral del Médico (RNF-20):**
+   * Valida en el repositorio que el médico asignado no supere el límite máximo de **500 pacientes asignados**. Si se supera, el sistema bloquea el registro con un mensaje controlado para evitar sobrecarga clínica.
+3. **Validación Existencial de Médico:**
+   * Verifica que el UUID enviado en `medicoAsignadoId` exista físicamente en la base de datos de usuarios, evitando excepciones crudas de SQL Server.
+4. **Verificación de Rol Médico Obligatorio:**
+   * Garantiza que el usuario asignado tenga el rol clínico de `'MEDICO'`. Impide que pacientes sean asignados por error a enfermeros o administrativos.
+5. **Formatos y Edades Clínicas Coherentes:**
+   * El DNI del paciente debe tener exactamente **8 dígitos numéricos**.
+   * La edad del paciente debe ser un valor lógico entre **0 y 120 años**.
+6. **Evita DNI Duplicados:**
+   * El DNI es único. Si se intenta registrar un paciente que ya existe, el sistema emite una respuesta clara de error.
+7. **Generador Correlativo de Códigos:**
+   * Genera de forma automática códigos correlativos legibles de pacientes (ej: `PAC-0001`, `PAC-0002`).
+
+---
+
 ## 🛡️ Medidas de Seguridad Transversales (Infraestructura API)
 * **Protección Anti-DoS (Denegación de Servicio):** Configuración de un límite estricto de tamaño en el parser de Express (`express.json({ limit: '50kb' })`) en `app.ts` para rechazar cuerpos de petición inmensos de forma inmediata (`413 Payload Too Large`), protegiendo la RAM del servidor.
+* **Interceptor de Errores de Sintaxis JSON:** Captura cualquier error de formato en el body (como comas huérfanas o comillas rotas) en la capa de parsing, respondiendo con un JSON estructurado de error en lugar de filtrar paths del servidor en páginas HTML.
 * **Arquitectura Limpia (Clean Architecture):** Todo el código está dividido estrictamente en capas (Presentación/Controladores, Aplicación/Servicios, Dominio/Entidades y Repositorios de Infraestructura), logrando desacoplamiento total de la base de datos relacional Azure SQL.
