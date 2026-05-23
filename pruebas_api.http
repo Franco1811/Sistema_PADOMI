@@ -5,14 +5,14 @@
 @hostname = http://localhost:3000/api
 
 # Variables de autenticación e identificadores para pruebas manuales:
-@tokenAdmin = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IkMyNDg0MkM0LTlGMjktNDRCOC1BQjRELTE1NEE1M0NGNzc5RSIsImVtYWlsIjoiYWRtaW4ucGFkb21pQGVzc2FsdWQuZ29iLnBlIiwicm9sIjoiQURNSU5JU1RSQVRJVk8iLCJpYXQiOjE3Nzk1NTc0NzMsImV4cCI6MTc3OTU4NjI3M30.I8l9wATWjOL2GPWhuAYWHkACH7RL_uG1oRi9DOb_C88
-@tokenMedico = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IkY1MzY0N0EyLUI1QTktNEJCNS05QTcxLUI5NDNENDRDQUY3NyIsImVtYWlsIjoiY2FybG9zLm1lbmRvemFAZXNzYWx1ZC5nb2IucGUiLCJyb2wiOiJNRURJQ08iLCJpYXQiOjE3Nzk1NTc1MzIsImV4cCI6MTc3OTU4NjMzMn0.zeJX0XW1S7lG2FshjWSrrDVY64elwBnsn16lg_hJT5s
-@tokenEnfermero = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjJCNEI4Q0I5LTZCNjktNDA4MS1CMDAxLTI1RkJDOTY0QTE2NiIsImVtYWlsIjoiYW5hLmdvbWV6QGVzc2FsdWQuZ29iLnBlIiwicm9sIjoiRU5GRVJNRVJPIiwiaWF0IjoxNzc5NTU3NTU0LCJleHAiOjE3Nzk1ODYzNTR9.BVSzSM3hDvPn9MSsvttYbqt1ebbq-UI2p1cBo1zhlBc
+@tokenAdmin = pegue_aqui_el_token_de_admin
+@tokenMedico = pegue_aqui_el_token_de_medico
+@tokenEnfermero = pegue_aqui_el_token_de_enfermero
 
-@medicoId = 74C5352B-F9EC-4616-9928-03143C2CBA42
-@enfermeroId = 1D7243C9-B9A0-49B4-BE95-1156AC9CB8F4
-@pacienteId = D958CDB0-406F-413F-AB2F-98B63E8F7B0D
-@metricaId = 6AE3F4DF-F762-48E6-8845-6FB3684AAFE5
+@medicoId = pegue_aqui_el_uuid_del_medico_creado
+@enfermeroId = pegue_aqui_el_uuid_del_enfermero_creado
+@pacienteId = pegue_aqui_el_uuid_del_paciente_creado
+@metricaId = pegue_aqui_el_uuid_de_la_metrica_creada
 
 
 # =================================================================

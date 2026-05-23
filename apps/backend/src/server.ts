@@ -32,7 +32,7 @@ async function bootstrap() {
       defaultAdmin.dni = '00000001';
       defaultAdmin.nombre = 'Admin';
       defaultAdmin.apellido = 'General';
-      defaultAdmin.email = 'admin.padomi@essalud.gob.pe';
+      defaultAdmin.email = 'admin.padomi@padomi.pe';
       defaultAdmin.passwordHash = adminPasswordHash;
       defaultAdmin.rol = 'ADMINISTRATIVO';
       defaultAdmin.activo = true;

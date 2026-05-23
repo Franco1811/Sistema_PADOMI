@@ -4,7 +4,7 @@ Este documento detalla la lógica de negocio, las reglas clínicas, las medidas 
 
 ---
 
-## 🔐 CU-01: Iniciar Sesión (Autenticación)
+## CU-01: Iniciar Sesión (Autenticación)
 * **Objetivo:** Permitir el acceso seguro del personal de salud (Administrativos, Médicos y Enfermeros) y entregar el Token JWT para operaciones posteriores.
 
 ### ⚙️ Lógica e Integridad Implementada:
@@ -15,7 +15,7 @@ Este documento detalla la lógica de negocio, las reglas clínicas, las medidas 
 
 ---
 
-## 👥 CU-02: Gestionar Cuentas de Personal
+## CU-02: Gestionar Cuentas de Personal
 * **Objetivo:** Permitir al Administrador registrar, listar, actualizar e inhabilitar cuentas de Médicos y Enfermeros.
 
 ### ⚙️ Lógica e Integridad Implementada:
@@ -39,7 +39,7 @@ Este documento detalla la lógica de negocio, las reglas clínicas, las medidas 
 
 ---
 
-## 📊 CU-03: Gestionar Catálogo de Métricas Clínicas
+## CU-03: Gestionar Catálogo de Métricas Clínicas
 * **Objetivo:** Administrar el catálogo base de variables fisiológicas (Temperatura, Presión Arterial, Ritmo Cardíaco, etc.) que se utilizarán en el monitoreo IoT.
 
 ### ⚙️ Lógica e Integridad Implementada:
@@ -58,7 +58,7 @@ Este documento detalla la lógica de negocio, las reglas clínicas, las medidas 
 
 ---
 
-## 🏥 CU-04: Registrar Paciente Crónico
+## CU-04: Registrar Paciente Crónico
 * **Objetivo:** Registrar pacientes con enfermedades crónicas en el programa PADOMI, asignándoles un médico de cabecera responsable de su telemonitoreo.
 
 ### ⚙️ Lógica e Integridad Implementada:
@@ -81,7 +81,7 @@ Este documento detalla la lógica de negocio, las reglas clínicas, las medidas 
 
 ---
 
-## 🏥 CU-05: Gestionar Paciente (Ficha y Umbrales Clínicos)
+## CU-05: Gestionar Paciente (Ficha y Umbrales Clínicos)
 * **Objetivo:** Consultar la ficha del paciente crónico y personalizar sus umbrales de alerta para el monitoreo IoT de constantes vitales.
 
 ### ⚙️ Lógica e Integridad Implementada:
@@ -104,7 +104,7 @@ Este documento detalla la lógica de negocio, las reglas clínicas, las medidas 
 ---
 
 
-## 🛡️ Medidas de Seguridad Transversales (Infraestructura API)
+## Medidas de Seguridad Transversales (Infraestructura API)
 * **Protección Anti-DoS (Denegación de Servicio):** Configuración de un límite estricto de tamaño en el parser de Express (`express.json({ limit: '50kb' })`) en `app.ts` para rechazar cuerpos de petición inmensos de forma inmediata (`413 Payload Too Large`), protegiendo la RAM del servidor.
 * **Interceptor de Errores de Sintaxis JSON:** Captura cualquier error de formato en el body (como comas huérfanas o comillas rotas) en la capa de parsing, respondiendo con un JSON estructurado de error en lugar de filtrar paths del servidor en páginas HTML.
 * **Arquitectura Limpia (Clean Architecture):** Todo el código está dividido estrictamente en capas (Presentación/Controladores, Aplicación/Servicios, Dominio/Entidades y Repositorios de Infraestructura), logrando desacoplamiento total de la base de datos relacional Azure SQL.
