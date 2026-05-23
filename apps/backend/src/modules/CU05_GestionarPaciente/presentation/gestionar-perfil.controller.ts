@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { GestionarPerfilService } from '../application/gestionar-perfil.service';
 import { ActualizarPerfilDto } from '../application/actualizar-perfil.dto';
+import { AuthRequest } from '../../../middleware/auth.middleware';
 
 export class GestionarPerfilController {
   private service: GestionarPerfilService;
@@ -21,10 +22,10 @@ export class GestionarPerfilController {
 
   actualizarPerfil = async (req: Request, res: Response): Promise<void> => {
     try {
+      const authReq = req as AuthRequest;
       const dto = new ActualizarPerfilDto();
       dto.pacienteId = req.params.id as string;
-      // En un caso real, el medicoId vendría del token JWT en middleware
-      dto.medicoId = req.body.medicoId;
+      dto.medicoId = authReq.user?.id || req.body.medicoId;
       dto.diagnostico = req.body.diagnostico;
       dto.umbrales = req.body.umbrales;
 

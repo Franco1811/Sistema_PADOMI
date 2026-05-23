@@ -1,4 +1,4 @@
-# Resumen Técnico de Casos de Uso Implementados (CU-01 al CU-04)
+# Resumen Técnico de Casos de Uso Implementados (CU-01 al CU-05)
 
 Este documento detalla la lógica de negocio, las reglas clínicas, las medidas de seguridad y los mecanismos de integridad implementados en el backend del Sistema de Telemetría PADOMI para la sustentación.
 
@@ -80,6 +80,29 @@ Este documento detalla la lógica de negocio, las reglas clínicas, las medidas 
    * Genera de forma automática códigos correlativos legibles de pacientes (ej: `PAC-0001`, `PAC-0002`).
 
 ---
+
+## 🏥 CU-05: Gestionar Paciente (Ficha y Umbrales Clínicos)
+* **Objetivo:** Consultar la ficha del paciente crónico y personalizar sus umbrales de alerta para el monitoreo IoT de constantes vitales.
+
+### ⚙️ Lógica e Integridad Implementada:
+1. **Control de Privilegios Segmentado (RBAC):**
+   * **Lectura (`GET /`):** Permitido para `'ADMINISTRATIVO'`, `'MEDICO'` y `'ENFERMERO'` para asegurar que el personal asistencial pueda visualizar el estado de salud del paciente.
+   * **Escritura (`PATCH /`):** Exclusivo para `'ADMINISTRATIVO'` y `'MEDICO'`. Los enfermeros están bloqueados con `403 Forbidden` para evitar modificaciones no autorizadas en planes clínicos.
+2. **Auditoría de Modificación Inalterable (JWT):**
+   * El ID del usuario que realiza la modificación (`medicoId`) se extrae directamente de la firma digital del token JWT, haciendo imposible su suplantación o falsificación en las solicitudes HTTP.
+3. **Validación de Rangos Clínicos Consistentes (DTO):**
+   * El valor mínimo del umbral debe ser positivo (`valorMin >= 0`).
+   * El valor máximo del umbral debe ser estrictamente superior al mínimo (`valorMax > valorMin`).
+4. **Validación de Consistencia con el Catálogo de Métricas:**
+   * Verifica la existencia de la métrica en la base de datos antes de crear o actualizar el umbral.
+   * **Control Clínico Estricto:** Valida que el umbral personalizado se encuentre estrictamente dentro de los rangos biológicos absolutos de la métrica (`valorMin >= metrica.rangoMin` y `valorMax <= metrica.rangoMax`), impidiendo la configuración de rangos imposibles o biológicamente absurdos.
+5. **Blindaje contra Duplicidad de Umbrales:**
+   * Evita la creación de registros redundantes mediante un validador en el DTO que impide enviar la misma métrica más de una vez en el cuerpo de la petición.
+6. **Protección contra Campos Vacíos:**
+   * Si se actualiza el diagnóstico, este no puede estar vacío ni contener solo espacios en blanco (mínimo 3 caracteres significativos).
+
+---
+
 
 ## 🛡️ Medidas de Seguridad Transversales (Infraestructura API)
 * **Protección Anti-DoS (Denegación de Servicio):** Configuración de un límite estricto de tamaño en el parser de Express (`express.json({ limit: '50kb' })`) en `app.ts` para rechazar cuerpos de petición inmensos de forma inmediata (`413 Payload Too Large`), protegiendo la RAM del servidor.

@@ -2,6 +2,7 @@ import { IPacienteRepository } from '../../../../../../shared/domain/repositorie
 import { PacienteRepository } from '../../../../../../shared/infrastructure/interfaces/paciente.interf';
 import { IUmbralRepository } from '../../../../../../shared/domain/repositories/umbral.repository';
 import { UmbralRepository } from '../../../../../../shared/infrastructure/interfaces/umbral.interf';
+import { MetricaRepository } from '../../CU03_GestionarMetricas/infrastructure/metrica.interf';
 import { ActualizarPerfilDto } from './actualizar-perfil.dto';
 import { Paciente } from '../../../../../../shared/domain/entities/paciente.entity';
 import { Umbral } from '../../../../../../shared/domain/entities/umbral.entity';
@@ -51,9 +52,21 @@ export class GestionarPerfilService {
 
     // Actualizar umbrales
     if (dto.umbrales && dto.umbrales.length > 0) {
+      const metricaRepository = new MetricaRepository();
       const umbralesExistentes = await this.umbralRepository.buscarPorPacienteId(dto.pacienteId);
 
       for (const uDto of dto.umbrales) {
+        // Verificar existencia de la métrica antes de guardar umbral
+        const metricaExiste = await metricaRepository.buscarPorId(uDto.metricaId);
+        if (!metricaExiste) {
+          throw new Error(`La métrica con ID '${uDto.metricaId}' no existe en el catálogo.`);
+        }
+
+        // Verificar que los valores del umbral personalizado estén dentro del rango permitido por la métrica
+        if (uDto.valorMin < metricaExiste.rangoMin || uDto.valorMax > metricaExiste.rangoMax) {
+          throw new Error(`Los valores del umbral para '${metricaExiste.nombre}' deben estar dentro del rango permitido por la métrica (${metricaExiste.rangoMin} a ${metricaExiste.rangoMax}).`);
+        }
+
         const existente = umbralesExistentes.find(u => u.metricaId === uDto.metricaId);
         
         const umbral = new Umbral(
