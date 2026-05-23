@@ -1,0 +1,217 @@
+# =================================================================
+# Archivo de Pruebas Rápidas - Sistema de Telemetría PADOMI
+# Instala la extensión "REST Client" (de Huachao Mao) en VS Code
+# para ver los botones "Send Request" arriba de cada petición.
+# =================================================================
+
+@hostname = http://localhost:3000/api
+
+### ----------------------------------------------------------------
+### 🔐 CU-01: Iniciar Sesión (Autenticación)
+### ----------------------------------------------------------------
+
+# @name loginAdmin
+POST {{hostname}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "admin.padomi@essalud.gob.pe",
+  "password": "admin_secreto"
+}
+
+###
+
+# @name loginInvalido (Prueba de error controlado)
+POST {{hostname}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "admin.padomi@essalud.gob.pe",
+  "password": "pass_incorrecto"
+}
+
+
+### ----------------------------------------------------------------
+### 👥 CU-02: Gestionar Personal (Solo Administrativo)
+### ----------------------------------------------------------------
+
+# Nota: Copia el token del login exitoso y pégalo abajo
+@tokenAdmin = pegue_aqui_el_token_de_admin
+
+# Registrar Médico Válido
+POST {{hostname}}/personal
+Content-Type: application/json
+Authorization: Bearer {{tokenAdmin}}
+
+{
+  "dni": "88888880",
+  "nombre": "Carlos",
+  "apellido": "Mendoza",
+  "email": "carlos.mendoza@essalud.gob.pe",
+  "password": "medico_secreto",
+  "rol": "MEDICO",
+  "especialidad": "Cardiología"
+}
+
+###
+
+# Registrar Enfermero Válido
+POST {{hostname}}/personal
+Content-Type: application/json
+Authorization: Bearer {{tokenAdmin}}
+
+{
+  "dni": "88888881",
+  "nombre": "Ana",
+  "apellido": "Gomez",
+  "email": "ana.gomez@essalud.gob.pe",
+  "password": "enfermero_secreto",
+  "rol": "ENFERMERO"
+}
+
+###
+
+# Registrar DNI Duplicado (Prueba de error controlado)
+POST {{hostname}}/personal
+Content-Type: application/json
+Authorization: Bearer {{tokenAdmin}}
+
+{
+  "dni": "88888880",
+  "nombre": "Duplicado",
+  "apellido": "Test",
+  "email": "duplicado@essalud.gob.pe",
+  "password": "password",
+  "rol": "MEDICO",
+  "especialidad": "Pediatría"
+}
+
+
+### ----------------------------------------------------------------
+### 📊 CU-03: Gestionar Catálogo de Métricas (Solo Admin)
+### ----------------------------------------------------------------
+
+# Crear Métrica Válida (ej: Temperatura)
+POST {{hostname}}/metricas
+Content-Type: application/json
+Authorization: Bearer {{tokenAdmin}}
+
+{
+  "nombre": "Temperatura Corporal",
+  "unidad": "°C",
+  "descripcion": "Medición periférica de temperatura",
+  "rangoMin": 35.0,
+  "rangoMax": 42.0
+}
+
+###
+
+# Crear Métrica con Rangos Incoherentes (Prueba de error controlado)
+POST {{hostname}}/metricas
+Content-Type: application/json
+Authorization: Bearer {{tokenAdmin}}
+
+{
+  "nombre": "Presión Arterial",
+  "unidad": "mmHg",
+  "descripcion": "Presión arterial sistólica",
+  "rangoMin": 120.0,
+  "rangoMax": 80.0
+}
+
+
+### ----------------------------------------------------------------
+### 🏥 CU-04: Registrar Paciente Crónico (Admin o Médico)
+### ----------------------------------------------------------------
+
+# Registrar Paciente Válido (Usa un ID de médico real en medicoAsignadoId)
+POST {{hostname}}/pacientes/registro
+Content-Type: application/json
+Authorization: Bearer {{tokenAdmin}}
+
+{
+  "dni": "73334444",
+  "nombres": "Julio Cortazar",
+  "edad": 72,
+  "diagnostico": "Asma Severa",
+  "medicoAsignadoId": "7870F24E-5E2B-45C9-8F4C-766DB7DCD450"
+}
+
+###
+
+# Registrar con Médico Inexistente (Prueba de error controlado)
+POST {{hostname}}/pacientes/registro
+Content-Type: application/json
+Authorization: Bearer {{tokenAdmin}}
+
+{
+  "dni": "73334445",
+  "nombres": "Paciente Fantasma",
+  "edad": 45,
+  "diagnostico": "Alergia",
+  "medicoAsignadoId": "E6FFCE9B-89E2-4467-9DE8-000000000000"
+}
+
+
+### ----------------------------------------------------------------
+### 🏥 CU-05: Gestionar Paciente / Umbrales
+### ----------------------------------------------------------------
+
+# Nota: Copia el token del Médico creado y pégalo abajo
+@tokenMedico = pegue_aqui_el_token_de_medico
+@pacienteId = pegue_aqui_el_uuid_del_paciente
+@metricaId = pegue_aqui_el_uuid_de_la_metrica
+
+# Obtener Perfil (Médico, Admin o Enfermero)
+GET {{hostname}}/pacientes/perfil/{{pacienteId}}
+Authorization: Bearer {{tokenMedico}}
+
+###
+
+# Actualizar Perfil - Rangos Fuera de Catálogo (Prueba de error controlado)
+PATCH {{hostname}}/pacientes/perfil/{{pacienteId}}
+Content-Type: application/json
+Authorization: Bearer {{tokenMedico}}
+
+{
+  "diagnostico": "Asma Severa Controlada",
+  "umbrales": [
+    {
+      "metricaId": "{{metricaId}}",
+      "valorMin": 34.0,
+      "valorMax": 45.0
+    }
+  ]
+}
+
+###
+
+# Actualizar Perfil - Métrica Duplicada (Prueba de error controlado)
+PATCH {{hostname}}/pacientes/perfil/{{pacienteId}}
+Content-Type: application/json
+Authorization: Bearer {{tokenMedico}}
+
+{
+  "umbrales": [
+    { "metricaId": "{{metricaId}}", "valorMin": 36.0, "valorMax": 38.0 },
+    { "metricaId": "{{metricaId}}", "valorMin": 36.5, "valorMax": 37.5 }
+  ]
+}
+
+###
+
+# Actualizar Perfil - Exito
+PATCH {{hostname}}/pacientes/perfil/{{pacienteId}}
+Content-Type: application/json
+Authorization: Bearer {{tokenMedico}}
+
+{
+  "diagnostico": "Diagnóstico Actualizado Exitosamente",
+  "umbrales": [
+    {
+      "metricaId": "{{metricaId}}",
+      "valorMin": 36.0,
+      "valorMax": 37.8
+    }
+  ]
+}
