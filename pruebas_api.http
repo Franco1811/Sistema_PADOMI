@@ -1,15 +1,25 @@
 # =================================================================
-# Archivo de Pruebas Rápidas - Sistema de Telemetría PADOMI
-# Instala la extensión "REST Client" (de Huachao Mao) en VS Code
-# para ver los botones "Send Request" arriba de cada petición.
+# Especificación de Pruebas de API - Sistema de Telemetría PADOMI
 # =================================================================
 
 @hostname = http://localhost:3000/api
 
-### ----------------------------------------------------------------
-### 🔐 CU-01: Iniciar Sesión (Autenticación)
-### ----------------------------------------------------------------
+# Variables de autenticación e identificadores para pruebas manuales:
+@tokenAdmin = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IkMyNDg0MkM0LTlGMjktNDRCOC1BQjRELTE1NEE1M0NGNzc5RSIsImVtYWlsIjoiYWRtaW4ucGFkb21pQGVzc2FsdWQuZ29iLnBlIiwicm9sIjoiQURNSU5JU1RSQVRJVk8iLCJpYXQiOjE3Nzk1NTc0NzMsImV4cCI6MTc3OTU4NjI3M30.I8l9wATWjOL2GPWhuAYWHkACH7RL_uG1oRi9DOb_C88
+@tokenMedico = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IkY1MzY0N0EyLUI1QTktNEJCNS05QTcxLUI5NDNENDRDQUY3NyIsImVtYWlsIjoiY2FybG9zLm1lbmRvemFAZXNzYWx1ZC5nb2IucGUiLCJyb2wiOiJNRURJQ08iLCJpYXQiOjE3Nzk1NTc1MzIsImV4cCI6MTc3OTU4NjMzMn0.zeJX0XW1S7lG2FshjWSrrDVY64elwBnsn16lg_hJT5s
+@tokenEnfermero = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjJCNEI4Q0I5LTZCNjktNDA4MS1CMDAxLTI1RkJDOTY0QTE2NiIsImVtYWlsIjoiYW5hLmdvbWV6QGVzc2FsdWQuZ29iLnBlIiwicm9sIjoiRU5GRVJNRVJPIiwiaWF0IjoxNzc5NTU3NTU0LCJleHAiOjE3Nzk1ODYzNTR9.BVSzSM3hDvPn9MSsvttYbqt1ebbq-UI2p1cBo1zhlBc
 
+@medicoId = 74C5352B-F9EC-4616-9928-03143C2CBA42
+@enfermeroId = 1D7243C9-B9A0-49B4-BE95-1156AC9CB8F4
+@pacienteId = D958CDB0-406F-413F-AB2F-98B63E8F7B0D
+@metricaId = 6AE3F4DF-F762-48E6-8845-6FB3684AAFE5
+
+
+# =================================================================
+# CU-01: Iniciar Sesión (Autenticación)
+# =================================================================
+
+### 1.1 Iniciar sesión como administrador
 # @name loginAdmin
 POST {{hostname}}/auth/login
 Content-Type: application/json
@@ -21,197 +31,476 @@ Content-Type: application/json
 
 ###
 
-# @name loginInvalido (Prueba de error controlado)
+### 1.2 Iniciar sesión como médico
+# @name loginMedico
+POST {{hostname}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "carlos.mendoza@essalud.gob.pe",
+  "password": "carlos_secreto"
+}
+
+###
+
+### 1.3 Iniciar sesión como enfermero
+# @name loginEnfermero
+POST {{hostname}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "ana.gomez@essalud.gob.pe",
+  "password": "enfermera_secreta"
+}
+
+###
+
+### 1.4 Inicios de sesión rechazados (Validaciones de seguridad)
+
+# Intento con contraseña incorrecta
 POST {{hostname}}/auth/login
 Content-Type: application/json
 
 {
   "email": "admin.padomi@essalud.gob.pe",
-  "password": "pass_incorrecto"
+  "password": "secreto_equivocado"
+}
+
+###
+
+# Intento con email no registrado
+POST {{hostname}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "no.existe@essalud.gob.pe",
+  "password": "admin_secreto"
+}
+
+###
+
+# Intento con contraseña de longitud menor a la requerida
+POST {{hostname}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "admin.padomi@essalud.gob.pe",
+  "password": "123"
 }
 
 
-### ----------------------------------------------------------------
-### 👥 CU-02: Gestionar Personal (Solo Administrativo)
-### ----------------------------------------------------------------
+# =================================================================
+# CU-02: Gestionar Personal (Acceso Administrativo)
+# =================================================================
 
-# Nota: Copia el token del login exitoso y pégalo abajo
-@tokenAdmin = pegue_aqui_el_token_de_admin
-
-# Registrar Médico Válido
+### 2.1 Registrar médico como administrador
 POST {{hostname}}/personal
 Content-Type: application/json
 Authorization: Bearer {{tokenAdmin}}
 
 {
-  "dni": "88888880",
-  "nombre": "Carlos",
-  "apellido": "Mendoza",
-  "email": "carlos.mendoza@essalud.gob.pe",
-  "password": "medico_secreto",
+  "dni": "88888882",
+  "nombre": "Mateo",
+  "apellido": "Silva",
+  "email": "mateo.silva@essalud.gob.pe",
+  "password": "mateo_secreto",
   "rol": "MEDICO",
   "especialidad": "Cardiología"
 }
 
 ###
 
-# Registrar Enfermero Válido
+### 2.2 Registrar enfermero como administrador
 POST {{hostname}}/personal
 Content-Type: application/json
 Authorization: Bearer {{tokenAdmin}}
 
 {
-  "dni": "88888881",
-  "nombre": "Ana",
-  "apellido": "Gomez",
-  "email": "ana.gomez@essalud.gob.pe",
-  "password": "enfermero_secreto",
+  "dni": "88888883",
+  "nombre": "Laura",
+  "apellido": "Reyes",
+  "email": "laura.reyes@essalud.gob.pe",
+  "password": "laura_secreta",
   "rol": "ENFERMERO"
 }
 
 ###
 
-# Registrar DNI Duplicado (Prueba de error controlado)
+### 2.3 Listar personal como administrador
+GET {{hostname}}/personal
+Authorization: Bearer {{tokenAdmin}}
+
+###
+
+### 2.4 Actualizar personal como administrador
+PUT {{hostname}}/personal/{{medicoId}}
+Content-Type: application/json
+Authorization: Bearer {{tokenAdmin}}
+
+{
+  "nombre": "Mateo Alberto",
+  "apellido": "Silva Garcia",
+  "email": "mateo.silva@essalud.gob.pe",
+  "rol": "MEDICO",
+  "especialidad": "Cardiología Avanzada"
+}
+
+###
+
+### 2.5 Deshabilitar personal como administrador
+DELETE {{hostname}}/personal/{{medicoId}}
+Authorization: Bearer {{tokenAdmin}}
+
+###
+
+### 2.6 Gestiones de personal rechazadas (Validaciones de seguridad e integridad)
+
+# Listar personal como médico (Falta de privilegios)
+GET {{hostname}}/personal
+Authorization: Bearer {{tokenMedico}}
+
+###
+
+# Crear personal como médico (Falta de privilegios)
+POST {{hostname}}/personal
+Content-Type: application/json
+Authorization: Bearer {{tokenMedico}}
+
+{
+  "dni": "99999999",
+  "nombre": "Intruso",
+  "apellido": "Intruso",
+  "email": "intruso@essalud.gob.pe",
+  "password": "password",
+  "rol": "ENFERMERO"
+}
+
+###
+
+# Actualizacion como enfermero (Falta de privilegios)
+PUT {{hostname}}/personal/{{medicoId}}
+Content-Type: application/json
+Authorization: Bearer {{tokenEnfermero}}
+
+{
+  "nombre": "Carlos Alberto",
+  "apellido": "Mendoza Garcia",
+  "email": "carlos.mendoza@essalud.gob.pe",
+  "rol": "MEDICO",
+  "especialidad": "Cardiología Avanzada"
+}
+
+###
+
+# Deshabilitación como médico (Falta de privilegios)
+DELETE {{hostname}}/personal/{{medicoId}}
+Authorization: Bearer {{tokenMedico}}
+
+###
+
+# Intento con número de DNI ya registrado
 POST {{hostname}}/personal
 Content-Type: application/json
 Authorization: Bearer {{tokenAdmin}}
 
 {
   "dni": "88888880",
-  "nombre": "Duplicado",
-  "apellido": "Test",
-  "email": "duplicado@essalud.gob.pe",
+  "nombre": "Repetido",
+  "apellido": "Dni",
+  "email": "repetido.dni@essalud.gob.pe",
   "password": "password",
+  "rol": "MEDICO",
+  "especialidad": "Neumología"
+}
+
+###
+
+# Intento con formatos de datos inválidos (DNI y correo electrónico)
+POST {{hostname}}/personal
+Content-Type: application/json
+Authorization: Bearer {{tokenAdmin}}
+
+{
+  "dni": "123",
+  "nombre": "Error",
+  "apellido": "Formatos",
+  "email": "email_invalido",
+  "password": "123",
   "rol": "MEDICO",
   "especialidad": "Pediatría"
 }
 
 
-### ----------------------------------------------------------------
-### 📊 CU-03: Gestionar Catálogo de Métricas (Solo Admin)
-### ----------------------------------------------------------------
 
-# Crear Métrica Válida (ej: Temperatura)
+# =================================================================
+# CU-03: Gestionar Catálogo de Métricas (Acceso Administrativo)
+# =================================================================
+
+### 3.1 Listar métricas como administrador
+GET {{hostname}}/metricas
+Authorization: Bearer {{tokenAdmin}}
+
+###
+
+### 3.2 Listar métricas como enfermero
+GET {{hostname}}/metricas
+Authorization: Bearer {{tokenEnfermero}}
+
+###
+
+### 3.3 Crear métrica como administrador
 POST {{hostname}}/metricas
 Content-Type: application/json
 Authorization: Bearer {{tokenAdmin}}
 
 {
-  "nombre": "Temperatura Corporal",
-  "unidad": "°C",
-  "descripcion": "Medición periférica de temperatura",
-  "rangoMin": 35.0,
-  "rangoMax": 42.0
+  "nombre": "Saturación de Oxígeno",
+  "unidad": "%",
+  "descripcion": "Saturación de oxígeno medida por oxímetro de pulso",
+  "rangoMin": 70.0,
+  "rangoMax": 100.0
 }
 
 ###
 
-# Crear Métrica con Rangos Incoherentes (Prueba de error controlado)
+### 3.4 Actualizar métrica como administrador
+PUT {{hostname}}/metricas/{{metricaId}}
+Content-Type: application/json
+Authorization: Bearer {{tokenAdmin}}
+
+{
+  "nombre": "Saturación de Oxígeno",
+  "unidad": "%",
+  "descripcion": "Monitoreo continuo de saturación de oxígeno",
+  "rangoMin": 60.0,
+  "rangoMax": 100.0
+}
+
+###
+
+### 3.5 Eliminar métrica como administrador
+DELETE {{hostname}}/metricas/{{metricaId}}
+Authorization: Bearer {{tokenAdmin}}
+
+###
+
+### 3.6 Gestiones de métricas rechazadas (Validaciones)
+
+# Crear métrica como médico (Falta de privilegios)
+POST {{hostname}}/metricas
+Content-Type: application/json
+Authorization: Bearer {{tokenMedico}}
+
+{
+  "nombre": "Intento Médico",
+  "unidad": "kg",
+  "descripcion": "Intento de intrusión",
+  "rangoMin": 10.0,
+  "rangoMax": 200.0
+}
+
+###
+
+# Actualizar métrica como enfermero (Falta de privilegios)
+PUT {{hostname}}/metricas/{{metricaId}}
+Content-Type: application/json
+Authorization: Bearer {{tokenEnfermero}}
+
+{
+  "nombre": "Saturación de Oxígeno IoT",
+  "unidad": "%",
+  "descripcion": "Intento de modificación",
+  "rangoMin": 60.0,
+  "rangoMax": 100.0
+}
+
+###
+
+# Eliminar métrica como médico (Falta de privilegios)
+DELETE {{hostname}}/metricas/{{metricaId}}
+Authorization: Bearer {{tokenMedico}}
+
+###
+
+# Crear métrica con rangos clínicos incoherentes
 POST {{hostname}}/metricas
 Content-Type: application/json
 Authorization: Bearer {{tokenAdmin}}
 
 {
-  "nombre": "Presión Arterial",
-  "unidad": "mmHg",
-  "descripcion": "Presión arterial sistólica",
-  "rangoMin": 120.0,
-  "rangoMax": 80.0
+  "nombre": "Métrica Errónea",
+  "unidad": "%",
+  "descripcion": "Rango inverso",
+  "rangoMin": 90.0,
+  "rangoMax": 40.0
 }
 
 
-### ----------------------------------------------------------------
-### 🏥 CU-04: Registrar Paciente Crónico (Admin o Médico)
-### ----------------------------------------------------------------
 
-# Registrar Paciente Válido (Usa un ID de médico real en medicoAsignadoId)
+# =================================================================
+# CU-04: Registrar Paciente Crónico (Acceso Admin o Médico)
+# =================================================================
+
+### 4.1 Registrar paciente como administrador
 POST {{hostname}}/pacientes/registro
 Content-Type: application/json
 Authorization: Bearer {{tokenAdmin}}
 
 {
-  "dni": "73334444",
-  "nombres": "Julio Cortazar",
+  "dni": "72223340",
+  "nombres": "Gabriel Garcia Marquez",
+  "edad": 80,
+  "diagnostico": "Bronquitis Crónica",
+  "medicoAsignadoId": "{{medicoId}}"
+}
+
+###
+
+### 4.2 Registros de pacientes rechazados (Validaciones)
+
+# Registro paciente como enfermero (Falta de privilegios)
+POST {{hostname}}/pacientes/registro
+Content-Type: application/json
+Authorization: Bearer {{tokenEnfermero}}
+
+{
+  "dni": "72223334",
+  "nombres": "Intento Enfermero",
+  "edad": 50,
+  "diagnostico": "Diabetes",
+  "medicoAsignadoId": "{{medicoId}}"
+}
+
+###
+
+# Intento con DNI de paciente ya registrado
+POST {{hostname}}/pacientes/registro
+Content-Type: application/json
+Authorization: Bearer {{tokenAdmin}}
+
+{
+  "dni": "72223333",
+  "nombres": "Clon Cortazar",
   "edad": 72,
-  "diagnostico": "Asma Severa",
-  "medicoAsignadoId": "7870F24E-5E2B-45C9-8F4C-766DB7DCD450"
+  "diagnostico": "Asma",
+  "medicoAsignadoId": "{{medicoId}}"
 }
 
 ###
 
-# Registrar con Médico Inexistente (Prueba de error controlado)
+# Intento de asignación de un médico inexistente en la base de datos
 POST {{hostname}}/pacientes/registro
 Content-Type: application/json
 Authorization: Bearer {{tokenAdmin}}
 
 {
-  "dni": "73334445",
+  "dni": "72223338",
   "nombres": "Paciente Fantasma",
   "edad": 45,
-  "diagnostico": "Alergia",
+  "diagnostico": "Gripe",
   "medicoAsignadoId": "E6FFCE9B-89E2-4467-9DE8-000000000000"
 }
 
+###
 
-### ----------------------------------------------------------------
-### 🏥 CU-05: Gestionar Paciente / Umbrales
-### ----------------------------------------------------------------
+# Intento de asignación de un enfermero como médico responsable
+POST {{hostname}}/pacientes/registro
+Content-Type: application/json
+Authorization: Bearer {{tokenAdmin}}
 
-# Nota: Copia el token del Médico creado y pégalo abajo
-@tokenMedico = pegue_aqui_el_token_de_medico
-@pacienteId = pegue_aqui_el_uuid_del_paciente
-@metricaId = pegue_aqui_el_uuid_de_la_metrica
+{
+  "dni": "72223339",
+  "nombres": "Paciente Sin Médico",
+  "edad": 50,
+  "diagnostico": "Fiebre",
+  "medicoAsignadoId": "{{enfermeroId}}"
+}
 
-# Obtener Perfil (Médico, Admin o Enfermero)
+
+# =================================================================
+# CU-05: Gestionar Paciente (Ficha y Umbrales Clínicos)
+# =================================================================
+
+### 5.1 Listar paciente como enfermero
 GET {{hostname}}/pacientes/perfil/{{pacienteId}}
-Authorization: Bearer {{tokenMedico}}
+Authorization: Bearer {{tokenEnfermero}}
 
 ###
 
-# Actualizar Perfil - Rangos Fuera de Catálogo (Prueba de error controlado)
+### 5.2 Listar paciente como administrador
+GET {{hostname}}/pacientes/perfil/{{pacienteId}}
+Authorization: Bearer {{tokenAdmin}}
+
+###
+
+### 5.3 Actualizar paciente como médico
 PATCH {{hostname}}/pacientes/perfil/{{pacienteId}}
 Content-Type: application/json
 Authorization: Bearer {{tokenMedico}}
 
 {
-  "diagnostico": "Asma Severa Controlada",
+  "diagnostico": "Bronquitis Crónica bajo Monitoreo Continuo",
   "umbrales": [
     {
       "metricaId": "{{metricaId}}",
-      "valorMin": 34.0,
-      "valorMax": 45.0
+      "valorMin": 92.0,
+      "valorMax": 98.0
     }
   ]
 }
 
 ###
 
-# Actualizar Perfil - Métrica Duplicada (Prueba de error controlado)
+### 5.4 Gestiones de pacientes rechazadas (Validaciones)
+
+# Actualizar paciente como enfermero (Falta de privilegios)
+PATCH {{hostname}}/pacientes/perfil/{{pacienteId}}
+Content-Type: application/json
+Authorization: Bearer {{tokenEnfermero}}
+
+{
+  "diagnostico": "Actualización no autorizada"
+}
+
+###
+
+# Umbrales fuera de los rangos biológicos del catálogo
 PATCH {{hostname}}/pacientes/perfil/{{pacienteId}}
 Content-Type: application/json
 Authorization: Bearer {{tokenMedico}}
 
 {
   "umbrales": [
-    { "metricaId": "{{metricaId}}", "valorMin": 36.0, "valorMax": 38.0 },
-    { "metricaId": "{{metricaId}}", "valorMin": 36.5, "valorMax": 37.5 }
+    {
+      "metricaId": "{{metricaId}}",
+      "valorMin": 45.0,
+      "valorMax": 110.0
+    }
   ]
 }
 
 ###
 
-# Actualizar Perfil - Exito
+# Métricas duplicadas en la misma solicitud
 PATCH {{hostname}}/pacientes/perfil/{{pacienteId}}
 Content-Type: application/json
 Authorization: Bearer {{tokenMedico}}
 
 {
-  "diagnostico": "Diagnóstico Actualizado Exitosamente",
   "umbrales": [
-    {
-      "metricaId": "{{metricaId}}",
-      "valorMin": 36.0,
-      "valorMax": 37.8
-    }
+    { "metricaId": "{{metricaId}}", "valorMin": 92.0, "valorMax": 95.0 },
+    { "metricaId": "{{metricaId}}", "valorMin": 94.0, "valorMax": 98.0 }
   ]
 }
+
+###
+
+# Diagnóstico compuesto únicamente de espacios en blanco
+PATCH {{hostname}}/pacientes/perfil/{{pacienteId}}
+Content-Type: application/json
+Authorization: Bearer {{tokenMedico}}
+
+{
+  "diagnostico": "   "
+}
+
