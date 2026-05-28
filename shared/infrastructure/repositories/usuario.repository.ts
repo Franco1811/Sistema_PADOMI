@@ -6,7 +6,7 @@ import { Repository } from 'typeorm';
 import { AppDataSource } from '../data-source';
 import { UsuarioModel } from '../models/usuario.model';
 import { UsuarioMapping } from '../mappings/usuario.mapping';
-import { IUsuarioRepository } from '../../domain/repositories/usuario.repository';
+import { IUsuarioRepository } from '../../domain/repositories/usuario.interface';
 import { Usuario } from '../../domain/entities/usuario.entity';
 
 export class UsuarioRepository implements IUsuarioRepository {
@@ -52,8 +52,26 @@ export class UsuarioRepository implements IUsuarioRepository {
   }
 
   async generarCodigo(): Promise<string> {
-    const count = await this.repository.count();
-    const nextNumber = count + 1;
+    const lastUser = await this.repository.find({
+      order: { codigo: 'DESC' },
+      take: 1
+    });
+
+    if (lastUser.length === 0) {
+      return 'USU-0001';
+    }
+
+    const codigo = lastUser[0].codigo;
+    if (!codigo) {
+      return 'USU-0001';
+    }
+
+    const match = codigo.match(/USU-(\d+)/);
+    if (!match) {
+      return 'USU-0001';
+    }
+
+    const nextNumber = parseInt(match[1], 10) + 1;
     return `USU-${String(nextNumber).padStart(4, '0')}`;
   }
 }

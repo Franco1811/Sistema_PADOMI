@@ -1,15 +1,15 @@
-import { IUmbralRepository } from '../../../../../../shared/domain/repositories/umbral.repository';
-import { UmbralRepository } from '../../../../../../shared/infrastructure/interfaces/umbral.interf';
-import { IEvaluacionRepository } from '../../../../../../shared/domain/repositories/evaluacion.repository';
-import { EvaluacionRepository } from '../../../../../../shared/infrastructure/interfaces/evaluacion.interf';
-import { IAlertaRepository } from '../../../../../../shared/domain/repositories/alerta.repository';
-import { AlertaRepository } from '../../../../../../shared/infrastructure/interfaces/alerta.interf';
+import { IUmbralRepository } from '../../../../../../shared/domain/repositories/umbral.interface';
+import { UmbralRepository } from '../../../../../../shared/infrastructure/repositories/umbral.repository';
+import { IEvaluacionRepository } from '../../../../../../shared/domain/repositories/evaluacion.interface';
+import { EvaluacionRepository } from '../../../../../../shared/infrastructure/repositories/evaluacion.repository';
+import { IAlertaRepository } from '../../../../../../shared/domain/repositories/alerta.interface';
+import { AlertaRepository } from '../../../../../../shared/infrastructure/repositories/alerta.repository';
 import { Evaluacion } from '../../../../../../shared/domain/entities/evaluacion.entity';
 import { Alerta } from '../../../../../../shared/domain/entities/alerta.entity';
 import { Lectura } from '../../../../../../shared/domain/entities/lectura.entity';
 import { EvaluacionDto } from './evaluacion.dto';
-import { IPacienteRepository } from '../../../../../../shared/domain/repositories/paciente.repository';
-import { PacienteRepository } from '../../../../../../shared/infrastructure/interfaces/paciente.interf';
+import { IPacienteRepository } from '../../../../../../shared/domain/repositories/paciente.interface';
+import { PacienteRepository } from '../../../../../../shared/infrastructure/repositories/paciente.repository';
 import { DashboardController } from '../../CU06_MonitorearDashboard/presentation/dashboard.controller';
 import * as crypto from 'crypto';
 

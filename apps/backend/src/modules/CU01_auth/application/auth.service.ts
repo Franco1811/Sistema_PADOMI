@@ -1,8 +1,8 @@
 // Servicio de aplicación para el caso de uso Iniciar Sesión (CU-01)
 // Orquesta el proceso de autenticación: consulta el repositorio, valida credenciales y genera el token de acceso.
 
-import { IUsuarioRepository } from '../../../../../../shared/domain/repositories/usuario.repository';
-import { UsuarioRepository } from '../../../../../../shared/infrastructure/interfaces/usuario.interf';
+import { IUsuarioRepository } from '../../../../../../shared/domain/repositories/usuario.interface';
+import { UsuarioRepository } from '../../../../../../shared/infrastructure/repositories/usuario.repository';
 import { Usuario } from '../../../../../../shared/domain/entities/usuario.entity';
 import { LoginDto } from './login.dto';
 import * as bcrypt from 'bcrypt';

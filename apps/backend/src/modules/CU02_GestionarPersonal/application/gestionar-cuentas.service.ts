@@ -2,8 +2,8 @@
 // Orquesta la lógica administrativa: verifica existencia de DNI, cifra contraseñas y solicita guardar.
 // Puede reutilizar lógica de validación de otros servicios.
 
-import { IUsuarioRepository } from '../../../../../../shared/domain/repositories/usuario.repository';
-import { UsuarioRepository } from '../../../../../../shared/infrastructure/interfaces/usuario.interf';
+import { IUsuarioRepository } from '../../../../../../shared/domain/repositories/usuario.interface';
+import { UsuarioRepository } from '../../../../../../shared/infrastructure/repositories/usuario.repository';
 import { Usuario } from '../../../../../../shared/domain/entities/usuario.entity';
 import { RegistroPersonalDto } from './registro-personal.dto';
 import * as bcrypt from 'bcrypt';

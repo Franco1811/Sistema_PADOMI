@@ -3,7 +3,7 @@ import { AppDataSource } from '../data-source';
 import { EvaluacionModel } from '../models/evaluacion.model';
 import { EvaluacionMapping } from '../mappings/evaluacion.mapping';
 import { Evaluacion } from '../../domain/entities/evaluacion.entity';
-import { IEvaluacionRepository } from '../../domain/repositories/evaluacion.repository';
+import { IEvaluacionRepository } from '../../domain/repositories/evaluacion.interface';
 
 export class EvaluacionRepository implements IEvaluacionRepository {
   private repository: Repository<EvaluacionModel>;
@@ -19,8 +19,21 @@ export class EvaluacionRepository implements IEvaluacionRepository {
   }
 
   async generarCodigo(): Promise<string> {
-    const count = await this.repository.count();
-    const nextNumber = count + 1;
+    const lastEvaluation = await this.repository.find({
+      order: { codigo: 'DESC' },
+      take: 1
+    });
+
+    if (lastEvaluation.length === 0) {
+      return 'EVA-0001';
+    }
+
+    const match = lastEvaluation[0].codigo.match(/EVA-(\d+)/);
+    if (!match) {
+      return 'EVA-0001';
+    }
+
+    const nextNumber = parseInt(match[1], 10) + 1;
     return `EVA-${String(nextNumber).padStart(4, '0')}`;
   }
 }

@@ -1,5 +1,5 @@
-import { ILecturaRepository } from '../../../../../../shared/domain/repositories/lectura.repository';
-import { LecturaRepository } from '../../../../../../shared/infrastructure/interfaces/lectura.interf';
+import { ILecturaRepository } from '../../../../../../shared/domain/repositories/lectura.interface';
+import { LecturaRepository } from '../../../../../../shared/infrastructure/repositories/lectura.repository';
 import { IngestaDto } from './ingesta.dto';
 import { Lectura } from '../../../../../../shared/domain/entities/lectura.entity';
 import { eventBus } from '../../CU09_ProcesarReglas/presentation/reglas.event';

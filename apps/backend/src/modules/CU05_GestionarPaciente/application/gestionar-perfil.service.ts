@@ -1,8 +1,8 @@
-import { IPacienteRepository } from '../../../../../../shared/domain/repositories/paciente.repository';
-import { PacienteRepository } from '../../../../../../shared/infrastructure/interfaces/paciente.interf';
-import { IUmbralRepository } from '../../../../../../shared/domain/repositories/umbral.repository';
-import { UmbralRepository } from '../../../../../../shared/infrastructure/interfaces/umbral.interf';
-import { MetricaRepository } from '../../CU03_GestionarMetricas/infrastructure/metrica.interf';
+import { IPacienteRepository } from '../../../../../../shared/domain/repositories/paciente.interface';
+import { PacienteRepository } from '../../../../../../shared/infrastructure/repositories/paciente.repository';
+import { IUmbralRepository } from '../../../../../../shared/domain/repositories/umbral.interface';
+import { UmbralRepository } from '../../../../../../shared/infrastructure/repositories/umbral.repository';
+import { MetricaRepository } from '../../CU03_GestionarMetricas/infrastructure/metrica.repository';
 import { ActualizarPerfilDto } from './actualizar-perfil.dto';
 import { Paciente } from '../../../../../../shared/domain/entities/paciente.entity';
 import { Umbral } from '../../../../../../shared/domain/entities/umbral.entity';

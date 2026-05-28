@@ -1,8 +1,8 @@
 // Servicio de aplicación para el caso de uso Gestionar Catálogo de Métricas (CU-03)
 // Orquesta la gestión de parámetros clínicos: verifica duplicados, guarda nuevas métricas y actualiza la caché.
 
-import { IMetricaRepository } from '../domain/metrica.repository';
-import { MetricaRepository } from '../infrastructure/metrica.interf';
+import { IMetricaRepository } from '../domain/metrica.interface';
+import { MetricaRepository } from '../infrastructure/metrica.repository';
 import { Metrica } from '../../../../../../shared/domain/entities/metrica.entity';
 import { MetricaDto } from './metrica.dto';
 

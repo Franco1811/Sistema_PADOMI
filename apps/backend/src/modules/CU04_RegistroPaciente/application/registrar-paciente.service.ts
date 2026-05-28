@@ -2,10 +2,10 @@
 // Orquesta el flujo de registro y validación inicial de pacientes.
 // Verifica existencia de DNI, genera código PAC-XXXX e invoca al repositorio para guardar.
 
-import { IPacienteRepository } from '../../../../../../shared/domain/repositories/paciente.repository';
-import { PacienteRepository } from '../../../../../../shared/infrastructure/interfaces/paciente.interf';
-import { IUsuarioRepository } from '../../../../../../shared/domain/repositories/usuario.repository';
-import { UsuarioRepository } from '../../../../../../shared/infrastructure/interfaces/usuario.interf';
+import { IPacienteRepository } from '../../../../../../shared/domain/repositories/paciente.interface';
+import { PacienteRepository } from '../../../../../../shared/infrastructure/repositories/paciente.repository';
+import { IUsuarioRepository } from '../../../../../../shared/domain/repositories/usuario.interface';
+import { UsuarioRepository } from '../../../../../../shared/infrastructure/repositories/usuario.repository';
 import { Paciente } from '../../../../../../shared/domain/entities/paciente.entity';
 import { PacienteDto } from './paciente.dto';
 

@@ -1,7 +1,7 @@
-import { IPacienteRepository } from '../../../../../../shared/domain/repositories/paciente.repository';
-import { PacienteRepository } from '../../../../../../shared/infrastructure/interfaces/paciente.interf';
-import { IAlertaRepository } from '../../../../../../shared/domain/repositories/alerta.repository';
-import { AlertaRepository } from '../../../../../../shared/infrastructure/interfaces/alerta.interf';
+import { IPacienteRepository } from '../../../../../../shared/domain/repositories/paciente.interface';
+import { PacienteRepository } from '../../../../../../shared/infrastructure/repositories/paciente.repository';
+import { IAlertaRepository } from '../../../../../../shared/domain/repositories/alerta.interface';
+import { AlertaRepository } from '../../../../../../shared/infrastructure/repositories/alerta.repository';
 import { FiltroPacienteDto } from './filtro-paciente.dto';
 import { Paciente } from '../../../../../../shared/domain/entities/paciente.entity';
 

@@ -3,7 +3,7 @@ import { AppDataSource } from '../data-source';
 import { AlertaModel } from '../models/alerta.model';
 import { AlertaMapping } from '../mappings/alerta.mapping';
 import { Alerta } from '../../domain/entities/alerta.entity';
-import { IAlertaRepository } from '../../domain/repositories/alerta.repository';
+import { IAlertaRepository } from '../../domain/repositories/alerta.interface';
 
 export class AlertaRepository implements IAlertaRepository {
   private repository: Repository<AlertaModel>;
@@ -41,8 +41,21 @@ export class AlertaRepository implements IAlertaRepository {
   }
 
   async generarCodigo(): Promise<string> {
-    const count = await this.repository.count();
-    const nextNumber = count + 1;
+    const lastAlert = await this.repository.find({
+      order: { codigo: 'DESC' },
+      take: 1
+    });
+
+    if (lastAlert.length === 0) {
+      return 'ALT-0001';
+    }
+
+    const match = lastAlert[0].codigo.match(/ALT-(\d+)/);
+    if (!match) {
+      return 'ALT-0001';
+    }
+
+    const nextNumber = parseInt(match[1], 10) + 1;
     return `ALT-${String(nextNumber).padStart(4, "0")}`;
   }
 }

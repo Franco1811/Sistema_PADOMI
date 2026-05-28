@@ -8,7 +8,7 @@ import { UmbralModel } from '../../../../../../shared/infrastructure/models/umbr
 import { LecturaModel } from '../../../../../../shared/infrastructure/models/lectura.model';
 import { MetricaMapping } from '../../../../../../shared/infrastructure/mappings/metrica.mapping';
 import { Metrica } from '../../../../../../shared/domain/entities/metrica.entity';
-import { IMetricaRepository } from '../domain/metrica.repository';
+import { IMetricaRepository } from '../domain/metrica.interface';
 
 export class MetricaRepository implements IMetricaRepository {
   private repository: any;

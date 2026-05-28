@@ -1,5 +1,5 @@
-import { IAlertaRepository } from '../../../../../../shared/domain/repositories/alerta.repository';
-import { AlertaRepository } from '../../../../../../shared/infrastructure/interfaces/alerta.interf';
+import { IAlertaRepository } from '../../../../../../shared/domain/repositories/alerta.interface';
+import { AlertaRepository } from '../../../../../../shared/infrastructure/repositories/alerta.repository';
 import { AtencionDto } from './atencion.dto';
 
 export class AtenderAlertaService {
