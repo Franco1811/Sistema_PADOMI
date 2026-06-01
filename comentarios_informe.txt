@@ -192,10 +192,11 @@ El CU-09 <<extend>> CU-20: Disparar Alerta Visual. (Condicional: Solo se enciend
 3.6.1. Arquitectura General 
 
 3.6.2. Arquitectura Detallada por Caso de Uso 
+
 CU-01: Iniciar Sesión  
 Capa 1: Presentación
 Es el punto de contacto donde el personal médico o administrativo ingresa sus credenciales.
-auth.routes.ts: Define la ruta de acceso POST /auth/login. Mapea la solicitud hacia el controlador de autenticación.
+auth.routes.ts: Define la ruta de acceso POST /auth/login. Mapea la solicitud hacia el controlador de autenticación.Mapea la solicitud hacia el controlador de autenticación.
 auth.controller.ts: Recibe el Request con las credenciales, las envía al servicio de aplicación y espera el resultado. Si es exitoso, retorna el Token JWT con un estado 200 OK. Si falla, retorna un 401 Unauthorized.
 Capa 2: Aplicación
 Orquestación de la seguridad y validación de formatos.
@@ -204,18 +205,18 @@ login.dto.ts: Valida que el cuerpo de la petición contenga un correo con format
 Capa 3: Dominio 
 Reglas esenciales de identidad y acceso.
 usuario.entity.ts: Entidad pura que representa al usuario. Contiene métodos de validación de negocio en su constructor (como formato de DNI, email institucional y especialidad requerida si el rol es médico) y el método estaHabilitado() para comprobar que la cuenta esté activa.
-usuario.repository.ts: Interfaz que define las operaciones necesarias para la autenticación, principalmente el método buscarPorEmail().
+usuario.interface.ts: Interfaz que define las operaciones necesarias para la autenticación, principalmente el método buscarPorEmail().
 Capa 4: Infraestructura 
 Detalles de persistencia y herramientas externas (TypeORM/Bcrypt).
 usuario.model.ts: Modelo del ORM que define la tabla de usuarios en Azure SQL (columnas para email, password hash, rol, etc.).
 usuario.mapping.ts: Transforma el modelo de la base de datos (que trae el hash) a la entidad de dominio para que el servicio pueda operar con ella de forma segura.
-usuario.interf.ts: Implementación real que realiza la consulta SQL mediante TypeORM para recuperar los datos del usuario.
+usuario.repository.ts: Implementación real que realiza la consulta SQL mediante TypeORM para recuperar los datos del usuario.
 
 
 CU-02: Gestionar Cuentas de Personal  
 Capa 1: Presentación
 Es la interfaz para el Administrador de EsSalud.
-personal.routes.ts: Define rutas como POST /personal (crear), GET /personal (listar), PUT /personal/:id (editar) y DELETE /personal/:id (deshabilitar cuenta).
+personal.routes.ts: Define rutas como POST /personal (crear), GET /personal (listar) o PUT /personal/:id (editar).
 personal.controller.ts: Recibe las peticiones del administrador. Llama al servicio de gestión de cuentas y devuelve la respuesta (201 para creación, 200 para listados/ediciones).
 Capa 2: Aplicación
 Orquestación de las acciones administrativas.
@@ -224,12 +225,12 @@ registro-personal.dto.ts: Valida que el body traiga datos correctos (DNI de 8 d�
 Capa 3: Dominio 
 Aplicamos la reutilización de entidades.
 usuario.entity.ts: Es la misma entidad pura que definimos para el CU-01. Contiene los atributos (nombre, cargo, especialidad) y métodos de validación de negocio en el constructor, garantizando consistencia.
-usuario.repository.ts: La interfaz que define métodos abstractos como guardar(), actualizar(), buscarPorId(), buscarPorDni() y listarTodo().
+usuario.interface.ts:La interfaz que define métodos abstractos como guardar(), actualizar(), buscarPorId(), buscarPorDni() y listarTodo().
 Capa 4: Infraestructura 
 Implementación técnica con TypeORM.
 usuario.model.ts: El mismo modelo de base de datos que mapea a la tabla de usuarios en SQL.
 usuario.mapping.ts: El traductor que convierte los datos de la base de datos a la entidad para que el servicio pueda mostrarlos en el dashboard del administrador.
-usuario.interf.ts: Reutiliza la implementación real del repositorio de usuarios para ejecutar consultas físicas en Azure SQL, manejando listados, inserciones y actualizaciones.
+usuario.repository.ts: Reutiliza la implementación real del repositorio de usuarios para ejecutar consultas físicas en Azure SQL, manejando listados, inserciones y actualizaciones.
 
 
 CU-03: Gestionar Catálogo de Métricas
@@ -244,12 +245,12 @@ metrica.dto.ts: Valida los datos del body (nombre de la métrica, unidad de medi
 Capa 3: Dominio 
 Reglas de negocio clínico independientes de la tecnología.
 metrica.entity.ts: Entidad pura con propiedades y métodos de validación de negocio. Aquí se autovalida que el rango de valor "mínimo" sea positivo y estrictamente inferior al "máximo" (RNF-72).
-metrica.repository.ts: Define la interfaz de persistencia conectada a la entidad, indicando las operaciones permitidas (guardar, actualizar, eliminar, buscarPorNombre).
+metrica.interface.ts: Define la interfaz de persistencia conectada a la entidad, indicando las operaciones permitidas (guardar, actualizar, eliminar, buscarPorNombre).
 Capa 4: Infraestructura 
 Detalles técnicos y persistencia con TypeORM.
 metrica.model.ts: Define la estructura de la tabla en SQL, incluyendo restricciones como el Unique Constraint (RNF-49) para evitar nombres de métricas repetidos.
 metrica.mapping.ts: El "traductor" que transforma la Entidad al Modelo físico y viceversa.
-metrica.interf.ts: Implementación real de la persistencia que se conecta con el repositorio de TypeORM para ejecutar las consultas físicas en Azure SQL.
+metrica.repository.ts:Implementación real de la persistencia que se conecta con el repositorio de TypeORM para ejecutar las consultas físicas en Azure SQL.
 
 
 CU-04: Registrar Paciente Crónico
@@ -263,33 +264,34 @@ registrar-paciente.service.ts: Coordina el proceso: verifica mediante la interfa
 paciente.dto.ts: Contiene los datos del body (DNI, nombres, edad, diagnóstico, medicoId). Aquí se aplican las validaciones de formato de entrada.
 Capa 3: Dominio 
 Reglas de negocio clínico y propiedades esenciales del paciente.
-paciente.entity.ts: Entidad pura con atributos y métodos de validación de negocio. Valida en su constructor que el DNI conste de 8 dígitos y la edad se encuentre en un rango lógico (0 a 120 años).
-paciente.repository.ts: Interfaz que define las operaciones de persistencia (como guardar, buscarPorDni, buscarPorId) conectada directamente a la entidad.
+paciente.entity.ts: Entidad pura con atributos y métodos de validación de negocio. Valida en su constructor que el DNI conste de 8 dígitos y la edad se encuentre en un rango lógico.
+paciente.interface.ts:Interfaz que define las operaciones de persistencia (como guardar, buscarPorDni, buscarPorId) conectada directamente a la entidad.
 Capa 4: Infraestructura 
 Detalles técnicos y persistencia física en SQL.
-paciente.model.ts: Define la estructura de la tabla de pacientes en la base de datos de Azure usando TypeORM.
+paciente.model.ts: Define la estructura de la tabla de pacientes en la base de datos de Azure usando TypeORM. No contiene lógica, solo la definición física de los campos.
 paciente.mapping.ts: El mapeador que traduce entre la entidad de dominio Paciente y el modelo físico de la base de datos PacienteModel.
-paciente.interf.ts: Implementación real de la persistencia que ejecuta las consultas físicas en Azure SQL Database mediante el repositorio de TypeORM.
+paciente.repository.ts:Implementación real de la persistencia que ejecuta las consultas físicas en Azure SQL Database mediante el repositorio de TypeORM.).
+
 
 
 CU-05: Gestionar Perfil del Paciente
 Capa 1: Presentación
 Es la interfaz donde el médico visualiza y modifica la información clínica detallada.
-gestionar-perfil.routes.ts: Define rutas como GET /pacientes/:id para ver el perfil y PATCH /pacientes/:id para actualizaciones parciales de antecedentes y alertas.
+gestionar-perfil.routes.ts:Define rutas como GET /pacientes/:id para ver el perfil y PATCH /pacientes/:id para actualizaciones parciales de antecedentes y alertas.
 gestionar-perfil.controller.ts: Recibe la solicitud de búsqueda o edición, la envía al servicio y retorna los datos del paciente o la confirmación del cambio con un estado 200 OK.
 Capa 2: Aplicación
 Orquestación de la actualización clínica y configuración de alertas.
-gestionar-perfil.service.ts: Coordina la recuperación de datos desde el repositorio físico relacional y procesa la actualización condicional de antecedentes y umbrales personalizados de telemetría (validándolos contra los límites del catálogo de métricas).
+gestionar-perfil.service.ts: Coordina la recuperación de datos desde el repositorio físico relacional y procesa la actualización condicional de antecedentes y umbrales personalizados de telemetría (validándolos contra los límites del catálogo de métricas)..
 actualizar-perfil.dto.ts: Valida preliminarmente que los datos de edición (diagnóstico y umbrales) tengan el formato y consistencia matemática correcta antes de ser procesados por el caso de uso.
 Capa 3: Dominio 
 Reglas de negocio clínico y validación de parámetros de riesgo.
 paciente.entity.ts: Entidad de dominio pura. Valida la estructura del paciente en su constructor al momento de actualizar los antecedentes clínicos.
-umbral.entity.ts: Entidad pura que representa los límites personalizados de alerta. Su constructor autovalida la coherencia de los rangos (valor mínimo positivo y valor máximo estrictamente mayor al mínimo).
+umbral.entity.ts:Entidad pura que representa los límites personalizados de alerta. Su constructor autovalida la coherencia de los rangos (valor mínimo positivo y valor máximo estrictamente mayor al mínimo).
 Capa 4: Infraestructura 
-Persistencia técnica en base de datos.
+Persistencia técnica y optimización de acceso.
 paciente.model.ts y umbral.model.ts: Definen la estructura física de las tablas relacionales de pacientes y umbrales en Azure SQL.
 paciente.mapping.ts y umbral.mapping.ts: Mapeadores que traducen entre las entidades puras del dominio y los modelos físicos ORM.
-paciente.interf.ts y umbral.interf.ts: Implementaciones de infraestructura que ejecutan las transacciones físicas (SELECT, INSERT, UPDATE) en Azure SQL Database a través del Data Source de TypeORM.
+paciente.repository.ts:Implementaciones de infraestructura que ejecutan las transacciones físicas (SELECT, INSERT, UPDATE) en Azure SQL Database a través del Data Source de TypeORM.
 
 
 CU-06: Monitorear Dashboard Clínico
@@ -304,12 +306,12 @@ filtro-paciente.dto.ts: Valida los parámetros de búsqueda (Nombre o DNI) para 
 Capa 3: Dominio 
 Reglas de clasificación y lógica de visualización clínica.
 alerta.entity.ts: Aunque la alerta nace en el CU-09, aquí se utiliza para determinar el color de la fila en el Dashboard (Rojo, Amarillo, Verde) basado en el nivel de riesgo global del paciente.
-dashboard.repository.ts: Interfaz que define los métodos de consulta masiva y filtrado, manteniendo la independencia de la base de datos SQL.
+dashboard.interface.ts: Interfaz que define los métodos de consulta masiva y filtrado, manteniendo la independencia de la base de datos SQL.
 Capa 4: Infraestructura 
 Optimización de consultas y persistencia.
 alerta.model.ts: Representación física de las alertas en la base de datos de Azure SQL.
 alerta.mapping.ts: Transforma los estados de la base de datos (generalmente códigos numéricos para ahorrar espacio) en etiquetas semánticas de dominio para el médico.
-monitoreo.interf.ts: Implementación de la consulta SQL optimizada. Utiliza Paginación (máximo 50 resultados por lote) para garantizar fluidez visual y no saturar la memoria del servidor.
+monitoreo.repository.ts: Implementación de la consulta SQL optimizada. Utiliza Paginación (máximo 50 resultados por lote) para garantizar fluidez visual y no saturar la memoria del servidor.
 
 
 CU-07: Atender Emergencia Médica
@@ -324,12 +326,12 @@ atencion.dto.ts: Valida los datos del body (ID de la alerta, ID del médico, com
 Capa 3: Dominio 
 Reglas de integridad y validación de la gestión médica.
 alerta.entity.ts: Contiene la lógica para cambiar el estado de "Crítico" a "Gestionado". Incluye validaciones para asegurar que una alerta no pueda ser eliminada, solo actualizada en su estado de atención.
-alerta.repository.ts: Interfaz que define el método de actualización transaccional, garantizando que el registro de la emergencia sea permanente para fines médico-legales.
+alerta.interface.ts: Interfaz que define el método de actualización transaccional, garantizando que el registro de la emergencia sea permanente para fines médico-legales.
 Capa 4: Infraestructura 
 Persistencia física y control de concurrencia.
 alerta.model.ts: Representación de la alerta en SQL. Aquí se configura el bloqueo lógico que anula el comando DELETE para asegurar la inmutabilidad.
 alerta.mapping.ts: Traduce la entidad de alerta gestionada al formato de persistencia.
-atencion.interf.ts: Implementación real que maneja la condición de carrera. Si dos médicos intentan atender la misma alerta al mismo tiempo, esta capa rechaza el segundo intento mediante bloqueos transaccionales (ACID).
+atencion.repository.ts: Implementación real que maneja la condición de carrera. Si dos médicos intentan atender la misma alerta al mismo tiempo, esta capa rechaza el segundo intento mediante bloqueos transaccionales (ACID).
 
 
 CU-08: Ingestar Datos Biométricos 
@@ -344,18 +346,18 @@ ingesta.dto.ts: Contiene los datos del body. Es aquí donde se validan los tipos
 Capa 3: Dominio 
 Representa las reglas puras del negocio de salud, independientes de la tecnología.
 lectura.entity.ts: Entidad pura que contiene las propiedades, atributos y métodos de validación del negocio. Por ejemplo, valida que la frecuencia cardíaca esté en un rango humano posible antes de permitir su creación.
-lectura.repository.ts: Define la interfaz de persistencia. Está conectada directamente a la entidad y no a los modelos de infraestructura.
+lectura.interface.ts: Define la interfaz de persistencia. Está conectada directamente a la entidad y no a los modelos de infraestructura.
 Capa 4: Infraestructura 
 Es la capa de los detalles técnicos y el ORM (TypeORM).
 lectura.model.ts: Define las propiedades con las tablas de la base de datos para el ORM. No contiene métodos de lógica, solo la estructura de datos que se mapea a SQL.
 lectura.mapping.ts: Es el "traductor". Se encarga de transformar la entidad a modelo (para guardar en la DB) y el modelo a entidad (para procesar en el dominio).
-lectura.interf.ts: Contiene la implementación real de los servicios que se llaman desde las interfaces, ya que están conectadas al repositorio para persistir los datos físicamente.
+lectura.repository.ts: Contiene la implementación real de los servicios que se llaman desde las interfaces, ya que están conectadas al repositorio para persistir los datos físicamente.
 
 
-CU-09: Procesar Reglas Clínicas  
+CU-09: Procesar Reglas Clínicas
 Capa 1: Presentación
-Esta capa no posee una ruta HTTP externa, sino que es reactiva a eventos internos.
-reglas.event.ts: Suscriptor y manejador de eventos que escucha las nuevas lecturas publicadas por el CU-08 y delega su ejecución de forma directa al servicio de aplicación, actuando como la puerta de entrada asíncrona al caso de uso.
+Esta capa no es necesariamente una ruta HTTP externa, sino el punto de entrada del proceso.
+reglas.event.ts:  Suscriptor y manejador de eventos que escucha las nuevas lecturas publicadas por el CU-08 y delega su ejecución de forma directa al servicio de aplicación, actuando como la puerta de entrada asíncrona al caso de uso.
 Capa 2: Aplicación 
 Es donde se coordina la "inteligencia" del sistema.
 motor-reglas.service.ts: Orquestador que recupera los umbrales personalizados del paciente (usando la interfaz del repositorio) y llama a la entidad para realizar la comparación matemática. Si se detecta un riesgo, decide si se debe notificar al médico.
@@ -363,12 +365,13 @@ evaluacion.dto.ts: Define la estructura de salida del análisis (ej. pacienteId,
 Capa 3: Dominio 
 Contiene la lógica médica pura, el corazón de las alertas.
 evaluacion.entity.ts: Entidad pura que realiza el cálculo determinista. Aquí se aplica la lógica de comparar el valor recibido contra el umbral_min y umbral_max. Clasifica el resultado en Normal, Advertencia o Crítico.
-evaluacion.repository.ts: Interfaz que define las operaciones para actualizar el nivel de riesgo global del paciente en el sistema.
+evaluacion.interface.ts: Interfaz que define las operaciones para actualizar el nivel de riesgo global del paciente en el sistema.
 Capa 4: Infraestructura 
 Detalles técnicos y optimización de datos para misión crítica.
 evaluacion.model.ts: Define la tabla donde se guardan los estados de severidad y las marcas de tiempo en la base de datos SQL.
 evaluacion.mapping.ts: Traduce el resultado del análisis (Entidad) al formato que la base de datos entiende, asegurando que se use optimización espacial (ej. 1 byte para el nivel de riesgo).
-reglas.interf.ts: Implementación real de la persistencia. Se conecta con la base de datos para actualizar el estado del paciente y, si es crítico, activa el envío mediante WebSockets hacia el médico
+reglas.repository.ts: Implementación real de la persistencia. Se conecta con la base de datos para actualizar el estado del paciente y, si es crítico, activa el envío mediante WebSockets hacia el médico
+
 
 
 3.7 Especificación de casos de uso
