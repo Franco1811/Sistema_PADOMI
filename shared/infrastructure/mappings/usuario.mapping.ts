@@ -3,22 +3,23 @@
 // Se reutiliza en todos los casos de uso que requieran lógica de usuario.
 
 import { Usuario } from '../../domain/entities/usuario.entity';
+import { UsuarioBuilder } from '../../domain/builders/usuario.builder';
 import { UsuarioModel } from '../models/usuario.model';
 
 export class UsuarioMapping {
   static toEntity(model: UsuarioModel): Usuario {
-    return new Usuario(
-      model.id,
-      model.codigo || '',
-      model.dni,
-      model.nombre,
-      model.apellido,
-      model.email,
-      model.passwordHash,
-      model.rol as 'MEDICO' | 'ENFERMERO' | 'ADMINISTRATIVO',
-      model.activo,
-      model.especialidad || undefined
-    );
+    return new UsuarioBuilder()
+      .conId(model.id)
+      .conCodigo(model.codigo || '')
+      .conDni(model.dni)
+      .conNombre(model.nombre)
+      .conApellido(model.apellido)
+      .conEmail(model.email)
+      .conPasswordHash(model.passwordHash)
+      .conRol(model.rol as 'MEDICO' | 'ENFERMERO' | 'ADMINISTRATIVO')
+      .conActivo(model.activo)
+      .conEspecialidad(model.especialidad || undefined)
+      .build();
   }
 
   static toModel(entity: Usuario): UsuarioModel {

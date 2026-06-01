@@ -1,17 +1,14 @@
-// Implementación real de la persistencia de métricas clínicas usando TypeORM (CU-03)
-// Se conecta con el repositorio para ejecutar el guardado físico en la base de datos.
-
 import { Repository } from 'typeorm';
-import { AppDataSource } from '../../../../../../shared/infrastructure/data-source';
-import { MetricaModel } from '../../../../../../shared/infrastructure/models/metrica.model';
-import { UmbralModel } from '../../../../../../shared/infrastructure/models/umbral.model';
-import { LecturaModel } from '../../../../../../shared/infrastructure/models/lectura.model';
-import { MetricaMapping } from '../../../../../../shared/infrastructure/mappings/metrica.mapping';
-import { Metrica } from '../../../../../../shared/domain/entities/metrica.entity';
-import { IMetricaRepository } from '../domain/metrica.interface';
+import { AppDataSource } from '../data-source';
+import { MetricaModel } from '../models/metrica.model';
+import { UmbralModel } from '../models/umbral.model';
+import { LecturaModel } from '../models/lectura.model';
+import { MetricaMapping } from '../mappings/metrica.mapping';
+import { Metrica } from '../../domain/entities/metrica.entity';
+import { IMetricaRepository } from '../../domain/interface/metrica.interface';
 
 export class MetricaRepository implements IMetricaRepository {
-  private repository: any;
+  private repository: Repository<MetricaModel>;
 
   constructor() {
     this.repository = AppDataSource.getRepository(MetricaModel);
@@ -66,16 +63,16 @@ export class MetricaRepository implements IMetricaRepository {
       order: { codigo: 'DESC' },
       take: 1
     });
-    
+
     if (lastMetric.length === 0) {
       return 'MET-0001';
     }
-    
+
     const match = lastMetric[0].codigo.match(/MET-(\d+)/);
     if (!match) {
       return 'MET-0001';
     }
-    
+
     const nextNumber = parseInt(match[1], 10) + 1;
     return `MET-${String(nextNumber).padStart(4, "0")}`;
   }

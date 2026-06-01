@@ -1,7 +1,9 @@
 // Entidad compartida utilizada en CU-05 (Gestionar Perfil del Paciente).
 // Valida la coherencia matemática de los límites biométricos y precisión de decimales.
 
-export class Umbral {
+import { Prototype } from '../interface/prototype.interface';
+
+export class Umbral implements Prototype<Umbral> {
   constructor(
     public readonly id: string, // UUID
     public readonly codigo: string, // Código UMB-XXXX (opcional)
@@ -11,6 +13,17 @@ export class Umbral {
     public readonly valorMax: number
   ) {
     this.validarRangos();
+  }
+
+  public clone(overrides?: Partial<Umbral>): Umbral {
+    return new Umbral(
+      overrides?.id ?? this.id,
+      overrides?.codigo ?? this.codigo,
+      overrides?.pacienteId ?? this.pacienteId,
+      overrides?.metricaId ?? this.metricaId,
+      overrides?.valorMin ?? this.valorMin,
+      overrides?.valorMax ?? this.valorMax
+    );
   }
 
   private validarRangos(): void {

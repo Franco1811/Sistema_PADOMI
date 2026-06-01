@@ -3,7 +3,7 @@ import { AppDataSource } from '../data-source';
 import { EvaluacionModel } from '../models/evaluacion.model';
 import { EvaluacionMapping } from '../mappings/evaluacion.mapping';
 import { Evaluacion } from '../../domain/entities/evaluacion.entity';
-import { IEvaluacionRepository } from '../../domain/repositories/evaluacion.interface';
+import { IEvaluacionRepository } from '../../domain/interface/evaluacion.interface';
 
 export class EvaluacionRepository implements IEvaluacionRepository {
   private repository: Repository<EvaluacionModel>;

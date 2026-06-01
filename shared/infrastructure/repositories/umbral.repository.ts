@@ -3,7 +3,7 @@ import { AppDataSource } from '../data-source';
 import { UmbralModel } from '../models/umbral.model';
 import { UmbralMapping } from '../mappings/umbral.mapping';
 import { Umbral } from '../../domain/entities/umbral.entity';
-import { IUmbralRepository } from '../../domain/repositories/umbral.interface';
+import { IUmbralRepository } from '../../domain/interface/umbral.interface';
 
 export class UmbralRepository implements IUmbralRepository {
   private repository: Repository<UmbralModel>;

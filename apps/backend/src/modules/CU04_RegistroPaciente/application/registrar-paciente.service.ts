@@ -2,11 +2,11 @@
 // Orquesta el flujo de registro y validación inicial de pacientes.
 // Verifica existencia de DNI, genera código PAC-XXXX e invoca al repositorio para guardar.
 
-import { IPacienteRepository } from '../../../../../../shared/domain/repositories/paciente.interface';
-import { PacienteRepository } from '../../../../../../shared/infrastructure/repositories/paciente.repository';
-import { IUsuarioRepository } from '../../../../../../shared/domain/repositories/usuario.interface';
-import { UsuarioRepository } from '../../../../../../shared/infrastructure/repositories/usuario.repository';
+import { IPacienteRepository } from '../../../../../../shared/domain/interface/paciente.interface';
+import { IUsuarioRepository } from '../../../../../../shared/domain/interface/usuario.interface';
+import { repositoryFactory } from '../../../../../../shared/infrastructure/repositories/repository.factory';
 import { Paciente } from '../../../../../../shared/domain/entities/paciente.entity';
+import { PacienteBuilder } from '../../../../../../shared/domain/builders/paciente.builder';
 import { PacienteDto } from './paciente.dto';
 
 export class RegistrarPacienteService {
@@ -14,8 +14,8 @@ export class RegistrarPacienteService {
   private usuarioRepository: IUsuarioRepository;
 
   constructor() {
-    this.pacienteRepository = new PacienteRepository();
-    this.usuarioRepository = new UsuarioRepository();
+    this.pacienteRepository = repositoryFactory.getPacienteRepository();
+    this.usuarioRepository = repositoryFactory.getUsuarioRepository();
   }
 
   async registrarPaciente(dto: PacienteDto): Promise<Paciente> {
@@ -47,15 +47,15 @@ export class RegistrarPacienteService {
       throw new Error("El médico tratante ha superado el límite de 500 pacientes asignados (RNF-20).");
     }
 
-    const paciente = new Paciente(
-      crypto.randomUUID(),
-      codigo,
-      dto.dni,
-      dto.nombres,
-      dto.edad,
-      dto.diagnostico,
-      dto.medicoAsignadoId
-    );
+    const paciente = new PacienteBuilder()
+      .conId(crypto.randomUUID())
+      .conCodigo(codigo)
+      .conDni(dto.dni)
+      .conNombres(dto.nombres)
+      .conEdad(dto.edad)
+      .conDiagnostico(dto.diagnostico)
+      .conMedicoAsignadoId(dto.medicoAsignadoId)
+      .build();
 
     return await this.pacienteRepository.guardar(paciente);
   }

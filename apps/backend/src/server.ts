@@ -5,7 +5,7 @@ dotenv.config({ path: path.resolve(__dirname, '../../../.env') });
 
 import http from 'http';
 import app from './app';
-import { AppDataSource } from '../../../shared/infrastructure/data-source';
+import { AppDataSource, DatabaseConnection } from '../../../shared/infrastructure/data-source';
 import { DashboardController } from './modules/CU06_MonitorearDashboard/presentation/dashboard.controller';
 import { UsuarioModel } from '../../../shared/infrastructure/models/usuario.model';
 import * as bcrypt from 'bcrypt';
@@ -15,9 +15,9 @@ const PORT = process.env.PORT || 3000;
 
 async function bootstrap() {
   try {
-    // 1. Inicializar la base de datos
+    // 1. Inicializar la base de datos a través de la instancia del Singleton
     console.log('Conectando a la base de datos...');
-    await AppDataSource.initialize();
+    await DatabaseConnection.getInstance().initialize();
     console.log('Conexión a la base de datos exitosa.');
 
     // Crea administrador por defecto si no existe ninguno

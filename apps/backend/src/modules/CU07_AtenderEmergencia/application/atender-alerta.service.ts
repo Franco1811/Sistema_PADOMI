@@ -1,12 +1,12 @@
-import { IAlertaRepository } from '../../../../../../shared/domain/repositories/alerta.interface';
-import { AlertaRepository } from '../../../../../../shared/infrastructure/repositories/alerta.repository';
+import { IAlertaRepository } from '../../../../../../shared/domain/interface/alerta.interface';
+import { repositoryFactory } from '../../../../../../shared/infrastructure/repositories/repository.factory';
 import { AtencionDto } from './atencion.dto';
 
 export class AtenderAlertaService {
   private alertaRepository: IAlertaRepository;
 
   constructor() {
-    this.alertaRepository = new AlertaRepository();
+    this.alertaRepository = repositoryFactory.getAlertaRepository();
   }
 
   async atender(dto: AtencionDto): Promise<void> {

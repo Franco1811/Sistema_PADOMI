@@ -1,8 +1,8 @@
 // Servicio de aplicación para el caso de uso Iniciar Sesión (CU-01)
 // Orquesta el proceso de autenticación: consulta el repositorio, valida credenciales y genera el token de acceso.
 
-import { IUsuarioRepository } from '../../../../../../shared/domain/repositories/usuario.interface';
-import { UsuarioRepository } from '../../../../../../shared/infrastructure/repositories/usuario.repository';
+import { IUsuarioRepository } from '../../../../../../shared/domain/interface/usuario.interface';
+import { repositoryFactory } from '../../../../../../shared/infrastructure/repositories/repository.factory';
 import { Usuario } from '../../../../../../shared/domain/entities/usuario.entity';
 import { LoginDto } from './login.dto';
 import * as bcrypt from 'bcrypt';
@@ -12,10 +12,10 @@ export class AuthService {
   private usuarioRepository: IUsuarioRepository;
 
   constructor() {
-    this.usuarioRepository = new UsuarioRepository();
+    this.usuarioRepository = repositoryFactory.getUsuarioRepository();
   }
 
-  async login(dto: LoginDto): Promise<{ token: string; usuario: Omit<Usuario, 'passwordHash'> }> {
+  async login(dto: LoginDto): Promise<{ token: string; usuario: Omit<Usuario, 'passwordHash' | 'clone'> }> {
     dto.validar();
 
     const usuario = await this.usuarioRepository.buscarPorEmail(dto.email);

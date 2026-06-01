@@ -4,18 +4,19 @@
 
 import { PacienteModel } from '../models/paciente.model';
 import { Paciente } from '../../domain/entities/paciente.entity';
+import { PacienteBuilder } from '../../domain/builders/paciente.builder';
 
 export class PacienteMapping {
   static toEntity(model: PacienteModel): Paciente {
-    return new Paciente(
-      model.id,
-      model.codigo,
-      model.dni,
-      model.nombres,
-      model.edad,
-      model.diagnostico || '',
-      model.medicoAsignadoId
-    );
+    return new PacienteBuilder()
+      .conId(model.id)
+      .conCodigo(model.codigo)
+      .conDni(model.dni)
+      .conNombres(model.nombres)
+      .conEdad(model.edad)
+      .conDiagnostico(model.diagnostico || '')
+      .conMedicoAsignadoId(model.medicoAsignadoId)
+      .build();
   }
 
   static toModel(entity: Paciente): PacienteModel {

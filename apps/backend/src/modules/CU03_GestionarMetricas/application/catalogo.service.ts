@@ -1,8 +1,8 @@
 // Servicio de aplicación para el caso de uso Gestionar Catálogo de Métricas (CU-03)
 // Orquesta la gestión de parámetros clínicos: verifica duplicados, guarda nuevas métricas y actualiza la caché.
 
-import { IMetricaRepository } from '../domain/metrica.interface';
-import { MetricaRepository } from '../infrastructure/metrica.repository';
+import { IMetricaRepository } from '../../../../../../shared/domain/interface/metrica.interface';
+import { repositoryFactory } from '../../../../../../shared/infrastructure/repositories/repository.factory';
 import { Metrica } from '../../../../../../shared/domain/entities/metrica.entity';
 import { MetricaDto } from './metrica.dto';
 
@@ -10,7 +10,7 @@ export class CatalogoService {
   private metricaRepository: IMetricaRepository;
 
   constructor() {
-    this.metricaRepository = new MetricaRepository();
+    this.metricaRepository = repositoryFactory.getMetricaRepository();
   }
 
   async crearMetrica(dto: MetricaDto): Promise<Metrica> {
@@ -68,15 +68,13 @@ export class CatalogoService {
       throw new Error("El rango máximo debe ser mayor al mínimo");
     }
 
-    const metricaActualizada = new Metrica(
-      metrica.id,
-      metrica.codigo,
-      dto.nombre || metrica.nombre,
-      dto.unidad || metrica.unidad,
-      dto.descripcion !== undefined ? dto.descripcion : metrica.descripcion,
-      nuevoMin,
-      nuevoMax
-    );
+    const metricaActualizada = metrica.clone({
+      nombre: dto.nombre || metrica.nombre,
+      unidad: dto.unidad || metrica.unidad,
+      descripcion: dto.descripcion !== undefined ? dto.descripcion : metrica.descripcion,
+      rangoMin: nuevoMin,
+      rangoMax: nuevoMax
+    });
 
     return await this.metricaRepository.actualizar(metricaActualizada);
   }

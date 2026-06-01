@@ -1,4 +1,6 @@
-export class Paciente {
+import { Prototype } from '../interface/prototype.interface';
+
+export class Paciente implements Prototype<Paciente> {
   constructor(
     public readonly id: string, // UUID
     public readonly codigo: string, // Código PAC-XXXX
@@ -9,6 +11,18 @@ export class Paciente {
     public readonly medicoAsignadoId: string
   ) {
     this.validarDatosClínicos();
+  }
+
+  public clone(overrides?: Partial<Paciente>): Paciente {
+    return new Paciente(
+      overrides?.id ?? this.id,
+      overrides?.codigo ?? this.codigo,
+      overrides?.dni ?? this.dni,
+      overrides?.nombres ?? this.nombres,
+      overrides?.edad ?? this.edad,
+      overrides?.diagnostico ?? this.diagnostico,
+      overrides?.medicoAsignadoId ?? this.medicoAsignadoId
+    );
   }
 
   private validarDatosClínicos(): void {

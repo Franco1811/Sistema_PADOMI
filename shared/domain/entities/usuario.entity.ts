@@ -1,4 +1,6 @@
-export class Usuario {
+import { Prototype } from '../interface/prototype.interface';
+
+export class Usuario implements Prototype<Usuario> {
   // Entidad compartida utilizada en CU-01 (Iniciar Sesión) y CU-02 (Gestionar Cuentas de Personal).
   // Representa al usuario del sistema y contiene la lógica de validación de negocio.
   constructor(
@@ -14,6 +16,21 @@ export class Usuario {
     public readonly especialidad?: string // Opcional, solo para médicos
   ) {
     this.validarReglasNegocio();
+  }
+
+  public clone(overrides?: Partial<Usuario>): Usuario {
+    return new Usuario(
+      overrides?.id ?? this.id,
+      overrides?.codigo ?? this.codigo,
+      overrides?.dni ?? this.dni,
+      overrides?.nombre ?? this.nombre,
+      overrides?.apellido ?? this.apellido,
+      overrides?.email ?? this.email,
+      overrides?.passwordHash ?? this.passwordHash,
+      overrides?.rol ?? this.rol,
+      overrides?.activo ?? this.activo,
+      overrides?.especialidad !== undefined ? overrides.especialidad : this.especialidad
+    );
   }
 
   // Reglas de Negocio (Capa 3)

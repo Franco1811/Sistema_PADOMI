@@ -1,7 +1,9 @@
+import { Prototype } from '../interface/prototype.interface';
+
 // Entidad que representa una métrica clínica monitoreada (ej: glucosa, presión arterial, oximetría).
 // Permite definir los rangos normales y asociarla a enfermedades crónicas.
 // Entidad utilizada en CU-03 (Gestionar Catálogo de Métricas).
-export class Metrica {
+export class Metrica implements Prototype<Metrica> {
   constructor(
     public readonly id: string, // UUID
     public readonly codigo: string, // Código MET-XXXX
@@ -12,6 +14,18 @@ export class Metrica {
     public readonly rangoMax: number
   ) {
     this.validarRangos();
+  }
+
+  public clone(overrides?: Partial<Metrica>): Metrica {
+    return new Metrica(
+      overrides?.id ?? this.id,
+      overrides?.codigo ?? this.codigo,
+      overrides?.nombre ?? this.nombre,
+      overrides?.unidad ?? this.unidad,
+      overrides?.descripcion ?? this.descripcion,
+      overrides?.rangoMin ?? this.rangoMin,
+      overrides?.rangoMax ?? this.rangoMax
+    );
   }
 
   private validarRangos(): void {

@@ -6,7 +6,7 @@ import { Repository } from 'typeorm';
 import { AppDataSource } from '../data-source';
 import { UsuarioModel } from '../models/usuario.model';
 import { UsuarioMapping } from '../mappings/usuario.mapping';
-import { IUsuarioRepository } from '../../domain/repositories/usuario.interface';
+import { IUsuarioRepository } from '../../domain/interface/usuario.interface';
 import { Usuario } from '../../domain/entities/usuario.entity';
 
 export class UsuarioRepository implements IUsuarioRepository {

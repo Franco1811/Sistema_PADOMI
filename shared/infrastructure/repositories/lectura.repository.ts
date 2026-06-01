@@ -3,7 +3,7 @@ import { AppDataSource } from '../data-source';
 import { LecturaModel } from '../models/lectura.model';
 import { LecturaMapping } from '../mappings/lectura.mapping';
 import { Lectura } from '../../domain/entities/lectura.entity';
-import { ILecturaRepository } from '../../domain/repositories/lectura.interface';
+import { ILecturaRepository } from '../../domain/interface/lectura.interface';
 
 export class LecturaRepository implements ILecturaRepository {
   private repository: Repository<LecturaModel>;

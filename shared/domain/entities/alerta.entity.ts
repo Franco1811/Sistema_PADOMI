@@ -1,10 +1,9 @@
-// Entidad compartida utilizada en CU-06 (Monitorear Dashboard Clínico) y CU-07 (Atender Emergencia Médica).
-// Representa una alerta clínica y contiene la lógica de negocio para su gestión y visualización.
+import { Prototype } from '../interface/prototype.interface';
 
 // Entidad que representa una alerta generada cuando una métrica clínica supera un umbral crítico.
 // Se asocia a un paciente y a una lectura específica, permitiendo la gestión de eventos críticos en salud.
 
-export class Alerta {
+export class Alerta implements Prototype<Alerta> {
   constructor(
     public readonly id: string, // UUID
     public readonly codigo: string, // Código ALT-XXXX
@@ -16,21 +15,25 @@ export class Alerta {
     public readonly atendida: boolean = false
   ) {}
 
+  public clone(overrides?: Partial<Alerta>): Alerta {
+    return new Alerta(
+      overrides?.id ?? this.id,
+      overrides?.codigo ?? this.codigo,
+      overrides?.pacienteId ?? this.pacienteId,
+      overrides?.lecturaId ?? this.lecturaId,
+      overrides?.severidad ?? this.severidad,
+      overrides?.mensaje ?? this.mensaje,
+      overrides?.fecha ?? this.fecha,
+      overrides?.atendida ?? this.atendida
+    );
+  }
+
   public marcarComoAtendida(): Alerta {
     if (this.atendida) {
       throw new Error("Esta alerta ya ha sido atendida.");
     }
     
-    // Retorna una nueva instancia inmutable con el estado modificado
-    return new Alerta(
-      this.id,
-      this.codigo,
-      this.pacienteId,
-      this.lecturaId,
-      this.severidad,
-      this.mensaje,
-      this.fecha,
-      true
-    );
+    // Retorna una nueva instancia clonada con el estado modificado (inmutabilidad)
+    return this.clone({ atendida: true });
   }
 }

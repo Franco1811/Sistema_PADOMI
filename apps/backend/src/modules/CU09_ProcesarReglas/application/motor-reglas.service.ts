@@ -1,15 +1,12 @@
-import { IUmbralRepository } from '../../../../../../shared/domain/repositories/umbral.interface';
-import { UmbralRepository } from '../../../../../../shared/infrastructure/repositories/umbral.repository';
-import { IEvaluacionRepository } from '../../../../../../shared/domain/repositories/evaluacion.interface';
-import { EvaluacionRepository } from '../../../../../../shared/infrastructure/repositories/evaluacion.repository';
-import { IAlertaRepository } from '../../../../../../shared/domain/repositories/alerta.interface';
-import { AlertaRepository } from '../../../../../../shared/infrastructure/repositories/alerta.repository';
+import { IUmbralRepository } from '../../../../../../shared/domain/interface/umbral.interface';
+import { IEvaluacionRepository } from '../../../../../../shared/domain/interface/evaluacion.interface';
+import { IAlertaRepository } from '../../../../../../shared/domain/interface/alerta.interface';
+import { repositoryFactory } from '../../../../../../shared/infrastructure/repositories/repository.factory';
 import { Evaluacion } from '../../../../../../shared/domain/entities/evaluacion.entity';
 import { Alerta } from '../../../../../../shared/domain/entities/alerta.entity';
 import { Lectura } from '../../../../../../shared/domain/entities/lectura.entity';
 import { EvaluacionDto } from './evaluacion.dto';
-import { IPacienteRepository } from '../../../../../../shared/domain/repositories/paciente.interface';
-import { PacienteRepository } from '../../../../../../shared/infrastructure/repositories/paciente.repository';
+import { IPacienteRepository } from '../../../../../../shared/domain/interface/paciente.interface';
 import { DashboardController } from '../../CU06_MonitorearDashboard/presentation/dashboard.controller';
 import * as crypto from 'crypto';
 
@@ -20,16 +17,16 @@ export class MotorReglasService {
   private pacienteRepository: IPacienteRepository;
 
   constructor() {
-    this.umbralRepository = new UmbralRepository();
-    this.evaluacionRepository = new EvaluacionRepository();
-    this.alertaRepository = new AlertaRepository();
-    this.pacienteRepository = new PacienteRepository();
+    this.umbralRepository = repositoryFactory.getUmbralRepository();
+    this.evaluacionRepository = repositoryFactory.getEvaluacionRepository();
+    this.alertaRepository = repositoryFactory.getAlertaRepository();
+    this.pacienteRepository = repositoryFactory.getPacienteRepository();
   }
 
   async procesarLectura(lectura: Lectura): Promise<EvaluacionDto | null> {
     // 1. Obtener umbrales del paciente
     const umbrales = await this.umbralRepository.buscarPorPacienteId(lectura.pacienteId);
-    
+
     // Buscar el umbral específico de esta métrica
     const umbral = umbrales.find(u => u.metricaId === lectura.metricaId);
     if (!umbral) {

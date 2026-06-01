@@ -1,8 +1,6 @@
-import { IPacienteRepository } from '../../../../../../shared/domain/repositories/paciente.interface';
-import { PacienteRepository } from '../../../../../../shared/infrastructure/repositories/paciente.repository';
-import { IUmbralRepository } from '../../../../../../shared/domain/repositories/umbral.interface';
-import { UmbralRepository } from '../../../../../../shared/infrastructure/repositories/umbral.repository';
-import { MetricaRepository } from '../../CU03_GestionarMetricas/infrastructure/metrica.repository';
+import { IPacienteRepository } from '../../../../../../shared/domain/interface/paciente.interface';
+import { IUmbralRepository } from '../../../../../../shared/domain/interface/umbral.interface';
+import { repositoryFactory } from '../../../../../../shared/infrastructure/repositories/repository.factory';
 import { ActualizarPerfilDto } from './actualizar-perfil.dto';
 import { Paciente } from '../../../../../../shared/domain/entities/paciente.entity';
 import { Umbral } from '../../../../../../shared/domain/entities/umbral.entity';
@@ -13,8 +11,8 @@ export class GestionarPerfilService {
   private umbralRepository: IUmbralRepository;
 
   constructor() {
-    this.pacienteRepository = new PacienteRepository();
-    this.umbralRepository = new UmbralRepository();
+    this.pacienteRepository = repositoryFactory.getPacienteRepository();
+    this.umbralRepository = repositoryFactory.getUmbralRepository();
   }
 
   async obtenerPerfil(pacienteId: string): Promise<{ paciente: Paciente, umbrales: Umbral[] }> {
@@ -24,7 +22,7 @@ export class GestionarPerfilService {
     }
 
     const umbrales = await this.umbralRepository.buscarPorPacienteId(pacienteId);
-    
+
     return { paciente, umbrales };
   }
 
@@ -38,21 +36,15 @@ export class GestionarPerfilService {
 
     // Actualizar datos del paciente
     if (dto.diagnostico !== undefined) {
-      const pacienteActualizado = new Paciente(
-        paciente.id,
-        paciente.codigo,
-        paciente.dni,
-        paciente.nombres,
-        paciente.edad,
-        dto.diagnostico,
-        paciente.medicoAsignadoId
-      );
+      const pacienteActualizado = paciente.clone({
+        diagnostico: dto.diagnostico
+      });
       await this.pacienteRepository.actualizar(pacienteActualizado);
     }
 
     // Actualizar umbrales
     if (dto.umbrales && dto.umbrales.length > 0) {
-      const metricaRepository = new MetricaRepository();
+      const metricaRepository = repositoryFactory.getMetricaRepository();
       const umbralesExistentes = await this.umbralRepository.buscarPorPacienteId(dto.pacienteId);
 
       for (const uDto of dto.umbrales) {
@@ -68,20 +60,23 @@ export class GestionarPerfilService {
         }
 
         const existente = umbralesExistentes.find(u => u.metricaId === uDto.metricaId);
-        
-        const umbral = new Umbral(
-          existente ? existente.id : crypto.randomUUID(),
-          existente ? existente.codigo : await this.umbralRepository.generarCodigo(),
-          dto.pacienteId,
-          uDto.metricaId,
-          uDto.valorMin,
-          uDto.valorMax
-        );
-        
+
         if (existente) {
-          await this.umbralRepository.actualizar(umbral);
+          const umbralActualizado = existente.clone({
+            valorMin: uDto.valorMin,
+            valorMax: uDto.valorMax
+          });
+          await this.umbralRepository.actualizar(umbralActualizado);
         } else {
-          await this.umbralRepository.guardar(umbral);
+          const nuevoUmbral = new Umbral(
+            crypto.randomUUID(),
+            await this.umbralRepository.generarCodigo(),
+            dto.pacienteId,
+            uDto.metricaId,
+            uDto.valorMin,
+            uDto.valorMax
+          );
+          await this.umbralRepository.guardar(nuevoUmbral);
         }
       }
     }

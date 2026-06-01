@@ -3,7 +3,7 @@ import { AppDataSource } from '../data-source';
 import { AlertaModel } from '../models/alerta.model';
 import { AlertaMapping } from '../mappings/alerta.mapping';
 import { Alerta } from '../../domain/entities/alerta.entity';
-import { IAlertaRepository } from '../../domain/repositories/alerta.interface';
+import { IAlertaRepository } from '../../domain/interface/alerta.interface';
 
 export class AlertaRepository implements IAlertaRepository {
   private repository: Repository<AlertaModel>;

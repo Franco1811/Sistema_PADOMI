@@ -3,7 +3,7 @@ import { AppDataSource } from '../data-source';
 import { PacienteModel } from '../models/paciente.model';
 import { PacienteMapping } from '../mappings/paciente.mapping';
 import { Paciente } from '../../domain/entities/paciente.entity';
-import { IPacienteRepository } from '../../domain/repositories/paciente.interface';
+import { IPacienteRepository } from '../../domain/interface/paciente.interface';
 
 export class PacienteRepository implements IPacienteRepository {
   private repository: any;

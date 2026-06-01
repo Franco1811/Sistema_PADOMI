@@ -1,5 +1,5 @@
-import { ILecturaRepository } from '../../../../../../shared/domain/repositories/lectura.interface';
-import { LecturaRepository } from '../../../../../../shared/infrastructure/repositories/lectura.repository';
+import { ILecturaRepository } from '../../../../../../shared/domain/interface/lectura.interface';
+import { repositoryFactory } from '../../../../../../shared/infrastructure/repositories/repository.factory';
 import { IngestaDto } from './ingesta.dto';
 import { Lectura } from '../../../../../../shared/domain/entities/lectura.entity';
 import { eventBus } from '../../CU09_ProcesarReglas/presentation/reglas.event';
@@ -9,7 +9,7 @@ export class IngestaService {
   private lecturaRepository: ILecturaRepository;
 
   constructor() {
-    this.lecturaRepository = new LecturaRepository();
+    this.lecturaRepository = repositoryFactory.getLecturaRepository();
   }
 
   async procesarIngesta(dto: IngestaDto): Promise<Lectura> {

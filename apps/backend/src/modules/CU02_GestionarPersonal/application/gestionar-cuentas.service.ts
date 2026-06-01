@@ -2,9 +2,10 @@
 // Orquesta la lógica administrativa: verifica existencia de DNI, cifra contraseñas y solicita guardar.
 // Puede reutilizar lógica de validación de otros servicios.
 
-import { IUsuarioRepository } from '../../../../../../shared/domain/repositories/usuario.interface';
-import { UsuarioRepository } from '../../../../../../shared/infrastructure/repositories/usuario.repository';
+import { IUsuarioRepository } from '../../../../../../shared/domain/interface/usuario.interface';
+import { repositoryFactory } from '../../../../../../shared/infrastructure/repositories/repository.factory';
 import { Usuario } from '../../../../../../shared/domain/entities/usuario.entity';
+import { UsuarioBuilder } from '../../../../../../shared/domain/builders/usuario.builder';
 import { RegistroPersonalDto } from './registro-personal.dto';
 import * as bcrypt from 'bcrypt';
 
@@ -12,7 +13,7 @@ export class GestionarCuentasService {
   private usuarioRepository: IUsuarioRepository;
 
   constructor() {
-    this.usuarioRepository = new UsuarioRepository();
+    this.usuarioRepository = repositoryFactory.getUsuarioRepository();
   }
 
   async crearPersonal(dto: RegistroPersonalDto): Promise<Usuario> {
@@ -31,18 +32,18 @@ export class GestionarCuentasService {
     const passwordHash = await bcrypt.hash(dto.password, 10);
     const codigoGenerado = await this.usuarioRepository.generarCodigo();
 
-    const usuario = new Usuario(
-      crypto.randomUUID(),  //funcion nativa de node.js para generar UUIDs 
-      codigoGenerado,
-      dto.dni,
-      dto.nombre,
-      dto.apellido,
-      dto.email,
-      passwordHash,
-      dto.rol,
-      true,
-      dto.especialidad
-    );
+    const usuario = new UsuarioBuilder()
+      .conId(crypto.randomUUID())
+      .conCodigo(codigoGenerado)
+      .conDni(dto.dni)
+      .conNombre(dto.nombre)
+      .conApellido(dto.apellido)
+      .conEmail(dto.email)
+      .conPasswordHash(passwordHash)
+      .conRol(dto.rol)
+      .conActivo(true)
+      .conEspecialidad(dto.especialidad)
+      .build();
 
     return await this.usuarioRepository.guardar(usuario);
   }
@@ -71,18 +72,13 @@ export class GestionarCuentasService {
     const rol = dto.rol || usuario.rol;
     const especialidad = dto.especialidad !== undefined ? dto.especialidad : usuario.especialidad;
 
-    const usuarioActualizado = new Usuario(
-      usuario.id,
-      usuario.codigo,
-      usuario.dni,
+    const usuarioActualizado = usuario.clone({
       nombre,
       apellido,
       email,
-      usuario.passwordHash,
       rol,
-      usuario.activo,
       especialidad
-    );
+    });
 
     return await this.usuarioRepository.actualizar(usuarioActualizado);
   }
@@ -103,18 +99,9 @@ export class GestionarCuentasService {
       }
     }
 
-    const usuarioDeshabilitado = new Usuario(
-      usuario.id,
-      usuario.codigo,
-      usuario.dni,
-      usuario.nombre,
-      usuario.apellido,
-      usuario.email,
-      usuario.passwordHash,
-      usuario.rol,
-      false, // Desactivado
-      usuario.especialidad
-    );
+    const usuarioDeshabilitado = usuario.clone({
+      activo: false // Desactivado
+    });
 
     return await this.usuarioRepository.actualizar(usuarioDeshabilitado);
   }
