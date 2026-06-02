@@ -27,6 +27,8 @@ export class GestionarPerfilController {
       dto.pacienteId = req.params.id as string;
       dto.medicoId = authReq.user?.id || req.body.medicoId;
       dto.diagnostico = req.body.diagnostico;
+      dto.telefono = req.body.telefono;
+      dto.direccion = req.body.direccion;
       dto.umbrales = req.body.umbrales;
 
       await this.service.actualizarPerfil(dto);

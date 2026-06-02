@@ -504,3 +504,61 @@ Authorization: Bearer {{tokenMedico}}
   "diagnostico": "   "
 }
 
+###
+
+
+# =================================================================
+# CU-08: Ingestar Datos Biométricos & CU-09: Procesar Reglas
+# =================================================================
+
+### 8.1 Simular Ingesta IoT Directa al Backend - Lectura NORMAL
+# Reemplace 'pacienteId' y 'metricaId' con UUIDs reales obtenidos del Dashboard o Catálogo.
+POST {{hostname}}/ingesta
+Content-Type: application/json
+
+{
+  "pacienteId": "remplace_con_uuid_de_paciente",
+  "metricaId": "remplace_con_uuid_de_metrica",
+  "valor": 75.0
+}
+
+###
+
+### 8.2 Simular Ingesta IoT Directa al Backend - Lectura ADVERTENCIA (Fuera de Umbral)
+POST {{hostname}}/ingesta
+Content-Type: application/json
+
+{
+  "pacienteId": "remplace_con_uuid_de_paciente",
+  "metricaId": "remplace_con_uuid_de_metrica",
+  "valor": 93.0
+}
+
+###
+
+### 8.3 Simular Ingesta IoT Directa al Backend - Lectura CRÍTICA (Dispara Alerta Crítica y Bloqueo en Frontend)
+POST {{hostname}}/ingesta
+Content-Type: application/json
+
+{
+  "pacienteId": "remplace_con_uuid_de_paciente",
+  "metricaId": "remplace_con_uuid_de_metrica",
+  "valor": 120.0
+}
+
+###
+
+### 8.4 Ingestar a través de Azure Functions (Localhost Puerto 7071)
+# Requiere haber iniciado la Azure Function mediante 'pnpm --filter ingesta-biometrica-function start'
+POST http://localhost:7071/api/HttpTrigger
+Content-Type: application/json
+
+{
+  "pacienteId": "remplace_con_uuid_de_paciente",
+  "metricaId": "remplace_con_uuid_de_metrica",
+  "valor": 120.0
+}
+
+###
+
+

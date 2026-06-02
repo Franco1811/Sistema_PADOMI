@@ -5,6 +5,7 @@ import { ILecturaRepository } from './lectura.interface';
 import { IEvaluacionRepository } from './evaluacion.interface';
 import { IAlertaRepository } from './alerta.interface';
 import { IMetricaRepository } from './metrica.interface';
+import { IDashboardRepository } from './dashboard.interface';
 
 export interface RepositoryFactory {
   getUsuarioRepository(): IUsuarioRepository;
@@ -14,4 +15,5 @@ export interface RepositoryFactory {
   getEvaluacionRepository(): IEvaluacionRepository;
   getAlertaRepository(): IAlertaRepository;
   getMetricaRepository(): IMetricaRepository;
+  getDashboardRepository(): IDashboardRepository;
 }

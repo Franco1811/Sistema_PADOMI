@@ -28,4 +28,10 @@ export class PacienteModel {
 
   @Column({ type: 'uuid' })
   medicoAsignadoId!: string; // FOREIGN KEY a Usuario(id)
+
+  @Column({ type: 'nvarchar', length: 20, nullable: true })
+  telefono?: string;
+
+  @Column({ type: 'nvarchar', length: 255, nullable: true })
+  direccion?: string;
 }

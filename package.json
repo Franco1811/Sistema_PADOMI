@@ -1,7 +1,16 @@
 {
 	"dependencies": {
-		"typescript": "^6.0.3",
 		"@types/node": "^25.7.0",
-		"ts-node": "^10.9.2"
+		"ts-node": "^10.9.2",
+		"typescript": "^6.0.3"
+	},
+	"devDependencies": {
+		"concurrently": "^10.0.1"
+	},
+	"scripts": {
+		"dev:backend": "pnpm --filter backend dev",
+		"dev:frontend": "pnpm --filter frontend dev",
+		"dev:functions": "pnpm --filter ingesta-biometrica-function start",
+		"dev": "concurrently \"pnpm dev:backend\" \"pnpm dev:frontend\" \"pnpm dev:functions\""
 	}
 }

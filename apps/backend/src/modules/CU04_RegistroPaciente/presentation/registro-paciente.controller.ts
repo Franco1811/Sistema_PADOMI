@@ -20,6 +20,8 @@ export class RegistroPacienteController {
       dto.edad = req.body.edad;
       dto.diagnostico = req.body.diagnostico;
       dto.medicoAsignadoId = req.body.medicoAsignadoId;
+      dto.telefono = req.body.telefono;
+      dto.direccion = req.body.direccion;
 
       const paciente = await this.service.registrarPaciente(dto);
       res.status(201).json(paciente);

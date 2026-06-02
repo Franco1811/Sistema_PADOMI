@@ -8,6 +8,8 @@ export class ActualizarPerfilDto {
   pacienteId!: string;
   medicoId!: string; // Auditoría
   diagnostico?: string;
+  telefono?: string;
+  direccion?: string;
   umbrales?: UmbralDto[];
 
   validar(): void {

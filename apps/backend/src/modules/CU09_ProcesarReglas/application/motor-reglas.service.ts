@@ -77,7 +77,10 @@ export class MotorReglasService {
 
       // 6. Notificar al médico vía WebSockets en tiempo real
       // Esto empujará la alerta a la pantalla del Frontend de inmediato, sin que el doctor recargue la página.
-      DashboardController.emitirNuevaAlerta(paciente.medicoAsignadoId, savedAlerta);
+      DashboardController.emitirNuevaAlerta(paciente.medicoAsignadoId, {
+        ...savedAlerta,
+        pacienteNombre: paciente.nombres
+      });
     }
 
     return new EvaluacionDto(lectura.pacienteId, lectura.metricaId, severidad, lectura.id);

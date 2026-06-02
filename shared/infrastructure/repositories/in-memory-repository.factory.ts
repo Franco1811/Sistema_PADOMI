@@ -6,7 +6,8 @@ import {
   InMemoryLecturaRepository, 
   InMemoryEvaluacionRepository, 
   InMemoryAlertaRepository, 
-  InMemoryMetricaRepository 
+  InMemoryMetricaRepository,
+  InMemoryDashboardRepository
 } from './in-memory-repositories';
 
 export class InMemoryRepositoryFactory implements RepositoryFactory {
@@ -17,6 +18,7 @@ export class InMemoryRepositoryFactory implements RepositoryFactory {
   private evaluacionRepository = new InMemoryEvaluacionRepository();
   private alertaRepository = new InMemoryAlertaRepository();
   private metricaRepository = new InMemoryMetricaRepository();
+  private dashboardRepository = new InMemoryDashboardRepository(this.pacienteRepository, this.alertaRepository);
 
   getUsuarioRepository() { return this.usuarioRepository; }
   getPacienteRepository() { return this.pacienteRepository; }
@@ -25,8 +27,9 @@ export class InMemoryRepositoryFactory implements RepositoryFactory {
   getEvaluacionRepository() { return this.evaluacionRepository; }
   getAlertaRepository() { return this.alertaRepository; }
   getMetricaRepository() { return this.metricaRepository; }
+  getDashboardRepository() { return this.dashboardRepository; }
 
-  public createRepository(type: 'usuario' | 'paciente' | 'umbral' | 'lectura' | 'evaluacion' | 'alerta' | 'metrica'): any {
+  public createRepository(type: 'usuario' | 'paciente' | 'umbral' | 'lectura' | 'evaluacion' | 'alerta' | 'metrica' | 'dashboard'): any {
     switch (type) {
       case 'usuario': return this.getUsuarioRepository();
       case 'paciente': return this.getPacienteRepository();
@@ -35,6 +38,7 @@ export class InMemoryRepositoryFactory implements RepositoryFactory {
       case 'evaluacion': return this.getEvaluacionRepository();
       case 'alerta': return this.getAlertaRepository();
       case 'metrica': return this.getMetricaRepository();
+      case 'dashboard': return this.getDashboardRepository();
       default:
         throw new Error(`Repositorio de tipo "${type}" no soportado en InMemory.`);
     }

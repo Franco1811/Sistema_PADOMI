@@ -1,0 +1,21 @@
+{
+  "name": "ingesta-biometrica-function",
+  "version": "1.0.0",
+  "description": "Azure Function para la ingesta de telemetría IoT de PADOMI",
+  "scripts": {
+    "build": "tsc",
+    "watch": "tsc -w",
+    "clean": "rimraf dist",
+    "prestart": "pnpm clean && pnpm build",
+    "start": "func start"
+  },
+  "dependencies": {
+    "@azure/functions": "^3.5.1"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "azure-functions-core-tools": "^4.12.0",
+    "rimraf": "^5.0.5",
+    "typescript": "^5.3.3"
+  }
+}

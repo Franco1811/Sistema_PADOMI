@@ -8,7 +8,9 @@ export class Paciente implements Prototype<Paciente> {
     public readonly nombres: string,
     public readonly edad: number,
     public readonly diagnostico: string,
-    public readonly medicoAsignadoId: string
+    public readonly medicoAsignadoId: string,
+    public readonly telefono?: string,
+    public readonly direccion?: string
   ) {
     this.validarDatosClínicos();
   }
@@ -21,7 +23,9 @@ export class Paciente implements Prototype<Paciente> {
       overrides?.nombres ?? this.nombres,
       overrides?.edad ?? this.edad,
       overrides?.diagnostico ?? this.diagnostico,
-      overrides?.medicoAsignadoId ?? this.medicoAsignadoId
+      overrides?.medicoAsignadoId ?? this.medicoAsignadoId,
+      overrides?.telefono ?? this.telefono,
+      overrides?.direccion ?? this.direccion
     );
   }
 

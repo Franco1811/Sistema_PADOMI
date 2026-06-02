@@ -5,6 +5,7 @@ import { ILecturaRepository } from '../../domain/interface/lectura.interface';
 import { IEvaluacionRepository } from '../../domain/interface/evaluacion.interface';
 import { IAlertaRepository } from '../../domain/interface/alerta.interface';
 import { IMetricaRepository } from '../../domain/interface/metrica.interface';
+import { IDashboardRepository, PacienteDashboard } from '../../domain/interface/dashboard.interface';
 
 import { Usuario } from '../../domain/entities/usuario.entity';
 import { Paciente } from '../../domain/entities/paciente.entity';
@@ -183,5 +184,58 @@ export class InMemoryMetricaRepository implements IMetricaRepository {
   }
   async estaEnUso(id: string): Promise<boolean> {
     return false;
+  }
+}
+
+export class InMemoryDashboardRepository implements IDashboardRepository {
+  constructor(
+    private pacienteRepo: InMemoryPacienteRepository,
+    private alertaRepo: InMemoryAlertaRepository
+  ) {}
+
+  async obtenerDashboard(
+    medicoId: string,
+    busqueda?: string,
+    pagina: number = 1,
+    limite: number = 50
+  ): Promise<PacienteDashboard[]> {
+    // 1. Obtener pacientes del médico asignado
+    let pacientes = await this.pacienteRepo.listarPorMedicoAsignado(medicoId);
+
+    // 2. Aplicar filtro si existe
+    if (busqueda) {
+      const b = busqueda.toLowerCase();
+      pacientes = pacientes.filter(p =>
+        p.nombres.toLowerCase().includes(b) || p.dni.includes(b)
+      );
+    }
+
+    const dashboard: PacienteDashboard[] = [];
+
+    // 3. Obtener alertas y determinar severidad
+    for (const paciente of pacientes) {
+      const alertas = await this.alertaRepo.buscarActivasPorPaciente(paciente.id);
+      
+      let estado: 'CRITICO' | 'ADVERTENCIA' | 'NORMAL' = 'NORMAL';
+      if (alertas.some(a => a.severidad === 'CRITICO')) {
+        estado = 'CRITICO';
+      } else if (alertas.some(a => a.severidad === 'ADVERTENCIA')) {
+        estado = 'ADVERTENCIA';
+      }
+
+      dashboard.push({
+        paciente,
+        estado,
+        alertasActivas: alertas.length
+      });
+    }
+
+    // 4. Ordenar: CRITICO > ADVERTENCIA > NORMAL
+    const prioridad = { 'CRITICO': 1, 'ADVERTENCIA': 2, 'NORMAL': 3 };
+    dashboard.sort((a, b) => prioridad[a.estado] - prioridad[b.estado]);
+
+    // 5. Paginar
+    const start = (pagina - 1) * limite;
+    return dashboard.slice(start, start + limite);
   }
 }

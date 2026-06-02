@@ -44,6 +44,13 @@ export class DatabaseConnection {
       database: process.env.DB_NAME,
       synchronize: false,
       options: { encrypt: true },
+      extra: {
+        pool: {
+          max: 15,          // Límite máximo de conexiones concurrentes en el pool
+          min: 2,           // Conexiones mínimas mantenidas abiertas
+          idleTimeoutMillis: 30000 // Tiempo antes de cerrar conexiones inactivas
+        }
+      },
       entities: [
         UsuarioModel,
         PacienteModel,

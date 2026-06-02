@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { AtenderAlertaService } from '../application/atender-alerta.service';
 import { AtencionDto } from '../application/atencion.dto';
+import { repositoryFactory } from '../../../../../../shared/infrastructure/repositories/repository.factory';
 
 export class AtencionController {
   private service: AtenderAlertaService;
@@ -8,6 +9,17 @@ export class AtencionController {
   constructor() {
     this.service = new AtenderAlertaService();
   }
+
+  obtenerAlertasActivas = async (req: Request, res: Response): Promise<void> => {
+    try {
+      const pacienteId = req.params.pacienteId as string;
+      const repository = repositoryFactory.getAlertaRepository();
+      const alertas = await repository.buscarActivasPorPaciente(pacienteId);
+      res.status(200).json(alertas);
+    } catch (error: any) {
+      res.status(400).json({ error: error.message });
+    }
+  };
 
   atenderAlerta = async (req: Request, res: Response): Promise<void> => {
     try {

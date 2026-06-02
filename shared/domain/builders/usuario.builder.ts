@@ -63,6 +63,16 @@ export class UsuarioBuilder {
   }
 
   public build(): Usuario {
+    // Validación explícita de campos requeridos por el negocio
+    if (!this.id) throw new Error("Builder Error: 'id' es requerido para construir un Usuario.");
+    if (!this.codigo) throw new Error("Builder Error: 'codigo' es requerido para construir un Usuario.");
+    if (!this.dni) throw new Error("Builder Error: 'dni' es requerido para construir un Usuario.");
+    if (!this.nombre) throw new Error("Builder Error: 'nombre' es requerido para construir un Usuario.");
+    if (!this.apellido) throw new Error("Builder Error: 'apellido' es requerido para construir un Usuario.");
+    if (!this.email) throw new Error("Builder Error: 'email' es requerido para construir un Usuario.");
+    if (!this.passwordHash) throw new Error("Builder Error: 'passwordHash' es requerido para construir un Usuario.");
+    if (!this.rol) throw new Error("Builder Error: 'rol' es requerido para construir un Usuario.");
+
     return new Usuario(
       this.id,
       this.codigo,

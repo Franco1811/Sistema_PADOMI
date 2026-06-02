@@ -7,6 +7,8 @@ export class PacienteDto {
   edad!: number;
   diagnostico!: string;
   medicoAsignadoId!: string;
+  telefono?: string;
+  direccion?: string;
 
   validar(): void {
     // Validación de DNI (8 dígitos exactos) - RNF-59

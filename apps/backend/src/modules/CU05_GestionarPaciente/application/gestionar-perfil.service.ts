@@ -35,9 +35,11 @@ export class GestionarPerfilService {
     }
 
     // Actualizar datos del paciente
-    if (dto.diagnostico !== undefined) {
+    if (dto.diagnostico !== undefined || dto.telefono !== undefined || dto.direccion !== undefined) {
       const pacienteActualizado = paciente.clone({
-        diagnostico: dto.diagnostico
+        diagnostico: dto.diagnostico !== undefined ? dto.diagnostico : paciente.diagnostico,
+        telefono: dto.telefono !== undefined ? dto.telefono : paciente.telefono,
+        direccion: dto.direccion !== undefined ? dto.direccion : paciente.direccion
       });
       await this.pacienteRepository.actualizar(pacienteActualizado);
     }

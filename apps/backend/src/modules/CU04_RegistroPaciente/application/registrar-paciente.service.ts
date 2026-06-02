@@ -55,6 +55,8 @@ export class RegistrarPacienteService {
       .conEdad(dto.edad)
       .conDiagnostico(dto.diagnostico)
       .conMedicoAsignadoId(dto.medicoAsignadoId)
+      .conTelefono(dto.telefono || '')
+      .conDireccion(dto.direccion || '')
       .build();
 
     return await this.pacienteRepository.guardar(paciente);

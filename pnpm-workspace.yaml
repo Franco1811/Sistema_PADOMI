@@ -3,5 +3,5 @@ packages:
   - 'functions/*'
   - 'shared'
 allowBuilds:
+  azure-functions-core-tools: true
   bcrypt: true
-

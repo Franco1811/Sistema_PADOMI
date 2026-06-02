@@ -2,7 +2,7 @@
 // Utilizado en CU-06 (Monitorear Dashboard Clínico) y CU-07 (Atender Emergencia Médica)
 // Define la estructura física de la tabla de alertas en Azure SQL usando TypeORM.
 
-import { Entity, PrimaryGeneratedColumn, Column, Unique } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, Unique, BeforeRemove } from 'typeorm';
 
 @Entity({ name: 'Alerta' })
 @Unique(['codigo'])
@@ -30,4 +30,9 @@ export class AlertaModel {
 
   @Column({ type: 'bit' })
   atendida!: boolean;
+
+  @BeforeRemove()
+  preventDelete() {
+    throw new Error('Las alertas críticas son inmutables por normativa médico-legal y no pueden ser eliminadas.');
+  }
 }

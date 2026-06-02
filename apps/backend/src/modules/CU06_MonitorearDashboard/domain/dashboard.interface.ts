@@ -1,5 +1,5 @@
-// Interfaz de repositorio para el Dashboard Clínico
-// Utilizada en CU-06 (Monitorear Dashboard Clínico)
-// Define métodos de consulta masiva y filtrado de pacientes.
+// Re-exportación de la interfaz del repositorio del Dashboard
+// Mantiene consistencia física con la estructura del módulo descrita en el informe.
 
-// ...aquí se definirá la interfaz del repositorio
+export { IDashboardRepository, PacienteDashboard } from '../../../../../../shared/domain/interface/dashboard.interface';
+

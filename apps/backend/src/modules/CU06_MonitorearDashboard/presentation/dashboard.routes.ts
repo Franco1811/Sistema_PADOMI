@@ -9,6 +9,9 @@ import { DashboardController } from './dashboard.controller';
 const router = Router();
 const controller = new DashboardController();
 
+// GET /dashboard/medico-demo
+router.get('/medico-demo', controller.obtenerMedicoDemo);
+
 // GET /dashboard?medicoId=UUID&busqueda=texto
 router.get('/', controller.obtenerDashboard);
 

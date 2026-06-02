@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { MonitoreoService } from '../application/monitoreo.service';
 import { FiltroPacienteDto } from '../application/filtro-paciente.dto';
 import { Server as SocketIOServer } from 'socket.io';
+import { repositoryFactory } from '../../../../../../shared/infrastructure/repositories/repository.factory';
 
 export class DashboardController {
   private service: MonitoreoService;
@@ -41,12 +42,29 @@ export class DashboardController {
     }
   }
 
+  // Retorna el ID del médico de pruebas para que el frontend no tenga ID estáticos erróneos
+  obtenerMedicoDemo = async (req: Request, res: Response): Promise<void> => {
+    try {
+      const usuarioRepo = repositoryFactory.getUsuarioRepository();
+      const medico = await usuarioRepo.buscarPorEmail('carlos.mendoza@essalud.gob.pe');
+      if (!medico) {
+        res.status(200).json({ id: '99999999-9999-9999-9999-999999999999', nombre: 'Dr. Carlos Mendoza' });
+        return;
+      }
+      res.status(200).json({ id: medico.id, nombre: `${medico.nombre} ${medico.apellido}` });
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  };
+
   obtenerDashboard = async (req: Request, res: Response): Promise<void> => {
     try {
       const dto = new FiltroPacienteDto();
       // En un sistema real, medicoId vendría del token JWT en middleware
       dto.medicoId = req.query.medicoId as string || req.body.medicoId;
       dto.busqueda = req.query.busqueda as string;
+      dto.pagina = req.query.page ? Number(req.query.page) : undefined;
+      dto.limite = req.query.limit ? Number(req.query.limit) : undefined;
 
       const resultado = await this.service.obtenerDashboard(dto);
       res.status(200).json(resultado);

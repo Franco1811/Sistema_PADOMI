@@ -16,6 +16,8 @@ export class PacienteMapping {
       .conEdad(model.edad)
       .conDiagnostico(model.diagnostico || '')
       .conMedicoAsignadoId(model.medicoAsignadoId)
+      .conTelefono(model.telefono || '')
+      .conDireccion(model.direccion || '')
       .build();
   }
 
@@ -28,6 +30,8 @@ export class PacienteMapping {
     model.edad = entity.edad;
     model.diagnostico = entity.diagnostico;
     model.medicoAsignadoId = entity.medicoAsignadoId;
+    model.telefono = entity.telefono;
+    model.direccion = entity.direccion;
     return model;
   }
 }

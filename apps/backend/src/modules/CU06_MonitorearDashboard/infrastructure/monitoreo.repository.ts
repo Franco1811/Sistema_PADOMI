@@ -1,5 +1,5 @@
-// Implementación real de la consulta optimizada para el Dashboard Clínico
-// Utilizada en CU-06 (Monitorear Dashboard Clínico)
-// Utiliza paginación y optimización de consultas SQL.
+// Re-exportación de la implementación optimizada del Dashboard
+// Mantiene consistencia física con la estructura del módulo descrita en el informe.
 
-// ...aquí se implementará la clase o funciones de infraestructura
+export { MonitoreoRepository } from '../../../../../../shared/infrastructure/repositories/monitoreo.repository';
+
