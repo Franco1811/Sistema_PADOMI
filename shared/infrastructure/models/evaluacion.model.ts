@@ -27,4 +27,7 @@ export class EvaluacionModel {
 
   @Column({ type: 'nvarchar', length: 500, nullable: true })
   recomendaciones!: string;
+
+  @Column({ type: 'uuid', nullable: true })
+  alertaId!: string | null; // FOREIGN KEY a Alerta(id)
 }

@@ -10,7 +10,8 @@ export class EvaluacionMapping {
       model.medicoId,
       model.fecha,
       model.resumen,
-      model.recomendaciones
+      model.recomendaciones,
+      model.alertaId
     );
   }
 
@@ -23,6 +24,7 @@ export class EvaluacionMapping {
     model.fecha = entity.fecha;
     model.resumen = entity.resumen;
     model.recomendaciones = entity.recomendaciones;
+    model.alertaId = entity.alertaId || null;
     return model;
   }
 }

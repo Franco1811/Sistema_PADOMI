@@ -9,7 +9,8 @@ export class Evaluacion {
     public readonly medicoId: string | null,
     public readonly fecha: Date,
     public readonly resumen: string,
-    public readonly recomendaciones: string
+    public readonly recomendaciones: string,
+    public readonly alertaId: string | null = null // Nueva relación directa
   ) {}
 
   public static calcularSeveridad(valor: number, umbralMin: number, umbralMax: number): 'NORMAL' | 'ADVERTENCIA' | 'CRITICO' {

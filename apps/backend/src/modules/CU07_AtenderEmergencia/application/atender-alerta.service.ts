@@ -1,12 +1,17 @@
 import { IAlertaRepository } from '../../../../../../shared/domain/interface/alerta.interface';
+import { IEvaluacionRepository } from '../../../../../../shared/domain/interface/evaluacion.interface';
 import { repositoryFactory } from '../../../../../../shared/infrastructure/repositories/repository.factory';
+import { Evaluacion } from '../../../../../../shared/domain/entities/evaluacion.entity';
 import { AtencionDto } from './atencion.dto';
+import * as crypto from 'crypto';
 
 export class AtenderAlertaService {
   private alertaRepository: IAlertaRepository;
+  private evaluacionRepository: IEvaluacionRepository;
 
   constructor() {
     this.alertaRepository = repositoryFactory.getAlertaRepository();
+    this.evaluacionRepository = repositoryFactory.getEvaluacionRepository();
   }
 
   async atender(dto: AtencionDto): Promise<void> {
@@ -28,5 +33,20 @@ export class AtenderAlertaService {
       // Condición de carrera: otro médico ganó la transacción
       throw new Error("Esta alerta acaba de ser gestionada por otro colega.");
     }
+
+    // 4. Registrar la Evaluación Clínica asociada a la alerta para auditoría (CU-07)
+    const codigoEva = await this.evaluacionRepository.generarCodigo();
+    const evaluacion = new Evaluacion(
+      crypto.randomUUID(),
+      codigoEva,
+      alerta.pacienteId,
+      dto.medicoId,
+      new Date(),
+      dto.comentario || 'Atención de alerta crítica de telemetría.',
+      'Seguimiento domiciliario del paciente crítico.',
+      alerta.id // alertaId de relación
+    );
+
+    await this.evaluacionRepository.guardar(evaluacion);
   }
 }
