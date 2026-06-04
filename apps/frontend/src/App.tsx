@@ -300,18 +300,61 @@ export default function App() {
       </header>
 
       {/* Controles de Búsqueda */}
-      <div
+     <div
   style={{
-  marginBottom: '1rem',
-  padding: '1rem',
-  borderRadius: '12px',
-  border: '1px solid gray',
-}}
+    display: 'flex',
+    gap: '1rem',
+    marginBottom: '1rem'
+  }}
 >
-  <h3>Pacientes Monitoreados</h3>
-  <p style={{ fontSize: '1.5rem', fontWeight: 'bold' }}>
-    {pacientes.length}
-  </p>
+  <div
+    style={{
+      flex: 1,
+      padding: '1.5rem',
+      borderRadius: '12px',
+      border: '1px solid rgba(255,255,255,0.1)'
+    }}
+  >
+    <h3>Pacientes Monitoreados</h3>
+
+    <p
+      style={{
+        fontSize: '2rem',
+        fontWeight: 'bold'
+      }}
+    >
+      {pacientes.length}
+    </p>
+
+    <small style={{ opacity: 0.7 }}>
+      Total de pacientes en seguimiento
+    </small>
+  </div>
+
+  <div
+    style={{
+      flex: 1,
+      padding: '1.5rem',
+      borderRadius: '12px',
+      border: '1px solid rgba(255,255,255,0.1)',
+    }}
+  >
+    <h3>Estado del Servicio</h3>
+
+    <p
+      style={{
+        fontSize: '2rem',
+        fontWeight: 'bold',
+        color: '#22c55e'
+      }}
+    >
+      ● Conectado
+    </p>
+
+    <small style={{ opacity: 0.7 }}>
+      Telemetría en tiempo real activa
+    </small>
+  </div>
 </div>
       <section className="controls-panel">
         <div className="search-wrapper">
