@@ -300,6 +300,19 @@ export default function App() {
       </header>
 
       {/* Controles de Búsqueda */}
+      <div
+  style={{
+  marginBottom: '1rem',
+  padding: '1rem',
+  borderRadius: '12px',
+  border: '1px solid gray',
+}}
+>
+  <h3>Pacientes Monitoreados</h3>
+  <p style={{ fontSize: '1.5rem', fontWeight: 'bold' }}>
+    {pacientes.length}
+  </p>
+</div>
       <section className="controls-panel">
         <div className="search-wrapper">
           <Search className="search-icon" size={20} />
