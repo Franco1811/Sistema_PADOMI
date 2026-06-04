@@ -291,6 +291,7 @@ export default function App() {
             PADOMI Telemetría
           </h1>
           <p>Médico Activo: {medicoNombre} | Monitoreo Clínico en Tiempo Real</p>
+          <p>Última actualización: {new Date().toLocaleString()}</p>
         </div>
         <div className="connection-badge">
           <span className={`connection-dot ${!isConnected ? 'disconnected' : ''}`} />
