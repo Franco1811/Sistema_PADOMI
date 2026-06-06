@@ -4,6 +4,9 @@ export interface PacienteDashboard {
   paciente: Paciente;
   estado: 'CRITICO' | 'ADVERTENCIA' | 'NORMAL';
   alertasActivas: number;
+
+  ultimaActualizacion?: Date;
+  requiereMonitoreo?: boolean;
 }
 
 export interface IDashboardRepository {
