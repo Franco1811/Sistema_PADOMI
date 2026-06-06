@@ -561,4 +561,14 @@ Content-Type: application/json
 
 ###
 
+### 8.5 Lectura con valor inválido
+POST {{hostname}}/ingesta
+Content-Type: application/json
 
+{
+  "pacienteId": "remplace_con_uuid_de_paciente",
+  "metricaId": "remplace_con_uuid_de_metrica",
+  "valor": -10
+}
+
+###
