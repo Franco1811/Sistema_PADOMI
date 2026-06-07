@@ -6,56 +6,38 @@ interface IAuthAdapter {
   iniciarSesion(email: string, password: string): Promise<any>;
 }
 
-// ADAPTER
 class AuthAdapter implements IAuthAdapter {
-
   constructor(private authService: AuthService) {}
-
   async iniciarSesion(email: string, password: string): Promise<any> {
-
-    // 🔁 Traducción de interfaz simple → DTO complejo
     const dto = new LoginDto();
     dto.email = email;
     dto.password = password;
-
     console.log(`[ADAPTER]: Adaptando credenciales para login de ${email}`);
-
-    // 🔁 Delegación al servicio real
     return await this.authService.login(dto);
   }
 }
 
 async function probarAdapter() {
-
   console.log('==================================================');
   console.log('      PRUEBA DEL PATRÓN DE DISEÑO: ADAPTER       ');
   console.log('==================================================\n');
-
   try {
 
     if (!AppDataSource.isInitialized) {
       await AppDataSource.initialize();
       console.log('✔ Base de datos conectada correctamente.');
     }
-
     const authService = new AuthService();
     const authAdapter = new AuthAdapter(authService);
-
     console.log('2. Ejecutando login mediante Adapter...');
-
     const resultado = await authAdapter.iniciarSesion(
       'ps@gmail.com',
       'Doterodelalma37'
     );
-
     console.log(`✔ Login exitoso. Token generado`);
-
   } catch (error: any) {
-
     console.log(`❌ Error: ${error.message}`);
-
   } finally {
-
     if (AppDataSource.isInitialized) {
       await AppDataSource.destroy();
     }

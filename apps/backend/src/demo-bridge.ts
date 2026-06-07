@@ -24,25 +24,20 @@ class MetricaBridgeService {
 }
 
 async function probarBridge() {
-
   console.log('==================================================');
   console.log('        PRUEBA DEL PATRÓN DE DISEÑO: BRIDGE  ');
   console.log('==================================================\n');
 
   try {
-
     if (!AppDataSource.isInitialized) {
       await AppDataSource.initialize();
       console.log('✔ Base de datos conectada.');
     }
 
     const catalogoService = new CatalogoService();
-
     const implementor = new CatalogoServiceImplementor(catalogoService);
-
     const bridge = new MetricaBridgeService(implementor);
 
-    // DTO real
     const dto = new MetricaDto();
     dto.nombre = 'Freee';
     dto.unidad = 'lpm';
@@ -51,18 +46,13 @@ async function probarBridge() {
     dto.rangoMax = 100;
 
     console.log('2. Ejecutando Bridge...\n');
-
     const resultado = await bridge.registrarMetrica(dto);
-
     console.log('\n✔ MÉTRICA CREADA CORRECTAMENTE:');
     console.log(resultado);
 
   } catch (error: any) {
-
     console.log('[ERROR]:', error.message);
-
   } finally {
-
     if (AppDataSource.isInitialized) {
       await AppDataSource.destroy();
     }

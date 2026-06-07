@@ -1,7 +1,7 @@
 import { AppDataSource } from '../../../shared/infrastructure/data-source';
 import { PersonalRepository } from './modules/CU02_GestionarPersonal/infrastructure/personal.repository';
 
-async function probarProxyPersonal() {
+async function probarProxy() {
   console.log('==================================================');
   console.log('      PRUEBA DEL PATRÓN DE DISEÑO: PROXY       ');
   console.log('==================================================\n');
@@ -77,4 +77,4 @@ async function probarProxyPersonal() {
   console.log('==================================================');
 }
 
-probarProxyPersonal();
+probarProxy();
