@@ -1,34 +1,46 @@
 interface EstadoPaciente {
-  mostrarEstado(): void;
+  mostrarEstado(nombrePaciente: string, lectura: number): void;
 }
 
 class EstadoNormal implements EstadoPaciente {
-  mostrarEstado(): void {
-    console.log('🟢 Estado: NORMAL');
+  mostrarEstado(nombrePaciente: string, lectura: number): void {
+    console.log(`🟢 ${nombrePaciente} - Estado: NORMAL`);
+    console.log(`Lectura registrada: ${lectura}`);
+    console.log('Paciente estable, continúa en monitoreo regular.');
   }
 }
 
 class EstadoAdvertencia implements EstadoPaciente {
-  mostrarEstado(): void {
-    console.log('🟡 Estado: ADVERTENCIA');
+  mostrarEstado(nombrePaciente: string, lectura: number): void {
+    console.log(`🟡 ${nombrePaciente} - Estado: ADVERTENCIA`);
+    console.log(`Lectura registrada: ${lectura}`);
+    console.log('Se recomienda seguimiento médico preventivo.');
   }
 }
 
 class EstadoCritico implements EstadoPaciente {
-  mostrarEstado(): void {
-    console.log('🔴 Estado: CRITICO');
+  mostrarEstado(nombrePaciente: string, lectura: number): void {
+    console.log(`🔴 ${nombrePaciente} - Estado: CRITICO`);
+    console.log(`Lectura registrada: ${lectura}`);
+    console.log('Se debe generar alerta clínica inmediata.');
   }
 }
 
-class Paciente {
-  constructor(private estado: EstadoPaciente) {}
+class PacienteMonitoreado {
+  constructor(
+    private nombre: string,
+    private estado: EstadoPaciente,
+    private lectura: number
+  ) {}
 
-  cambiarEstado(estado: EstadoPaciente): void {
+  cambiarEstado(estado: EstadoPaciente, lectura: number): void {
+    console.log('\n🔄 Nueva lectura biométrica recibida...');
     this.estado = estado;
+    this.lectura = lectura;
   }
 
   mostrarEstado(): void {
-    this.estado.mostrarEstado();
+    this.estado.mostrarEstado(this.nombre, this.lectura);
   }
 }
 
@@ -37,30 +49,27 @@ function probarState(): void {
   console.log('        PRUEBA DEL PATRÓN DE DISEÑO: STATE        ');
   console.log('==================================================\n');
 
-  const paciente = new Paciente(
-    new EstadoNormal()
+  const paciente = new PacienteMonitoreado(
+    'Pedro Mendoza',
+    new EstadoNormal(),
+    120
   );
 
   paciente.mostrarEstado();
 
-  console.log('\nPaciente presenta valores elevados...');
-  paciente.cambiarEstado(
-    new EstadoAdvertencia()
-  );
+  paciente.cambiarEstado(new EstadoAdvertencia(), 145);
   paciente.mostrarEstado();
 
-  console.log('\nPaciente entra en condición crítica...');
-  paciente.cambiarEstado(
-    new EstadoCritico()
-  );
+  paciente.cambiarEstado(new EstadoCritico(), 190);
   paciente.mostrarEstado();
 
   console.log('\n-------------------- RESULTADO --------------------');
   console.log('Estado General de State: ✔ COMPLETADO Y OPERATIVO');
   console.log('---------------------------------------------------');
-  console.log('✔ El comportamiento cambia según el estado.');
-  console.log('✔ Se evita usar múltiples if/else.');
-  console.log('✔ Representa el flujo clínico del paciente.');
+  console.log('✔ Se representaron los estados NORMAL, ADVERTENCIA y CRITICO.');
+  console.log('✔ Cada estado define su propio comportamiento clínico.');
+  console.log('✔ Se simula el flujo de CU09_ProcesarReglas.');
+  console.log('✔ Se evita usar múltiples condicionales if/else.');
   console.log('==================================================');
 }
 
