@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { io, Socket } from 'socket.io-client';
+import Login from './Login';
 import { 
   Search, 
   Heart, 
@@ -64,6 +65,21 @@ export default function App() {
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
   const [medicoId, setMedicoId] = useState<string>('');
   const [medicoNombre, setMedicoNombre] = useState<string>('Cargando médico...');
+  const [sesionActiva, setSesionActiva] = useState(
+  localStorage.getItem('padomiAuth') === 'true'
+);
+
+const [rolUsuario, setRolUsuario] = useState<'MEDICO' | 'PACIENTE'>(
+  (localStorage.getItem('padomiRol') as 'MEDICO' | 'PACIENTE') || 'MEDICO'
+);
+
+const handleLogin = (rol: 'MEDICO' | 'PACIENTE') => {
+  localStorage.setItem('padomiAuth', 'true');
+  localStorage.setItem('padomiRol', rol);
+
+  setRolUsuario(rol);
+  setSesionActiva(true);
+};
 
   // Nuevos estados para CU-07: Atender Emergencia Médica
   const [alertaEmergencia, setAlertaEmergencia] = useState<any | null>(null);
@@ -281,6 +297,28 @@ export default function App() {
     }).join(' ');
   };
 
+  if (!sesionActiva) {
+  return <Login onLogin={handleLogin} />;
+}
+
+if (rolUsuario === 'PACIENTE') {
+  return (
+    <div className="dashboard-container">
+      <h1>👤 PADOMI - Paciente</h1>
+      <p>Bienvenido al portal del paciente.</p>
+
+      <button
+        onClick={() => {
+          localStorage.removeItem('padomiAuth');
+          localStorage.removeItem('padomiRol');
+          setSesionActiva(false);
+        }}
+      >
+        Cerrar sesión
+      </button>
+    </div>
+  );
+}
   return (
     <div className="dashboard-container">
       {/* Cabecera del Panel */}
