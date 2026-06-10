@@ -63,7 +63,7 @@ export default function App() {
       {!token || !usuario ? (
         <LoginView onLoginSuccess={handleLoginSuccess} />
       ) : usuario.rol.nombre === 'ADMIN' ? (
-        <AdminView usuario={usuario} onLogout={handleLogout} />
+        <AdminView usuario={usuario} token={token} onLogout={handleLogout} />
       ) : (
         <MedicoView 
           usuario={usuario} 
