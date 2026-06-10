@@ -5,6 +5,12 @@ import { ActualizarPerfilDto } from './actualizar-perfil.dto';
 import { Paciente } from '../../../../../../shared/domain/entities/paciente.entity';
 import { Umbral } from '../../../../../../shared/domain/entities/umbral.entity';
 import * as crypto from 'crypto';
+import { AppDataSource } from '../../../../../../shared/infrastructure/data-source';
+import { PacienteEnfermedadModel } from '../../../../../../shared/infrastructure/models/paciente-enfermedad.model';
+import { EnfermedadCronicaModel } from '../../../../../../shared/infrastructure/models/enfermedad-cronica.model';
+import { EnfermedadCronicaMapping } from '../../../../../../shared/infrastructure/mappings/enfermedad-cronica.mapping';
+import { EnfermedadCronica } from '../../../../../../shared/domain/entities/enfermedad-cronica.entity';
+import { In } from 'typeorm';
 
 export class GestionarPerfilService {
   private pacienteRepository: IPacienteRepository;
@@ -15,7 +21,7 @@ export class GestionarPerfilService {
     this.umbralRepository = repositoryFactory.getUmbralRepository();
   }
 
-  async obtenerPerfil(pacienteId: string): Promise<{ paciente: Paciente, umbrales: Umbral[] }> {
+  async obtenerPerfil(pacienteId: string): Promise<{ paciente: Paciente, umbrales: Umbral[], enfermedades: EnfermedadCronica[] }> {
     const paciente = await this.pacienteRepository.buscarPorId(pacienteId);
     if (!paciente) {
       throw new Error("Paciente no encontrado");
@@ -23,7 +29,25 @@ export class GestionarPerfilService {
 
     const umbrales = await this.umbralRepository.buscarPorPacienteId(pacienteId);
 
-    return { paciente, umbrales };
+    let enfermedades: EnfermedadCronica[] = [];
+    if (process.env.USE_IN_MEMORY === 'true' || !AppDataSource.isInitialized) {
+      enfermedades = [
+        new EnfermedadCronica(crypto.randomUUID(), 'ENF-0002', 'Hipertensión Arterial Sistémica', 'Incremento continuo de la presion sanguinea')
+      ];
+    } else {
+      const enfermedadesRaw = await AppDataSource.getRepository(PacienteEnfermedadModel).find({
+        where: { pacienteId }
+      });
+      const enfermedadIds = enfermedadesRaw.map(e => e.enfermedadId);
+      if (enfermedadIds.length > 0) {
+        const models = await AppDataSource.getRepository(EnfermedadCronicaModel).find({
+          where: { id: In(enfermedadIds) }
+        });
+        enfermedades = models.map(m => EnfermedadCronicaMapping.toEntity(m));
+      }
+    }
+
+    return { paciente, umbrales, enfermedades };
   }
 
   async actualizarPerfil(dto: ActualizarPerfilDto): Promise<void> {
@@ -45,10 +69,19 @@ export class GestionarPerfilService {
     }
 
     // Actualizar umbrales
-    if (dto.umbrales && dto.umbrales.length > 0) {
+    if (dto.umbrales !== undefined) {
       const metricaRepository = repositoryFactory.getMetricaRepository();
       const umbralesExistentes = await this.umbralRepository.buscarPorPacienteId(dto.pacienteId);
 
+      // 1. Eliminar los umbrales que ya no están en la lista recibida
+      for (const existente of umbralesExistentes) {
+        const sigueExistiendo = dto.umbrales.some(u => u.metricaId === existente.metricaId);
+        if (!sigueExistiendo) {
+          await this.umbralRepository.eliminar(existente.id);
+        }
+      }
+
+      // 2. Insertar o actualizar los umbrales recibidos
       for (const uDto of dto.umbrales) {
         // Verificar existencia de la métrica antes de guardar umbral
         const metricaExiste = await metricaRepository.buscarPorId(uDto.metricaId);

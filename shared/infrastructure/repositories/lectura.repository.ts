@@ -36,4 +36,13 @@ export class LecturaRepository implements ILecturaRepository {
     const nextNumber = parseInt(match[1], 10) + 1;
     return `LEC-${String(nextNumber).padStart(4, '0')}`;
   }
+
+  async buscarPorPaciente(pacienteId: string, limit: number = 50): Promise<Lectura[]> {
+    const models = await this.repository.find({
+      where: { pacienteId },
+      order: { fecha: 'DESC' },
+      take: limit
+    });
+    return models.map(m => LecturaMapping.toEntity(m));
+  }
 }

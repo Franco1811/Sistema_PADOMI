@@ -15,7 +15,7 @@ export class AuthService {
     this.usuarioRepository = repositoryFactory.getUsuarioRepository();
   }
 
-  async login(dto: LoginDto): Promise<{ token: string; usuario: Omit<Usuario, 'passwordHash' | 'clone'> }> {
+  async login(dto: LoginDto): Promise<{ token: string; usuario: any }> {
     dto.validar();
 
     const usuario = await this.usuarioRepository.buscarPorEmail(dto.email);
@@ -35,7 +35,13 @@ export class AuthService {
     }
 
     const token = jwt.sign(
-      { id: usuario.id, email: usuario.email, rol: usuario.rol },
+      { 
+        id: usuario.id, 
+        email: usuario.email, 
+        rol: usuario.rol.nombre,
+        permisos: usuario.rol.permisos,
+        recursos: usuario.rol.recursos 
+      },
       process.env.JWT_SECRET || 'secret',
       { expiresIn: '8h' }
     );
@@ -49,7 +55,7 @@ export class AuthService {
       email: usuario.email,
       rol: usuario.rol,
       activo: usuario.activo,
-      especialidad: usuario.especialidad,
+      especialidad: usuario.especialidad ? (typeof usuario.especialidad === 'string' ? usuario.especialidad : usuario.especialidad.nombre) : undefined,
       estaHabilitado: () => usuario.estaHabilitado()
     };
 

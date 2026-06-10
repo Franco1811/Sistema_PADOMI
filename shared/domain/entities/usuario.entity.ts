@@ -1,4 +1,6 @@
 import { Prototype } from '../interface/prototype.interface';
+import { Rol } from './rol.entity';
+import { Especialidad } from './especialidad.entity';
 
 export class Usuario implements Prototype<Usuario> {
   // Entidad compartida utilizada en CU-01 (Iniciar Sesión) y CU-02 (Gestionar Cuentas de Personal).
@@ -11,9 +13,9 @@ export class Usuario implements Prototype<Usuario> {
     public readonly apellido: string,
     public readonly email: string,
     public readonly passwordHash: string,
-    public readonly rol: 'MEDICO' | 'ENFERMERO' | 'ADMINISTRATIVO',
+    public readonly rol: Rol,
     public readonly activo: boolean = true,
-    public readonly especialidad?: string // Opcional, solo para médicos
+    public readonly especialidad?: Especialidad // Opcional, solo para médicos
   ) {
     this.validarReglasNegocio();
   }
@@ -43,7 +45,7 @@ export class Usuario implements Prototype<Usuario> {
       throw new Error("Formato de email institucional de EsSalud inválido.");
     }
 
-    if (this.rol === 'MEDICO' && !this.especialidad) {
+    if (this.rol.nombre === 'MEDICO' && !this.especialidad) {
       throw new Error("Un usuario con rol MEDICO debe tener una especialidad asignada.");
     }
   }

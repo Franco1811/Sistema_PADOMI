@@ -42,6 +42,13 @@ export class SqlRepositoryFactory implements RepositoryFactory {
   }
 }
 
+import * as dotenv from 'dotenv';
+import * as path from 'path';
+
+// Configurar para cargar las variables del archivo .env de la raíz del proyecto,
+// forzando override para sobrescribir cualquier variable de entorno local de la sesión de terminal.
+dotenv.config({ path: path.resolve(__dirname, '../../../.env'), override: true });
+
 // Configuración conmutable para intercambiar dinámicamente la fábrica activa (SQL o InMemory)
 // Se puede forzar mediante variables de entorno (USE_IN_MEMORY === 'true')
 const useInMemory = process.env.USE_IN_MEMORY === 'true' || process.env.NODE_ENV === 'test';
@@ -49,4 +56,5 @@ const useInMemory = process.env.USE_IN_MEMORY === 'true' || process.env.NODE_ENV
 export const repositoryFactory: RepositoryFactory & { createRepository(type: 'usuario' | 'paciente' | 'umbral' | 'lectura' | 'evaluacion' | 'alerta' | 'metrica' | 'dashboard'): any } = useInMemory
   ? new InMemoryRepositoryFactory()
   : new SqlRepositoryFactory();
+
 

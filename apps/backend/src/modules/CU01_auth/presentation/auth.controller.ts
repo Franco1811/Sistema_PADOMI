@@ -22,8 +22,13 @@ export class AuthController {
       const result = await this.authService.login(dto);
 
       res.status(200).json(result);
-    } catch (error) {
-      res.status(401).json({ error: error instanceof Error ? error.message : 'Error de autenticación' });
+    } catch (error: any) {
+      const msg = error instanceof Error ? error.message : 'Error de autenticación';
+      if (msg.includes('cadenas de texto') || msg.includes('inválido') || msg.includes('caracteres')) {
+        res.status(400).json({ error: msg });
+        return;
+      }
+      res.status(401).json({ error: msg });
     }
   }
 }

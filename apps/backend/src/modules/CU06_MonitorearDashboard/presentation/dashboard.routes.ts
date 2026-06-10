@@ -12,6 +12,9 @@ const controller = new DashboardController();
 // GET /dashboard/medico-demo
 router.get('/medico-demo', controller.obtenerMedicoDemo);
 
+// GET /dashboard/kpis?medicoId=UUID
+router.get('/kpis', controller.obtenerKPIs);
+
 // GET /dashboard?medicoId=UUID&busqueda=texto
 router.get('/', controller.obtenerDashboard);
 

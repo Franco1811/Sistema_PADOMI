@@ -6,6 +6,9 @@ export class LoginDto {
   password!: string;
 
   validar(): void {
+    if (typeof this.email !== 'string' || typeof this.password !== 'string') {
+      throw new Error("El correo y contraseña deben ser cadenas de texto de tipo string");
+    }
     if (!this.email || !this.email.includes('@')) {
       throw new Error("Email inválido");
     }

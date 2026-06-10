@@ -17,13 +17,17 @@ export class UsuarioRepository implements IUsuarioRepository {
   }
 
   async buscarPorEmail(email: string): Promise<Usuario | null> {
-    const model = await this.repository.findOne({ where: { email } });
+    const model = await this.repository.findOne({ 
+      where: { email },
+      relations: ['rol', 'rol.permisos', 'rol.recursos', 'especialidadRelation']
+    });
     return model ? UsuarioMapping.toEntity(model) : null;
   }
 
   async buscarPorDni(dni: string): Promise<Usuario | null> {
     const model = await this.repository.findOne({
-      where: { dni }
+      where: { dni },
+      relations: ['rol', 'rol.permisos', 'rol.recursos', 'especialidadRelation']
     });
     return model ? UsuarioMapping.toEntity(model) : null;
   }
@@ -31,23 +35,31 @@ export class UsuarioRepository implements IUsuarioRepository {
   async guardar(usuario: Usuario): Promise<Usuario> {
     const model = UsuarioMapping.toModel(usuario);
     const savedModel = await this.repository.save(model);
-    return UsuarioMapping.toEntity(savedModel);
+    // Para retornar el objeto con sus relaciones cargadas:
+    return this.buscarPorId(savedModel.id) as Promise<Usuario>;
   }
 
   async actualizar(usuario: Usuario): Promise<Usuario> {
     const model = UsuarioMapping.toModel(usuario);
     const updatedModel = await this.repository.save(model);
-    return UsuarioMapping.toEntity(updatedModel);
+    // Para retornar el objeto con sus relaciones cargadas:
+    return this.buscarPorId(updatedModel.id) as Promise<Usuario>;
   }
 
   async buscarPorId(id: string): Promise<Usuario | null> {
-    const model = await this.repository.findOne({ where: { id } });
+    const model = await this.repository.findOne({ 
+      where: { id },
+      relations: ['rol', 'rol.permisos', 'rol.recursos', 'especialidadRelation']
+    });
     return model ? UsuarioMapping.toEntity(model) : null;
   }
 
   async listarTodos(especialidad?: string): Promise<Usuario[]> {
-    const whereClause = especialidad ? { especialidad } : {};
-    const models = await this.repository.find({ where: whereClause });
+    const whereClause = especialidad ? { especialidadRelation: { nombre: especialidad } } as any : {};
+    const models = await this.repository.find({ 
+      where: whereClause,
+      relations: ['rol', 'rol.permisos', 'rol.recursos', 'especialidadRelation']
+    });
     return models.map(model => UsuarioMapping.toEntity(model));
   }
 

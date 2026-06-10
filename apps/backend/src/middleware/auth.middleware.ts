@@ -5,7 +5,9 @@ export interface AuthRequest extends Request {
   user?: {
     id: string;
     email: string;
-    rol: 'MEDICO' | 'ENFERMERO' | 'ADMINISTRATIVO';
+    rol: 'MEDICO' | 'ADMIN';
+    permisos?: string[];
+    recursos?: { nombre: string; ruta: string }[];
   };
 }
 

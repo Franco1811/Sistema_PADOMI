@@ -2,7 +2,9 @@
 // Define la estructura física de la tabla de usuarios en Azure SQL usando TypeORM.
 // Se reutiliza en todos los casos de uso que requieran persistencia de usuarios.
 
-import { Entity, PrimaryGeneratedColumn, Column, Unique } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, Unique, ManyToOne, JoinColumn } from 'typeorm';
+import { RolModel } from './rol.model';
+import { EspecialidadModel } from './especialidad.model';
 
 @Entity({ name: 'Usuario' })
 @Unique(['email'])
@@ -28,12 +30,20 @@ export class UsuarioModel {
   @Column({ type: 'nvarchar', length: 255 })
   passwordHash!: string;
 
-  @Column({ type: 'nvarchar', length: 30 })
-  rol!: string; // 'MEDICO', 'ENFERMERO', 'ADMINISTRATIVO'
+  @Column({ type: 'int' })
+  rolId!: number;
+
+  @ManyToOne(() => RolModel)
+  @JoinColumn({ name: 'rolId' })
+  rol!: RolModel;
 
   @Column({ type: 'bit' })
   activo!: boolean;
 
-  @Column({ type: 'nvarchar', length: 100, nullable: true })
-  especialidad!: string | null;
+  @Column({ type: 'int', nullable: true })
+  especialidadId!: number | null;
+
+  @ManyToOne(() => EspecialidadModel, { nullable: true })
+  @JoinColumn({ name: 'especialidadId' })
+  especialidadRelation!: EspecialidadModel | null;
 }

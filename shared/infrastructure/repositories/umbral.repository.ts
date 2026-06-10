@@ -47,4 +47,8 @@ export class UmbralRepository implements IUmbralRepository {
     const nextNumber = parseInt(match[1], 10) + 1;
     return `UMB-${String(nextNumber).padStart(4, "0")}`;
   }
+
+  async eliminar(id: string): Promise<void> {
+    await this.repository.delete(id);
+  }
 }

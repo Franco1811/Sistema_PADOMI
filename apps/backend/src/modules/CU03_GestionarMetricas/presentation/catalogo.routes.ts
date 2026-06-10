@@ -10,12 +10,12 @@ import { autorizarRoles } from '../../../middleware/role.middleware';
 const router = Router();
 const controller = new CatalogoController();
 
-// Permitir listar a cualquier personal autenticado (Administrativos, Médicos, Enfermeros)
-router.get('/', autenticarToken, autorizarRoles('ADMINISTRATIVO', 'MEDICO', 'ENFERMERO'), (req: any, res: any) => controller.listar(req, res));
+// Permitir listar a cualquier personal autenticado (Administradores y Médicos)
+router.get('/', autenticarToken, autorizarRoles('ADMIN', 'MEDICO'), (req: any, res: any) => controller.listar(req, res));
 
-// Solo los Administrativos pueden modificar el catálogo de métricas
-router.post('/', autenticarToken, autorizarRoles('ADMINISTRATIVO'), (req: any, res: any) => controller.crear(req, res));
-router.put('/:id', autenticarToken, autorizarRoles('ADMINISTRATIVO'), (req: any, res: any) => controller.actualizar(req, res));
-router.delete('/:id', autenticarToken, autorizarRoles('ADMINISTRATIVO'), (req: any, res: any) => controller.eliminar(req, res));
+// Solo los Administradores pueden modificar el catálogo de métricas
+router.post('/', autenticarToken, autorizarRoles('ADMIN'), (req: any, res: any) => controller.crear(req, res));
+router.put('/:id', autenticarToken, autorizarRoles('ADMIN'), (req: any, res: any) => controller.actualizar(req, res));
+router.delete('/:id', autenticarToken, autorizarRoles('ADMIN'), (req: any, res: any) => controller.eliminar(req, res));
 
 export default router;

@@ -1,7 +1,7 @@
 import * as dotenv from 'dotenv';
 import * as path from 'path';
 // Configurar para usar el .env de la raíz del proyecto
-dotenv.config({ path: path.resolve(__dirname, '../../../.env') });
+dotenv.config({ path: path.resolve(__dirname, '../../../.env'), override: true });
 
 import http from 'http';
 import app from './app';

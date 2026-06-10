@@ -28,6 +28,62 @@
   --normal-border: rgba(16, 185, 129, 0.35);
   
   --accent-color: #3b82f6;
+
+  /* Sinergia de Componentes según Tema */
+  --badge-bg: rgba(30, 41, 59, 0.6);
+  --input-bg: rgba(30, 41, 59, 0.6);
+  --input-text: #ffffff;
+  --header-gradient: linear-gradient(135deg, #ffffff 40%, #94a3b8 100%);
+  --login-side-bg: #0f172a;
+  
+  /* Identidad Cromática EsSalud (Modo Oscuro) */
+  --essalud-azul: #3b82f6;
+  --essalud-celeste: #3b82f6;
+}
+
+:root[data-theme='light'] {
+  color-scheme: light;
+  --bg-color: #f1f5f9;
+  --card-bg: rgba(255, 255, 255, 0.85);
+  --border-color: rgba(15, 23, 42, 0.08);
+  
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
+  
+  /* Paleta de Severidad Clínica en Tema Claro */
+  --critico-color: #dc2626;
+  --critico-bg: rgba(220, 38, 38, 0.08);
+  --critico-border: rgba(220, 38, 38, 0.25);
+  
+  --advertencia-color: #d97706;
+  --advertencia-bg: rgba(217, 119, 6, 0.08);
+  --advertencia-border: rgba(217, 119, 6, 0.25);
+  
+  --normal-color: #059669;
+  --normal-bg: rgba(5, 150, 105, 0.08);
+  --normal-border: rgba(5, 150, 105, 0.25);
+  
+  --accent-color: #2563eb;
+
+  /* Sinergia de Componentes en Tema Claro */
+  --badge-bg: rgba(255, 255, 255, 0.95);
+  --input-bg: rgba(255, 255, 255, 1);
+  --input-text: #0f172a;
+  --header-gradient: linear-gradient(135deg, #0f172a 40%, #475569 100%);
+  --login-side-bg: #ffffff;
+
+  /* Identidad Cromática EsSalud (Modo Claro - Oficiales) */
+  --essalud-azul: #00509a;
+  --essalud-celeste: #00509a;
+}
+
+:root[data-theme='light'] body {
+  background-color: var(--bg-color);
+  background-image: 
+    radial-gradient(at 0% 0%, rgba(59, 130, 246, 0.08) 0px, transparent 50%),
+    radial-gradient(at 100% 0%, rgba(239, 68, 68, 0.05) 0px, transparent 50%),
+    radial-gradient(at 50% 100%, rgba(16, 185, 129, 0.04) 0px, transparent 50%);
+  color: var(--text-primary);
 }
 
 * {
@@ -66,7 +122,7 @@ body {
 .header-title-section h1 {
   font-size: 2.2rem;
   font-weight: 700;
-  background: linear-gradient(135deg, #ffffff 30%, #94a3b8 100%);
+  background: var(--header-gradient);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   display: flex;
@@ -84,7 +140,7 @@ body {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  background: rgba(30, 41, 59, 0.6);
+  background: var(--badge-bg);
   border: 1px solid var(--border-color);
   padding: 0.5rem 1rem;
   border-radius: 9999px;
@@ -124,11 +180,11 @@ body {
 
 .search-input {
   width: 100%;
-  background: rgba(30, 41, 59, 0.8);
+  background: var(--input-bg);
   border: 1px solid var(--border-color);
   padding: 0.85rem 1rem 0.85rem 2.75rem;
   border-radius: 12px;
-  color: var(--text-primary);
+  color: var(--input-text);
   font-size: 0.95rem;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
@@ -137,7 +193,7 @@ body {
   outline: none;
   border-color: var(--accent-color);
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25);
-  background: rgba(30, 41, 59, 0.95);
+  background: var(--card-bg);
 }
 
 .search-icon {
@@ -379,8 +435,8 @@ body {
 }
 
 .modal-content {
-  background: #1e293b;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: var(--modal-bg, #1e293b);
+  border: 1px solid var(--border-color);
   border-radius: 24px;
   width: 100%;
   max-width: 850px;
@@ -390,6 +446,12 @@ body {
   position: relative;
   box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.8);
   animation: slide-up 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+:root[data-theme='light'] .modal-content {
+  background: #ffffff;
+  border: 1px solid rgba(15, 23, 42, 0.1);
+  box-shadow: 0 20px 60px -10px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(15, 23, 42, 0.05);
 }
 
 .modal-close {
@@ -407,6 +469,11 @@ body {
   align-items: center;
   cursor: pointer;
   transition: all 0.2s;
+}
+
+:root[data-theme='light'] .modal-close {
+  background: rgba(15, 23, 42, 0.06);
+  color: var(--text-secondary);
 }
 
 .modal-close:hover {
@@ -526,6 +593,16 @@ body {
     opacity: 1;
   }
 }
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Diálogo de confirmación en tema claro */
+:root[data-theme='light'] [style*="modal-bg"] {
+  background: #ffffff !important;
+}
+
 
 /* Historial de Alertas */
 .alerts-history {
@@ -725,6 +802,21 @@ body {
   position: relative;
 }
 
+.emergency-modal.critico {
+  border-color: var(--critico-color);
+  box-shadow: 0 0 40px rgba(239, 68, 68, 0.4);
+}
+
+.emergency-modal.advertencia {
+  border-color: var(--advertencia-color);
+  box-shadow: 0 0 40px rgba(245, 158, 11, 0.35);
+}
+
+.emergency-modal.normal {
+  border-color: var(--normal-color);
+  box-shadow: 0 0 40px rgba(16, 185, 129, 0.25);
+}
+
 .emergency-modal.protocol {
   border-color: var(--normal-color);
   box-shadow: 0 0 40px rgba(16, 185, 129, 0.25);
@@ -745,6 +837,26 @@ body {
   font-weight: 800;
   letter-spacing: -0.02em;
   animation: pulse-text 1.5s infinite;
+}
+
+.emergency-modal.normal .emergency-header-flash h2 {
+  color: var(--normal-color);
+  animation: none;
+}
+
+.emergency-modal.normal .heartbeat-icon {
+  color: var(--normal-color) !important;
+  animation: none !important;
+}
+
+.emergency-modal.advertencia .emergency-header-flash h2 {
+  color: var(--advertencia-color);
+  animation: none;
+}
+
+.emergency-modal.advertencia .heartbeat-icon {
+  color: var(--advertencia-color) !important;
+  animation: heartbeat 2s infinite ease-in-out !important;
 }
 
 @keyframes pulse-text {
@@ -946,4 +1058,1172 @@ body {
   from { box-shadow: 0 0 10px rgba(239, 68, 68, 0.3); }
   to { box-shadow: 0 0 25px rgba(239, 68, 68, 0.8); }
 }
+
+
+
+/* ==========================================================================
+   NUEVOS ESTILOS: Login Split Screen y Panel de Administración (RBAC)
+   ========================================================================== */
+
+/* Split Screen Login Container */
+.login-split-container {
+  display: flex;
+  min-height: 100vh;
+  width: 100vw;
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 5000;
+  background-color: var(--bg-color);
+  transition: background-color 0.3s;
+}
+
+/* Lado del Formulario (Izquierdo) */
+.login-form-side {
+  flex: 0.8;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 3rem;
+  background-color: var(--login-side-bg);
+  border-right: 1px solid var(--border-color);
+  transition: background-color 0.3s;
+}
+
+/* Contenedor de Formulario */
+.login-box {
+  width: 100%;
+  max-width: 420px;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.login-logos {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+.login-logo-essalud {
+  width: 140px;
+  height: auto;
+  object-fit: contain;
+  transition: filter 0.3s ease;
+}
+
+:root[data-theme='dark'] .login-logo-essalud {
+  filter: brightness(1.6) contrast(1.1);
+}
+
+.login-brand-text {
+  text-align: center;
+  margin-top: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.login-brand-subtitle {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--essalud-celeste);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  transition: color 0.3s ease;
+}
+
+.login-brand-title {
+  font-size: 3.1rem;
+  font-weight: 900;
+  color: var(--essalud-azul);
+  letter-spacing: -0.01em;
+  margin: 0;
+  line-height: 1.15;
+  transition: color 0.3s ease;
+}
+
+.login-brand-description {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  margin-top: 0.5rem;
+  font-weight: 500;
+  text-align: center;
+}
+
+/* Inputs de Login */
+.login-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.login-input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.login-input-group label {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.login-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.login-input {
+  width: 100%;
+  background: var(--input-bg);
+  border: 1px solid var(--border-color);
+  padding: 0.85rem 1rem 0.85rem 2.5rem;
+  border-radius: 12px;
+  color: var(--input-text);
+  font-size: 0.95rem;
+  transition: all 0.2s ease;
+}
+
+.login-input:focus {
+  outline: none;
+  border-color: var(--accent-color);
+  background: var(--input-bg);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+}
+
+.login-input-icon {
+  position: absolute;
+  left: 0.85rem;
+  color: var(--text-secondary);
+}
+
+/* Botón de Login */
+.login-btn-submit {
+  width: 100%;
+  background: var(--accent-color);
+  color: #fff;
+  border: none;
+  padding: 0.9rem;
+  border-radius: 12px;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.25);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.login-btn-submit:hover:not(:disabled) {
+  background: #2563eb;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(59, 130, 246, 0.4);
+}
+
+.login-btn-submit:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Enlaces del Login */
+.login-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.85rem;
+}
+
+.login-action-link {
+  color: var(--accent-color);
+  text-decoration: none;
+  font-weight: 500;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.login-action-link:hover {
+  color: #60a5fa;
+  text-decoration: underline;
+}
+
+/* Lado del Banner (Derecho) */
+.login-banner-side {
+  flex: 1.6;
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(135deg, #0f1e36 0%, #082f49 100%);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+@media (max-width: 900px) {
+  .login-banner-side {
+    display: none;
+  }
+}
+
+.login-banner-fullscreen-image {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: 1;
+}
+
+.login-banner-overlay-gradient {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(to bottom, rgba(15, 23, 42, 0.1) 0%, rgba(15, 23, 42, 0.8) 100%);
+  z-index: 2;
+}
+
+.login-banner-content-overlay {
+  position: absolute;
+  bottom: 4rem;
+  left: 4rem;
+  right: 4rem;
+  z-index: 3;
+  color: #ffffff;
+  text-align: left;
+}
+
+.login-banner-content-overlay h3 {
+  font-size: 2rem;
+  font-weight: 800;
+  margin-bottom: 0.75rem;
+  color: #ffffff;
+  text-shadow: 0 2px 8px rgba(0,0,0,0.5);
+}
+
+.login-banner-content-overlay p {
+  font-size: 1rem;
+  line-height: 1.6;
+  color: #f1f5f9;
+  max-width: 600px;
+  text-shadow: 0 1px 4px rgba(0,0,0,0.4);
+}
+/* Modal de Recuperación Corporativa */
+
+/* Modal de Recuperación Corporativa */
+.security-modal-body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
+  text-align: center;
+  padding: 1rem 0;
+}
+
+.security-modal-icon {
+  color: var(--advertencia-color);
+  filter: drop-shadow(0 0 8px rgba(245, 158, 11, 0.3));
+}
+
+.security-modal-message {
+  font-size: 1rem;
+  line-height: 1.6;
+  color: #e2e8f0;
+}
+
+/* Panel de Administración */
+.admin-layout {
+  display: grid;
+  grid-template-columns: 240px 1fr;
+  min-height: calc(100vh - 120px);
+  gap: 2rem;
+  margin-top: 1rem;
+}
+
+@media (max-width: 900px) {
+  .admin-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+.admin-sidebar {
+  background: rgba(30, 41, 59, 0.4);
+  border: 1px solid var(--border-color);
+  border-radius: 16px;
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  align-self: start;
+}
+
+.admin-nav-item {
+  width: 100%;
+  text-align: left;
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  padding: 0.75rem 1rem;
+  border-radius: 10px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.admin-nav-item:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: #fff;
+}
+
+.admin-nav-item.active {
+  background: rgba(59, 130, 246, 0.15);
+  color: var(--accent-color);
+  border-left: 3px solid var(--accent-color);
+  border-radius: 0 10px 10px 0;
+}
+
+.admin-content-panel {
+  background: rgba(30, 41, 59, 0.2);
+  border: 1px solid var(--border-color);
+  border-radius: 16px;
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  min-height: 500px;
+}
+
+.admin-section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  padding-bottom: 1rem;
+}
+
+.admin-section-header h2 {
+  font-size: 1.4rem;
+  font-weight: 700;
+}
+
+/* Formulario de Administración */
+.admin-form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.25rem;
+}
+
+@media (max-width: 600px) {
+  .admin-form-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.admin-form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.admin-form-group label {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+.admin-select, .admin-textarea {
+  width: 100%;
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px solid var(--border-color);
+  padding: 0.8rem 1rem;
+  border-radius: 10px;
+  color: #fff;
+  font-size: 0.9rem;
+  transition: border 0.2s;
+}
+
+.admin-select:focus, .admin-textarea:focus {
+  outline: none;
+  border-color: var(--accent-color);
+}
+
+.admin-btn {
+  background: var(--accent-color);
+  color: #fff;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 10px;
+  font-weight: 700;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.admin-btn:hover {
+  background: #2563eb;
+  transform: translateY(-1px);
+}
+
+.admin-btn-secondary {
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+  border: 1px solid var(--border-color);
+}
+
+.admin-btn-secondary:hover {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.admin-btn-danger {
+  background: var(--critico-color);
+}
+
+.admin-btn-danger:hover {
+  background: #dc2626;
+}
+
+/* Tablas Administrativas */
+.admin-table-wrapper {
+  overflow-x: auto;
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+}
+
+.admin-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 0.9rem;
+}
+
+.admin-table th {
+  background: rgba(15, 23, 42, 0.8);
+  padding: 1rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.admin-table td {
+  padding: 1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  color: var(--text-primary);
+}
+
+.admin-table tr:last-child td {
+  border-bottom: none;
+}
+
+.admin-table tr:hover td {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.badge-status {
+  padding: 0.25rem 0.5rem;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.badge-status.active {
+  background: rgba(16, 185, 129, 0.15);
+  color: var(--normal-color);
+}
+
+.badge-status.inactive {
+  background: rgba(239, 68, 68, 0.15);
+  color: var(--critico-color);
+}
+
+.admin-actions-cell {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.btn-icon {
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  padding: 0.25rem;
+  border-radius: 6px;
+  transition: all 0.2s;
+}
+
+.btn-icon:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+}
+
+.btn-icon.delete:hover {
+  background: rgba(239, 68, 68, 0.15);
+  color: var(--critico-color);
+}
+
+.btn-logout {
+  background: rgba(239, 68, 68, 0.1);
+  color: var(--critico-color);
+  border: 1px solid rgba(239, 68, 68, 0.25);
+  padding: 0.5rem 1rem;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.btn-logout:hover {
+  background: var(--critico-color);
+  color: white;
+  box-shadow: 0 0 12px rgba(239, 68, 68, 0.3);
+}
+
+.header-user-section {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+/* Sobrescrituras Clínicas Adicionales para Modo Claro */
+:root[data-theme='light'] .login-banner-side {
+  background: linear-gradient(135deg, #e2e8f0 0%, #cbd5e1 100%);
+}
+
+:root[data-theme='light'] .login-banner-card {
+  background: rgba(255, 255, 255, 0.85);
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.15);
+}
+
+:root[data-theme='light'] .login-banner-info h3 {
+  color: #0f172a;
+}
+
+:root[data-theme='light'] .login-liquid-bg {
+  opacity: 0.25;
+  background-image: 
+    radial-gradient(circle at 20% 30%, rgba(59, 130, 246, 0.15) 0%, transparent 60%),
+    radial-gradient(circle at 80% 70%, rgba(16, 185, 129, 0.1) 0%, transparent 60%);
+}
+
+:root[data-theme='light'] .patient-card {
+  background: var(--card-bg);
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.05);
+}
+
+:root[data-theme='light'] .patient-card:hover {
+  box-shadow: 0 12px 24px rgba(15, 23, 42, 0.08);
+  border-color: rgba(15, 23, 42, 0.15);
+}
+
+:root[data-theme='light'] .patient-card.critico {
+  background: linear-gradient(135deg, #ffffff 0%, rgba(220, 38, 38, 0.04) 100%);
+}
+
+:root[data-theme='light'] .patient-card.advertencia {
+  background: linear-gradient(135deg, #ffffff 0%, rgba(217, 119, 6, 0.04) 100%);
+}
+
+:root[data-theme='light'] .sensor-card {
+  background: #ffffff;
+  border: 1px solid var(--border-color);
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.03);
+}
+
+:root[data-theme='light'] .sensor-value {
+  color: #0f172a;
+}
+
+:root[data-theme='light'] .alert-item-row {
+  background: rgba(15, 23, 42, 0.03);
+  border: 1px solid var(--border-color);
+}
+
+:root[data-theme='light'] .btn-link {
+  color: var(--accent-color);
+}
+
+:root[data-theme='light'] .btn-link:hover {
+  color: #1d4ed8;
+}
+
+/* Modal de Login (Restablecer Contraseña) */
+.login-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1.5rem;
+}
+
+.login-modal {
+  width: 100%;
+  max-width: 480px;
+  background-color: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 20px;
+  box-shadow: 0 20px 45px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+  animation: modalEnter 0.3s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes modalEnter {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.login-modal-header {
+  padding: 2rem 1.5rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  text-align: center;
+  border-bottom: 1px solid var(--border-color);
+  background: linear-gradient(180deg, rgba(59, 130, 246, 0.05) 0%, transparent 100%);
+}
+
+.login-modal-header h2 {
+  font-size: 1.3rem;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  color: var(--essalud-azul);
+  margin: 0;
+}
+
+.login-modal-body {
+  padding: 2rem;
+}
+
+.login-modal-text {
+  font-size: 0.95rem;
+  color: var(--text-secondary);
+  line-height: 1.6;
+  text-align: center;
+  margin-bottom: 1.5rem;
+}
+
+.login-modal-alert {
+  background-color: var(--advertencia-bg);
+  border: 1px solid var(--advertencia-border);
+  color: var(--advertencia-color);
+  padding: 1rem 1.25rem;
+  border-radius: 12px;
+  font-size: 0.88rem;
+  line-height: 1.5;
+  margin-bottom: 2rem;
+  font-weight: 500;
+  text-align: left;
+}
+
+.login-modal-btn {
+  width: 100%;
+  padding: 1rem;
+  font-size: 1rem;
+  font-weight: 600;
+  background-color: var(--essalud-azul);
+  color: #ffffff;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.25);
+}
+
+.login-modal-btn:hover {
+  background-color: var(--accent-color);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(59, 130, 246, 0.35);
+}
+
+.login-modal-btn:active {
+  transform: translateY(0);
+}
+
+/* Cabecera del Dashboard con Logo EsSalud */
+.dashboard-logo-essalud {
+  height: 42px;
+  width: auto;
+  object-fit: contain;
+  margin-right: 0.75rem;
+}
+
+/* Badges de Filtros Clínicos */
+.filters-panel {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  flex-wrap: wrap;
+  width: 100%;
+  margin-top: 1rem;
+  border-top: 1px solid var(--border-color);
+  padding-top: 1.25rem;
+}
+
+.filter-badge {
+  background: rgba(30, 41, 59, 0.4);
+  border: 1px solid var(--border-color);
+  color: var(--text-secondary);
+  padding: 0.5rem 1.1rem;
+  border-radius: 9999px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.filter-badge:hover {
+  color: var(--text-primary);
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.2);
+  transform: translateY(-1px);
+}
+
+.filter-badge.active {
+  background: rgba(59, 130, 246, 0.15);
+  color: var(--accent-color);
+  border-color: var(--accent-color);
+  box-shadow: 0 0 12px rgba(59, 130, 246, 0.15);
+}
+
+.filter-badge.critico.active {
+  background: var(--critico-bg);
+  color: var(--critico-color);
+  border-color: var(--critico-border);
+  box-shadow: 0 0 12px rgba(239, 68, 68, 0.15);
+}
+
+.filter-badge.advertencia.active {
+  background: var(--advertencia-bg);
+  color: var(--advertencia-color);
+  border-color: var(--advertencia-border);
+  box-shadow: 0 0 12px rgba(245, 158, 11, 0.15);
+}
+
+.filter-badge.normal.active {
+  background: var(--normal-bg);
+  color: var(--normal-color);
+  border-color: var(--normal-border);
+  box-shadow: 0 0 12px rgba(16, 185, 129, 0.15);
+}
+
+/* Modo Claro Sobreescrituras para Filtros */
+:root[data-theme='light'] .filter-badge {
+  background: rgba(15, 23, 42, 0.04);
+  color: #475569;
+}
+
+:root[data-theme='light'] .filter-badge:hover {
+  background: rgba(15, 23, 42, 0.08);
+  border-color: rgba(15, 23, 42, 0.2);
+}
+
+/* Estilo y Divisores de la ficha de paciente */
+.meta-top-info {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+  margin-bottom: 0.75rem;
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 0.75rem;
+}
+
+.meta-top-info span {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.meta-top-info strong {
+  color: var(--text-primary);
+}
+
+.meta-diag-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  margin-top: 0.25rem;
+  text-align: left;
+}
+
+.meta-diag-title {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 700;
+}
+
+.meta-diag-value {
+  font-size: 0.9rem;
+  color: var(--text-primary);
+  font-weight: 600;
+  line-height: 1.4;
+  margin: 0;
+}
+
+/* ==========================================================================
+   Refinación del Modal Clínico de Monitoreo en Vivo (Dos Columnas y Temas)
+   ========================================================================== */
+
+/* Ajustar el modal de emergencia original */
+.emergency-modal {
+  width: 95%;
+  max-width: 950px;
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 24px;
+  padding: 2.25rem;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.75);
+  position: relative;
+  text-align: left;
+}
+
+/* Cabecera del modal clínico */
+.emergency-header-flash {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--border-color);
+  width: 100%;
+}
+
+.emergency-header-flash h2 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* Botón de cerrar absoluto */
+.btn-close-modal {
+  position: absolute;
+  top: 1.75rem;
+  right: 1.75rem;
+  background: rgba(255, 255, 255, 0.05);
+  border: none;
+  color: var(--text-secondary);
+  border-radius: 50%;
+  width: 38px;
+  height: 38px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 10;
+}
+
+.btn-close-modal:hover {
+  background: rgba(239, 68, 68, 0.15);
+  color: var(--critico-color);
+  transform: rotate(90deg);
+}
+
+:root[data-theme='light'] .btn-close-modal {
+  background: rgba(15, 23, 42, 0.05);
+}
+
+/* Distribución de cuerpo en dos columnas */
+.emergency-body {
+  display: grid;
+  grid-template-columns: 1.2fr 0.8fr;
+  gap: 2rem;
+  margin-top: 1.5rem;
+}
+
+@media (max-width: 768px) {
+  .emergency-body {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+}
+
+/* Columna Izquierda (Telemetría) */
+.modal-left-column {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+/* Detalles del paciente en el modal */
+.patient-modal-details {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  background: rgba(30, 41, 59, 0.3);
+  border: 1px solid var(--border-color);
+  border-radius: 16px;
+  padding: 1.25rem;
+  width: 100%;
+}
+
+:root[data-theme='light'] .patient-modal-details {
+  background: rgba(15, 23, 42, 0.02);
+}
+
+.patient-modal-info h3 {
+  font-size: 1.3rem;
+  font-weight: 700;
+  margin: 0 0 0.5rem 0;
+  color: var(--text-primary);
+}
+
+.patient-modal-info p {
+  margin: 0;
+  font-size: 0.88rem;
+  color: var(--text-secondary);
+  line-height: 1.4;
+}
+
+/* Grilla de Sensores */
+.sensors-telemetry-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.25rem;
+  width: 100%;
+}
+
+@media (max-width: 576px) {
+  .sensors-telemetry-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Tarjeta de Sensor */
+.sensor-card {
+  background: rgba(30, 41, 59, 0.45);
+  border: 1px solid var(--border-color);
+  border-radius: 16px;
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  transition: all 0.2s ease;
+}
+
+:root[data-theme='light'] .sensor-card {
+  background: rgba(15, 23, 42, 0.02);
+}
+
+.sensor-card:hover {
+  border-color: rgba(255, 255, 255, 0.15);
+  transform: translateY(-2px);
+}
+
+.sensor-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.sensor-value-row {
+  display: flex;
+  align-items: baseline;
+  gap: 0.25rem;
+  margin: 0.25rem 0;
+}
+
+.sensor-value {
+  font-size: 2.2rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  font-family: monospace;
+}
+
+.sensor-unit {
+  font-size: 0.95rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+/* Gráfico de ECG SVG */
+.sensor-sparkline {
+  width: 100%;
+  height: 90px;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.sparkline-svg {
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  width: 100%;
+  height: 100%;
+  padding: 0.5rem;
+  display: block;
+}
+
+:root[data-theme='light'] .sparkline-svg {
+  background: rgba(255, 255, 255, 0.85);
+  border-color: rgba(0, 0, 0, 0.08);
+}
+
+/* Columna Derecha (Alertas y Atención) */
+.modal-right-column {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  border-left: 1px solid var(--border-color);
+  padding-left: 2rem;
+}
+
+@media (max-width: 768px) {
+  .modal-right-column {
+    border-left: none;
+    padding-left: 0;
+    border-top: 1px solid var(--border-color);
+    padding-top: 1.5rem;
+  }
+}
+
+.alerts-history-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  flex: 1;
+}
+
+.alerts-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  max-height: 320px;
+  overflow-y: auto;
+  padding-right: 0.5rem;
+}
+
+.alert-item-row {
+  background: rgba(30, 41, 59, 0.4);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 0.85rem 1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  transition: all 0.2s ease;
+}
+
+:root[data-theme='light'] .alert-item-row {
+  background: rgba(15, 23, 42, 0.02);
+}
+
+.alert-item-row:hover {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.action-btn-atender {
+  background: var(--critico-color);
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.action-btn-atender:hover {
+  background: #dc2626;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 10px rgba(239, 68, 68, 0.3);
+}
+
+/* =========================================
+   Tema Claro: Overrides globales del Modal
+   ========================================= */
+
+/* Fondo del overlay más suave en modo claro */
+:root[data-theme='light'] .modal-overlay {
+  background: rgba(15, 23, 42, 0.45);
+}
+
+/* Tarjeta de sensor interna */
+:root[data-theme='light'] .sensor-card {
+  background: #f8fafc;
+  border-color: rgba(15, 23, 42, 0.1);
+}
+
+:root[data-theme='light'] .sensor-card:hover {
+  border-color: rgba(15, 23, 42, 0.2);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+}
+
+/* Valor numérico en el sensor */
+:root[data-theme='light'] .sensor-value {
+  color: #0f172a;
+}
+
+/* Gráfico de ECG */
+:root[data-theme='light'] .sparkline-svg {
+  background: #ffffff;
+  border-color: rgba(15, 23, 42, 0.1);
+}
+
+/* Alert hover en modo claro */
+:root[data-theme='light'] .alert-item-row:hover {
+  background: rgba(15, 23, 42, 0.04);
+}
+
+/* Fila de umbral en el editor de ficha */
+:root[data-theme='light'] .umbral-edit-row {
+  background: rgba(15, 23, 42, 0.025) !important;
+  border-color: rgba(15, 23, 42, 0.1) !important;
+}
+
+/* Cajas internas del editor de ficha */
+:root[data-theme='light'] .modal-content [style*="rgba(255, 255, 255, 0.02)"] {
+  background: rgba(15, 23, 42, 0.02) !important;
+}
+
+
+
 

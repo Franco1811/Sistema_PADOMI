@@ -1,5 +1,6 @@
 import { UsuarioBuilder } from '../../../shared/domain/builders/usuario.builder';
 import { PacienteBuilder } from '../../../shared/domain/builders/paciente.builder';
+import { Rol } from '../../../shared/domain/entities/rol.entity';
 
 async function probarBuilder() {
   console.log('==================================================');
@@ -17,14 +18,14 @@ async function probarBuilder() {
       .conApellido('Pérez')
       .conEmail('juan.perez@essalud.gob.pe')
       .conPasswordHash('$2b$10$abcdefghijklmnopqrstuv')
-      .conRol('ADMINISTRATIVO')
+      .conRol(new Rol(1, 'ADMIN'))
       .conActivo(true)
       .build();
 
     console.log('✔ Usuario creado con éxito usando Builder.');
     console.log(`   DNI: ${usuarioValido.dni}`);
     console.log(`   Nombre Completo: ${usuarioValido.nombre} ${usuarioValido.apellido}`);
-    console.log(`   Rol: ${usuarioValido.rol}`);
+    console.log(`   Rol: ${usuarioValido.rol.nombre}`);
   } catch (error: any) {
     console.log(`❌ Error al crear usuario válido: ${error.message}`);
   }
@@ -61,7 +62,7 @@ async function probarBuilder() {
       .conApellido('Gómez')
       .conEmail('carlos@essalud.gob.pe')
       .conPasswordHash('password123')
-      .conRol('ENFERMERO')
+      .conRol(new Rol(2, 'MEDICO'))
       .build();
 
     console.log('❌ Error: El builder construyó un objeto con datos inválidos (no se activaron las validaciones).');

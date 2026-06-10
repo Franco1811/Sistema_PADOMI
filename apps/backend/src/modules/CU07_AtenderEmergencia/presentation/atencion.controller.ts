@@ -27,7 +27,8 @@ export class AtencionController {
       dto.alertaId = req.params.id as string;
       // En un caso real, el medicoId vendría del token JWT en middleware
       dto.medicoId = req.body.medicoId;
-      dto.comentario = req.body.comentario;
+      dto.resumen = req.body.resumen;
+      dto.recomendaciones = req.body.recomendaciones;
 
       await this.service.atender(dto);
       

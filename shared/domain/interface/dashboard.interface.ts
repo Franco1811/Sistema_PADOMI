@@ -6,6 +6,11 @@ export interface PacienteDashboard {
   alertasActivas: number;
 }
 
+export interface DashboardKPIs {
+  totalPacientes: number;
+  alertasCriticasHoy: number;
+}
+
 export interface IDashboardRepository {
   obtenerDashboard(
     medicoId: string,
@@ -13,4 +18,6 @@ export interface IDashboardRepository {
     pagina?: number,
     limite?: number
   ): Promise<PacienteDashboard[]>;
+
+  obtenerKPIs(medicoId: string): Promise<DashboardKPIs>;
 }

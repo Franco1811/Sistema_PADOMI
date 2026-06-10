@@ -7,10 +7,8 @@
 # Variables de autenticación e identificadores para pruebas manuales:
 @tokenAdmin = pegue_aqui_el_token_de_admin
 @tokenMedico = pegue_aqui_el_token_de_medico
-@tokenEnfermero = pegue_aqui_el_token_de_enfermero
 
 @medicoId = pegue_aqui_el_uuid_del_medico_creado
-@enfermeroId = pegue_aqui_el_uuid_del_enfermero_creado
 @pacienteId = pegue_aqui_el_uuid_del_paciente_creado
 @metricaId = pegue_aqui_el_uuid_de_la_metrica_creada
 
@@ -43,8 +41,7 @@ Content-Type: application/json
 
 ###
 
-### 1.3 Iniciar sesión como enfermero
-# @name loginEnfermero
+### 1.3 Iniciar sesión con rol obsoleto (Rechazado - 401 Unauthorized)
 POST {{hostname}}/auth/login
 Content-Type: application/json
 
@@ -110,7 +107,7 @@ Authorization: Bearer {{tokenAdmin}}
 
 ###
 
-### 2.2 Registrar enfermero como administrador
+### 2.2 Registrar personal con rol inválido (Rechazado - 400 Bad Request)
 POST {{hostname}}/personal
 Content-Type: application/json
 Authorization: Bearer {{tokenAdmin}}
@@ -161,7 +158,7 @@ Authorization: Bearer {{tokenMedico}}
 
 ###
 
-# Crear personal como médico (Falta de privilegios)
+# Crear personal como médico (Falta de privilegios - 403 Forbidden)
 POST {{hostname}}/personal
 Content-Type: application/json
 Authorization: Bearer {{tokenMedico}}
@@ -172,15 +169,15 @@ Authorization: Bearer {{tokenMedico}}
   "apellido": "Intruso",
   "email": "intruso@essalud.gob.pe",
   "password": "password",
-  "rol": "ENFERMERO"
+  "rol": "MEDICO",
+  "especialidad": "Cardiología"
 }
 
 ###
 
-# Actualizacion como enfermero (Falta de privilegios)
+# Actualización sin token de autenticación (Rechazado - 401 Unauthorized)
 PUT {{hostname}}/personal/{{medicoId}}
 Content-Type: application/json
-Authorization: Bearer {{tokenEnfermero}}
 
 {
   "nombre": "Carlos Alberto",
@@ -242,9 +239,9 @@ Authorization: Bearer {{tokenAdmin}}
 
 ###
 
-### 3.2 Listar métricas como enfermero
+# Listar métricas como médico (Acceso Autorizado)
 GET {{hostname}}/metricas
-Authorization: Bearer {{tokenEnfermero}}
+Authorization: Bearer {{tokenMedico}}
 
 ###
 
@@ -301,10 +298,10 @@ Authorization: Bearer {{tokenMedico}}
 
 ###
 
-# Actualizar métrica como enfermero (Falta de privilegios)
+# Actualizar métrica como médico (Falta de privilegios - 403 Forbidden)
 PUT {{hostname}}/metricas/{{metricaId}}
 Content-Type: application/json
-Authorization: Bearer {{tokenEnfermero}}
+Authorization: Bearer {{tokenMedico}}
 
 {
   "nombre": "Saturación de Oxígeno IoT",
@@ -358,14 +355,13 @@ Authorization: Bearer {{tokenAdmin}}
 
 ### 4.2 Registros de pacientes rechazados (Validaciones)
 
-# Registro paciente como enfermero (Falta de privilegios)
+# Registro de paciente sin token de autenticación (Rechazado - 401 Unauthorized)
 POST {{hostname}}/pacientes/registro
 Content-Type: application/json
-Authorization: Bearer {{tokenEnfermero}}
 
 {
   "dni": "72223334",
-  "nombres": "Intento Enfermero",
+  "nombres": "Intento Sin Token",
   "edad": 50,
   "diagnostico": "Diabetes",
   "medicoAsignadoId": "{{medicoId}}"
@@ -403,17 +399,17 @@ Authorization: Bearer {{tokenAdmin}}
 
 ###
 
-# Intento de asignación de un enfermero como médico responsable
+# Intento de asignación de un Administrador como médico responsable (Rechazado - 400 Bad Request)
 POST {{hostname}}/pacientes/registro
 Content-Type: application/json
 Authorization: Bearer {{tokenAdmin}}
 
 {
   "dni": "72223339",
-  "nombres": "Paciente Sin Médico",
+  "nombres": "Paciente Con Admin",
   "edad": 50,
   "diagnostico": "Fiebre",
-  "medicoAsignadoId": "{{enfermeroId}}"
+  "medicoAsignadoId": "D0A4D592-EE4F-4C23-9D27-7B1A53E4A28A"
 }
 
 
@@ -421,9 +417,9 @@ Authorization: Bearer {{tokenAdmin}}
 # CU-05: Gestionar Paciente (Ficha y Umbrales Clínicos)
 # =================================================================
 
-### 5.1 Listar paciente como enfermero
+### 5.1 Listar paciente como médico
 GET {{hostname}}/pacientes/perfil/{{pacienteId}}
-Authorization: Bearer {{tokenEnfermero}}
+Authorization: Bearer {{tokenMedico}}
 
 ###
 
@@ -453,10 +449,9 @@ Authorization: Bearer {{tokenMedico}}
 
 ### 5.4 Gestiones de pacientes rechazadas (Validaciones)
 
-# Actualizar paciente como enfermero (Falta de privilegios)
+# Actualizar paciente sin token de autenticación (Rechazado - 401 Unauthorized)
 PATCH {{hostname}}/pacientes/perfil/{{pacienteId}}
 Content-Type: application/json
-Authorization: Bearer {{tokenEnfermero}}
 
 {
   "diagnostico": "Actualización no autorizada"

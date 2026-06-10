@@ -25,7 +25,8 @@
     "compilerOptions": {
       "module": "CommonJS",
       "moduleResolution": "node",
-      "allowImportingTsExtensions": false
+      "allowImportingTsExtensions": false,
+      "jsx": "react-jsx"
     }
   }
 }

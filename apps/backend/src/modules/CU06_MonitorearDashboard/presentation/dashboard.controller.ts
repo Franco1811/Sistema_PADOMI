@@ -72,4 +72,19 @@ export class DashboardController {
       res.status(400).json({ error: error.message });
     }
   };
+
+  obtenerKPIs = async (req: Request, res: Response): Promise<void> => {
+    try {
+      const medicoId = req.query.medicoId as string || req.body.medicoId;
+      if (!medicoId) {
+        res.status(400).json({ error: "El ID del médico es requerido" });
+        return;
+      }
+      const repository = repositoryFactory.getDashboardRepository();
+      const kpis = await repository.obtenerKPIs(medicoId);
+      res.status(200).json(kpis);
+    } catch (error: any) {
+      res.status(400).json({ error: error.message });
+    }
+  };
 }

@@ -26,7 +26,7 @@ export class RegistrarPacienteService {
     if (!medico) {
       throw new Error("El médico asignado no existe.");
     }
-    if (medico.rol !== 'MEDICO') {
+    if (medico.rol.nombre !== 'MEDICO') {
       throw new Error("El usuario asignado debe tener el rol de MEDICO.");
     }
 

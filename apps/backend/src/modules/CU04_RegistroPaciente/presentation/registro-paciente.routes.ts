@@ -6,6 +6,6 @@ import { autorizarRoles } from '../../../middleware/role.middleware';
 const router = Router();
 const controller = new RegistroPacienteController();
 
-router.post('/', autenticarToken, autorizarRoles('ADMINISTRATIVO', 'MEDICO'), (req: any, res: any) => controller.registrar(req, res));
+router.post('/', autenticarToken, autorizarRoles('ADMIN', 'MEDICO'), (req: any, res: any) => controller.registrar(req, res));
 
 export default router;

@@ -1,4 +1,6 @@
 import { Usuario } from '../entities/usuario.entity';
+import { Rol } from '../entities/rol.entity';
+import { Especialidad } from '../entities/especialidad.entity';
 
 export class UsuarioBuilder {
   private id!: string;
@@ -8,9 +10,9 @@ export class UsuarioBuilder {
   private apellido!: string;
   private email!: string;
   private passwordHash!: string;
-  private rol!: 'MEDICO' | 'ENFERMERO' | 'ADMINISTRATIVO';
+  private rol!: Rol;
   private activo: boolean = true;
-  private especialidad?: string;
+  private especialidad?: Especialidad | string;
 
   public conId(id: string): this {
     this.id = id;
@@ -47,7 +49,7 @@ export class UsuarioBuilder {
     return this;
   }
 
-  public conRol(rol: 'MEDICO' | 'ENFERMERO' | 'ADMINISTRATIVO'): this {
+  public conRol(rol: Rol): this {
     this.rol = rol;
     return this;
   }
@@ -57,7 +59,7 @@ export class UsuarioBuilder {
     return this;
   }
 
-  public conEspecialidad(especialidad?: string): this {
+  public conEspecialidad(especialidad?: Especialidad | string): this {
     this.especialidad = especialidad;
     return this;
   }
@@ -73,6 +75,15 @@ export class UsuarioBuilder {
     if (!this.passwordHash) throw new Error("Builder Error: 'passwordHash' es requerido para construir un Usuario.");
     if (!this.rol) throw new Error("Builder Error: 'rol' es requerido para construir un Usuario.");
 
+    let espEntity: Especialidad | undefined;
+    if (this.especialidad) {
+      if (typeof this.especialidad === 'string') {
+        espEntity = new Especialidad(Math.floor(Math.random() * 1000) + 1, this.especialidad);
+      } else {
+        espEntity = this.especialidad;
+      }
+    }
+
     return new Usuario(
       this.id,
       this.codigo,
@@ -83,7 +94,7 @@ export class UsuarioBuilder {
       this.passwordHash,
       this.rol,
       this.activo,
-      this.especialidad
+      espEntity
     );
   }
 }

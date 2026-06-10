@@ -7,7 +7,7 @@ export class RegistroPersonalDto {
   apellido!: string;
   email!: string;
   password!: string;
-  rol!: 'MEDICO' | 'ENFERMERO' | 'ADMINISTRATIVO';
+  rol!: 'MEDICO' | 'ADMIN';
   especialidad?: string;
 
   validar(): void {
@@ -26,7 +26,7 @@ export class RegistroPersonalDto {
     if (!this.password || this.password.length < 6) {
       throw new Error("La contraseña debe tener al menos 6 caracteres");
     }
-    if (!this.rol || !['MEDICO', 'ENFERMERO', 'ADMINISTRATIVO'].includes(this.rol)) {
+    if (!this.rol || !['MEDICO', 'ADMIN'].includes(this.rol)) {
       throw new Error("Rol inválido");
     }
     if (this.rol === 'MEDICO' && !this.especialidad) {

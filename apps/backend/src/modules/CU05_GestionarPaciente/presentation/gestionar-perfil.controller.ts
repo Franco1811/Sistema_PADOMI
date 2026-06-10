@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { GestionarPerfilService } from '../application/gestionar-perfil.service';
 import { ActualizarPerfilDto } from '../application/actualizar-perfil.dto';
 import { AuthRequest } from '../../../middleware/auth.middleware';
+import { repositoryFactory } from '../../../../../../shared/infrastructure/repositories/repository.factory';
 
 export class GestionarPerfilController {
   private service: GestionarPerfilService;
@@ -34,6 +35,18 @@ export class GestionarPerfilController {
       await this.service.actualizarPerfil(dto);
       
       res.status(200).json({ mensaje: 'Perfil actualizado exitosamente' });
+    } catch (error: any) {
+      res.status(400).json({ error: error.message });
+    }
+  };
+
+  obtenerLecturas = async (req: Request, res: Response): Promise<void> => {
+    try {
+      const { id } = req.params;
+      const limit = req.query.limit ? Number(req.query.limit) : 50;
+      const repository = repositoryFactory.getLecturaRepository();
+      const lecturas = await repository.buscarPorPaciente(id as string, limit);
+      res.status(200).json(lecturas);
     } catch (error: any) {
       res.status(400).json({ error: error.message });
     }

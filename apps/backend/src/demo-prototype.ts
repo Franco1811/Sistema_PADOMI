@@ -3,6 +3,8 @@ import { Paciente } from '../../../shared/domain/entities/paciente.entity';
 import { Umbral } from '../../../shared/domain/entities/umbral.entity';
 import { Metrica } from '../../../shared/domain/entities/metrica.entity';
 import { Alerta } from '../../../shared/domain/entities/alerta.entity';
+import { Rol } from '../../../shared/domain/entities/rol.entity';
+import { Especialidad } from '../../../shared/domain/entities/especialidad.entity';
 
 async function probarPrototype() {
   console.log('==================================================');
@@ -10,6 +12,9 @@ async function probarPrototype() {
   console.log('==================================================\n');
 
   // 1. Instancias base (Prototipos originales)
+  const rolMedico = new Rol(2, 'MEDICO');
+  const especialidadCardio = new Especialidad(2, 'Cardiología');
+
   const usuarioBase = new Usuario(
     'u-1111-uuid',
     'USU-0101',
@@ -18,9 +23,9 @@ async function probarPrototype() {
     'Soto',
     'nicolas.soto@essalud.gob.pe',
     '$2b$10$hashedpasswords123',
-    'MEDICO',
+    rolMedico,
     true,
-    'Cardiología'
+    especialidadCardio
   );
 
   const pacienteBase = new Paciente(
@@ -69,7 +74,7 @@ async function probarPrototype() {
   console.log(`   Original Email: ${usuarioBase.email}`);
   console.log(`   Clon Email:     ${usuarioClon.email}`);
   console.log(`   ¿Son referencias diferentes?: ${usuarioBase !== usuarioClon ? 'SÍ (¡ÉXITO!)' : 'NO'}`);
-  console.log(`   ¿Mantiene atributos inalterados?: ${usuarioClon.nombre === 'Nicolás' && usuarioClon.especialidad === 'Cardiología' ? 'SÍ' : 'NO'}\n`);
+  console.log(`   ¿Mantiene atributos inalterados?: ${usuarioClon.nombre === 'Nicolás' && (usuarioClon.especialidad ? (typeof usuarioClon.especialidad === 'string' ? usuarioClon.especialidad : usuarioClon.especialidad.nombre) : '') === 'Cardiología' ? 'SÍ' : 'NO'}\n`);
 
   console.log('2. Clonando y modificando Paciente (Actualizando su diagnóstico)...');
   const pacienteClon = pacienteBase.clone({ diagnostico: 'Hipertensión Crónica de Grado II' });

@@ -71,4 +71,23 @@ export class MonitoreoRepository implements IDashboardRepository {
       };
     });
   }
+
+  async obtenerKPIs(medicoId: string): Promise<{ totalPacientes: number; alertasCriticasHoy: number }> {
+    const totalPacientes = await AppDataSource.getRepository(PacienteModel).count({
+      where: { medicoAsignadoId: medicoId }
+    });
+
+    const alertsRaw = await AppDataSource.getRepository(AlertaModel)
+      .createQueryBuilder('alerta')
+      .innerJoin(PacienteModel, 'paciente', 'paciente.id = alerta.pacienteId')
+      .where('paciente.medicoAsignadoId = :medicoId', { medicoId })
+      .andWhere('alerta.atendida = 0')
+      .andWhere("alerta.severidad = 'CRITICO'")
+      .getCount();
+
+    return {
+      totalPacientes,
+      alertasCriticasHoy: alertsRaw
+    };
+  }
 }

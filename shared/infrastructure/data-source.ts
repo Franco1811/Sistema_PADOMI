@@ -3,7 +3,7 @@ import * as dotenv from 'dotenv';
 import * as path from 'path';
 
 // Configurar para cargar las variables del archivo .env
-dotenv.config({ path: path.resolve(__dirname, '../../.env') });
+dotenv.config({ path: path.resolve(__dirname, '../../.env'), override: true });
 
 // Modelos (Entidades de persistencia ORM)
 import { UsuarioModel } from './models/usuario.model';
@@ -15,6 +15,10 @@ import { UmbralModel } from './models/umbral.model';
 import { LecturaModel } from './models/lectura.model';
 import { AlertaModel } from './models/alerta.model';
 import { EvaluacionModel } from './models/evaluacion.model';
+import { RolModel } from './models/rol.model';
+import { PermisoModel } from './models/permiso.model';
+import { RecursoModel } from './models/recurso.model';
+import { EspecialidadModel } from './models/especialidad.model';
 
 /**
  * Clase DatabaseConnection
@@ -61,6 +65,10 @@ export class DatabaseConnection {
         LecturaModel,
         AlertaModel,
         EvaluacionModel,
+        RolModel,
+        PermisoModel,
+        RecursoModel,
+        EspecialidadModel,
       ],
     });
   }

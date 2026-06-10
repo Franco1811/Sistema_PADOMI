@@ -42,8 +42,8 @@ export class AtenderAlertaService {
       alerta.pacienteId,
       dto.medicoId,
       new Date(),
-      dto.comentario || 'Atención de alerta crítica de telemetría.',
-      'Seguimiento domiciliario del paciente crítico.',
+      dto.resumen,
+      dto.recomendaciones,
       alerta.id // alertaId de relación
     );
 

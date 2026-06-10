@@ -37,7 +37,7 @@ export class InMemoryUsuarioRepository implements IUsuarioRepository {
   }
   async listarTodos(especialidad?: string): Promise<Usuario[]> {
     if (especialidad) {
-      return this.items.filter(x => x.especialidad === especialidad);
+      return this.items.filter(x => x.especialidad?.nombre === especialidad);
     }
     return this.items;
   }
@@ -100,6 +100,9 @@ export class InMemoryUmbralRepository implements IUmbralRepository {
   async buscarPorPacienteId(pacienteId: string): Promise<Umbral[]> {
     return this.items.filter(x => x.pacienteId === pacienteId);
   }
+  async eliminar(id: string): Promise<void> {
+    this.items = this.items.filter(x => x.id !== id);
+  }
 }
 
 export class InMemoryLecturaRepository implements ILecturaRepository {
@@ -111,6 +114,12 @@ export class InMemoryLecturaRepository implements ILecturaRepository {
   }
   async generarCodigo(): Promise<string> {
     return `LEC-${Math.floor(1000 + Math.random() * 9000)}`;
+  }
+  async buscarPorPaciente(pacienteId: string, limit: number = 50): Promise<Lectura[]> {
+    return this.items
+      .filter(item => item.pacienteId === pacienteId)
+      .sort((a, b) => b.fecha.getTime() - a.fecha.getTime())
+      .slice(0, limit);
   }
 }
 
@@ -237,5 +246,18 @@ export class InMemoryDashboardRepository implements IDashboardRepository {
     // 5. Paginar
     const start = (pagina - 1) * limite;
     return dashboard.slice(start, start + limite);
+  }
+
+  async obtenerKPIs(medicoId: string): Promise<{ totalPacientes: number; alertasCriticasHoy: number }> {
+    const pacientes = await this.pacienteRepo.listarPorMedicoAsignado(medicoId);
+    let alertasCriticasHoy = 0;
+    for (const paciente of pacientes) {
+      const alertas = await this.alertaRepo.buscarActivasPorPaciente(paciente.id);
+      alertasCriticasHoy += alertas.filter(a => a.severidad === 'CRITICO').length;
+    }
+    return {
+      totalPacientes: pacientes.length,
+      alertasCriticasHoy
+    };
   }
 }

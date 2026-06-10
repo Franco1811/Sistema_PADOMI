@@ -5,4 +5,5 @@ export interface IUmbralRepository {
   actualizar(umbral: Umbral): Promise<Umbral>;
   generarCodigo(): Promise<string>;
   buscarPorPacienteId(pacienteId: string): Promise<Umbral[]>;
+  eliminar(id: string): Promise<void>;
 }
