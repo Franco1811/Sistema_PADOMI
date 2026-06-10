@@ -11,7 +11,7 @@ export class UmbralModel {
   @PrimaryGeneratedColumn('uuid')
   id!: string; // UNIQUEIDENTIFIER PRIMARY KEY
 
-  @Column({ type: 'nvarchar', length: 20, nullable: true, unique: true })
+  @Column({ type: 'varchar', length: 20, nullable: true, unique: true })
   codigo!: string; // Ejemplo: UMB-0001 (opcional)
 
   @Column({ type: 'uuid' })

@@ -11,16 +11,16 @@ export class MetricaModel {
   @PrimaryGeneratedColumn('uuid')
   id!: string; // UNIQUEIDENTIFIER PRIMARY KEY
 
-  @Column({ type: 'nvarchar', length: 20, unique: true })
+  @Column({ type: 'varchar', length: 20, unique: true })
   codigo!: string; // Ejemplo: MET-0001
 
-  @Column({ type: 'nvarchar', length: 100, unique: true })
+  @Column({ type: 'varchar', length: 100, unique: true })
   nombre!: string; // Ej: Glucosa, Presión Arterial, Oximetría
 
-  @Column({ type: 'nvarchar', length: 20 })
+  @Column({ type: 'varchar', length: 20 })
   unidad!: string; // Ej: mg/dL, mmHg, %
 
-  @Column({ type: 'nvarchar', length: 255, nullable: true })
+  @Column({ type: 'varchar', length: 255, nullable: true })
   descripcion!: string;
 
   @Column({ type: 'float' })

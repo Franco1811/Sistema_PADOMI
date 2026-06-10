@@ -10,12 +10,12 @@ export class EnfermedadCronicaModel {
   @PrimaryGeneratedColumn('uuid')
   id!: string; // UNIQUEIDENTIFIER PRIMARY KEY
 
-  @Column({ type: 'nvarchar', length: 20, unique: true })
+  @Column({ type: 'varchar', length: 20, unique: true })
   codigo!: string; // Ejemplo: ENF-0001
 
-  @Column({ type: 'nvarchar', length: 100, unique: true })
+  @Column({ type: 'varchar', length: 100, unique: true })
   nombre!: string; // Ej: Diabetes Mellitus, Hipertensión Arterial
 
-  @Column({ type: 'nvarchar', length: 255, nullable: true })
+  @Column({ type: 'varchar', length: 255, nullable: true })
   descripcion!: string;
 }

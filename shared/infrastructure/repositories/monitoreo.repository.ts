@@ -13,7 +13,7 @@ export class MonitoreoRepository implements IDashboardRepository {
   ): Promise<PacienteDashboard[]> {
     const query = AppDataSource.getRepository(PacienteModel)
       .createQueryBuilder('paciente')
-      .leftJoin(AlertaModel, 'alerta', 'alerta.pacienteId = paciente.id AND alerta.atendida = 0')
+      .leftJoin(AlertaModel, 'alerta', 'alerta.pacienteId = paciente.id AND alerta.atendida = :atendidaFalse')
       .select('paciente.id', 'id')
       .addSelect('paciente.codigo', 'codigo')
       .addSelect('paciente.dni', 'dni')
@@ -24,8 +24,9 @@ export class MonitoreoRepository implements IDashboardRepository {
       .addSelect('paciente.telefono', 'telefono')
       .addSelect('paciente.direccion', 'direccion')
       .addSelect('COUNT(alerta.id)', 'alertasActivas')
-      .addSelect("COALESCE(MIN(CASE WHEN alerta.severidad = 'CRITICO' THEN 1 WHEN alerta.severidad = 'ADVERTENCIA' THEN 2 ELSE 3 END), 3)", 'ordenSeveridad')
+      .addSelect("COALESCE(MIN(CASE WHEN alerta.severidad = 'CRITICO' THEN 1 WHEN alerta.severidad = 'ADVERTENCIA' THEN 2 ELSE 3 END), 3)", 'ordenseveridad')
       .where('paciente.medicoAsignadoId = :medicoId', { medicoId })
+      .setParameter('atendidaFalse', false)
       .groupBy('paciente.id')
       .addGroupBy('paciente.codigo')
       .addGroupBy('paciente.dni')
@@ -40,7 +41,7 @@ export class MonitoreoRepository implements IDashboardRepository {
       query.andWhere('(paciente.nombres LIKE :busqueda OR paciente.dni LIKE :busqueda)', { busqueda: `%${busqueda}%` });
     }
 
-    query.orderBy('ordenSeveridad', 'ASC')
+    query.orderBy('ordenseveridad', 'ASC')
       .addOrderBy('paciente.nombres', 'ASC')
       .offset((pagina - 1) * limite)
       .limit(limite);
@@ -61,8 +62,8 @@ export class MonitoreoRepository implements IDashboardRepository {
       );
 
       let estado: 'CRITICO' | 'ADVERTENCIA' | 'NORMAL' = 'NORMAL';
-      if (Number(r.ordenSeveridad) === 1) estado = 'CRITICO';
-      else if (Number(r.ordenSeveridad) === 2) estado = 'ADVERTENCIA';
+      if (Number(r.ordenseveridad) === 1) estado = 'CRITICO';
+      else if (Number(r.ordenseveridad) === 2) estado = 'ADVERTENCIA';
 
       return {
         paciente,
@@ -81,7 +82,7 @@ export class MonitoreoRepository implements IDashboardRepository {
       .createQueryBuilder('alerta')
       .innerJoin(PacienteModel, 'paciente', 'paciente.id = alerta.pacienteId')
       .where('paciente.medicoAsignadoId = :medicoId', { medicoId })
-      .andWhere('alerta.atendida = 0')
+      .andWhere('alerta.atendida = :atendidaFalse', { atendidaFalse: false })
       .andWhere("alerta.severidad = 'CRITICO'")
       .getCount();
 

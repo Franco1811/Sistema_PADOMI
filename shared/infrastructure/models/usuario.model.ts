@@ -12,22 +12,22 @@ export class UsuarioModel {
   @PrimaryGeneratedColumn('uuid')
   id!: string; // UNIQUEIDENTIFIER PRIMARY KEY
 
-  @Column({ type: 'nvarchar', length: 20, nullable: true, unique: true })
+  @Column({ type: 'varchar', length: 20, nullable: true, unique: true })
   codigo!: string | null; // Ejemplo: USU-0001 (opcional)
 
   @Column({ type: 'char', length: 8, unique: true })
   dni!: string;
 
-  @Column({ type: 'nvarchar', length: 100 })
+  @Column({ type: 'varchar', length: 100 })
   nombre!: string;
 
-  @Column({ type: 'nvarchar', length: 100 })
+  @Column({ type: 'varchar', length: 100 })
   apellido!: string;
 
-  @Column({ type: 'nvarchar', length: 100, unique: true })
+  @Column({ type: 'varchar', length: 100, unique: true })
   email!: string;
 
-  @Column({ type: 'nvarchar', length: 255 })
+  @Column({ type: 'varchar', length: 255 })
   passwordHash!: string;
 
   @Column({ type: 'int' })
@@ -37,7 +37,7 @@ export class UsuarioModel {
   @JoinColumn({ name: 'rolId' })
   rol!: RolModel;
 
-  @Column({ type: 'bit' })
+  @Column({ type: 'boolean' })
   activo!: boolean;
 
   @Column({ type: 'int', nullable: true })

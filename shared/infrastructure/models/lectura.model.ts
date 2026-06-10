@@ -10,7 +10,7 @@ export class LecturaModel {
   @PrimaryGeneratedColumn('uuid')
   id!: string; // UNIQUEIDENTIFIER PRIMARY KEY
 
-  @Column({ type: 'nvarchar', length: 20, unique: true })
+  @Column({ type: 'varchar', length: 20, unique: true })
   codigo!: string; // Ejemplo: LEC-0001
 
   @Column({ type: 'uuid' })
@@ -22,6 +22,6 @@ export class LecturaModel {
   @Column({ type: 'float' })
   valor!: number;
 
-  @Column({ type: 'datetime2' })
+  @Column({ type: 'timestamp' })
   fecha!: Date;
 }

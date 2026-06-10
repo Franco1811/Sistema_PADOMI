@@ -14,7 +14,8 @@ La arquitectura está estructurada en módulos para separar responsabilidades y 
 │   └── frontend/       # Dashboard Clínico Interactivo en React y Vite
 ├── functions/
 │   └── Ingesta_Biometrica/  # Azure Function local (Puerto 7071) para ingesta IoT
-├── shared/             # Kernel compartido (Entidades, Interfaces y Modelos de Azure SQL)
+├── shared/             # Kernel compartido (Entidades, Interfaces y Modelos de Postgres)
+├── database/           # Scripts SQL (SQL Server y traducción compatible con PostgreSQL)
 ├── pnpm-workspace.yaml # Configuración del Monorrepositorio
 └── package.json        # Orquestador global de scripts del proyecto
 ```
@@ -35,11 +36,15 @@ Hemos migrado toda la arquitectura a **`pnpm`** por las siguientes razones crít
 
 ## 🛠️ Requisitos Previos
 
-Antes de empezar a trabajar en tu computadora, asegúrate de tener:
+Antes de empezar a levantar el proyecto en tu máquina local, asegúrate de tener:
 - **Node.js** (Versión 20 o superior recomendada).
-- **pnpm** instalado globalmente. Si no lo tienes, abre tu consola y ejecuta:
+- **pnpm** instalado globalmente. Si no lo tienes, ejecuta:
   ```bash
   npm install -g pnpm
+  ```
+- **Azurite** (Emulador de Azure Storage) instalado globalmente. Es obligatorio para que la Azure Function local pueda arrancar sin problemas de almacenamiento. Instálalo ejecutando:
+  ```bash
+  pnpm add -g azurite
   ```
 
 ---
@@ -56,29 +61,35 @@ pnpm install
 
 ### 2. Configurar Variables de Entorno
 Crea un archivo llamado exactamente `.env` en la raíz del proyecto (la misma carpeta donde está este README). 
-Debe tener la siguiente estructura con las credenciales de tu base de datos Azure SQL Server:
+Debe tener la siguiente estructura con las credenciales de la base de datos PostgreSQL de Supabase:
 
 ```env
-DB_HOST=padomi-sql-server.database.windows.net
-DB_PORT=1433
-DB_USERNAME=adminpadomi
-DB_PASSWORD=tu_password
-DB_NAME=free-sql-db-7168518
+DB_HOST=db.vgcvjnpfuvhkfxkrpdqt.supabase.co
+DB_PORT=5432
+DB_USERNAME=postgres
+# Asegúrate de incluir las comillas dobles literales en la contraseña para que dotenv la parsee correctamente
+DB_PASSWORD='"PaDoMi_2026_TeLeMeTrIa_#Secur3!"'
+DB_NAME=postgres
+USE_IN_MEMORY=false
 ```
 
-> **Nota:** Tu dirección IP pública de internet debe estar autorizada en el Firewall del Portal de Microsoft Azure para conectarse con la base de datos física de producción.
+### 3. Ejecutar el Emulador de Almacenamiento (Azurite)
+Abre una **nueva terminal** y ejecuta el emulador Azurite para levantar el almacenamiento local que requiere la Azure Function:
+```bash
+azurite
+```
+*Déjala corriendo en esa ventana; verás que empieza a escribir logs indicando que está escuchando peticiones.*
 
-### 3. Levantar todo el Monorrepositorio en un Solo Paso
-Para iniciar en simultáneo todos los entornos de desarrollo (Backend API, React Frontend y Azure Functions), ejecuta en la raíz del proyecto:
-
+### 4. Iniciar la Aplicación
+Abre otra terminal en la raíz del proyecto y arranca todos los entornos en paralelo (Backend API, React Frontend y Azure Functions):
 ```bash
 pnpm dev
 ```
 
 Este comando levantará concurrentemente:
-*   **Backend API:** `http://localhost:3000`
-*   **Frontend React:** `http://localhost:5173`
-*   **Azure Function:** `http://localhost:7071/api/HttpTrigger` (Ingesta IoT)
+*   **Backend API:** `http://localhost:3000` (con conexión y siembra de datos automática a Supabase)
+*   **Frontend React:** `http://localhost:5173` (Dashboard Clínico)
+*   **Azure Function:** `http://localhost:7071/api/HttpTrigger` (Ingesta IoT de telemetría)
 
 ---
 
@@ -87,7 +98,7 @@ Este comando levantará concurrentemente:
 El flujo obligatorio para las lecturas del IoT es:
 `Sensor IoT` $\rightarrow$ `Azure Function (Puerto 7071)` $\rightarrow$ `Backend (Puerto 3000)` $\rightarrow$ `Dashboard Web (WebSockets)`
 
-Puedes simular el envío de constantes vitales directamente desde el archivo de VS Code **[pruebas_api.http](file:///c:/Desarrollo/ProyectosUPN/sistema-telemetria-padomi/pruebas_api.http#L551-L562)** utilizando la prueba **8.4**.
+Puedes simular el envío de constantes vitales en tiempo real directamente desde el archivo de VS Code **[pruebas_api.http](file:///c:/Desarrollo/ProyectosUPN/sistema-telemetria-padomi/pruebas_api.http#L551-L562)** utilizando la petición **8.4 ("Simular Lectura Crítica - Ritmo Cardíaco Alto")**.
 
 ---
 
@@ -95,7 +106,7 @@ Puedes simular el envío de constantes vitales directamente desde el archivo de 
 
 ### Error: `listen EADDRINUSE: address already in use :::3000`
 **Por qué ocurre:** Se quedó colgado un proceso de Node.js en segundo plano de ejecuciones anteriores reteniendo los puertos.
-**Solución:** Ejecuta el siguiente comando en tu consola de Windows (CMD o PowerShell) para liberar todos los puertos locales ocupados:
-```bash
+**Solución:** Ejecuta el siguiente comando en tu consola de Windows (PowerShell) para liberar todos los puertos ocupados por Node:
+```powershell
 taskkill /f /im node.exe
 ```

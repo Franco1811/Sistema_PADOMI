@@ -10,7 +10,7 @@ export class AlertaModel {
   @PrimaryGeneratedColumn('uuid')
   id!: string; // UNIQUEIDENTIFIER PRIMARY KEY
 
-  @Column({ type: 'nvarchar', length: 20, unique: true })
+  @Column({ type: 'varchar', length: 20, unique: true })
   codigo!: string; // Ejemplo: ALT-0001
 
   @Column({ type: 'uuid' })
@@ -19,16 +19,16 @@ export class AlertaModel {
   @Column({ type: 'uuid' })
   lecturaId!: string; // FOREIGN KEY a Lectura(id)
 
-  @Column({ type: 'nvarchar', length: 20 })
+  @Column({ type: 'varchar', length: 20 })
   severidad!: string; // 'NORMAL', 'ADVERTENCIA', 'CRITICO'
 
-  @Column({ type: 'nvarchar', length: 255, nullable: true })
+  @Column({ type: 'varchar', length: 255, nullable: true })
   mensaje!: string;
 
-  @Column({ type: 'datetime2' })
+  @Column({ type: 'timestamp' })
   fecha!: Date;
 
-  @Column({ type: 'bit' })
+  @Column({ type: 'boolean' })
   atendida!: boolean;
 
   @BeforeRemove()

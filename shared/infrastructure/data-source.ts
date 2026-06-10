@@ -40,20 +40,15 @@ export class DatabaseConnection {
    */
   private constructor() {
     this.dataSource = new DataSource({
-      type: 'mssql',
+      type: 'postgres',
       host: process.env.DB_HOST,
-      port: Number(process.env.DB_PORT),
+      port: Number(process.env.DB_PORT) || 5432,
       username: process.env.DB_USERNAME,
       password: process.env.DB_PASSWORD,
       database: process.env.DB_NAME,
-      synchronize: false,
-      options: { encrypt: true },
-      extra: {
-        pool: {
-          max: 15,          // Límite máximo de conexiones concurrentes en el pool
-          min: 2,           // Conexiones mínimas mantenidas abiertas
-          idleTimeoutMillis: 30000 // Tiempo antes de cerrar conexiones inactivas
-        }
+      synchronize: true, // Auto-creación de tablas al iniciar
+      ssl: {
+        rejectUnauthorized: false
       },
       entities: [
         UsuarioModel,

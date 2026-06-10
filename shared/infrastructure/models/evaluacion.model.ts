@@ -10,7 +10,7 @@ export class EvaluacionModel {
   @PrimaryGeneratedColumn('uuid')
   id!: string; // UNIQUEIDENTIFIER PRIMARY KEY
 
-  @Column({ type: 'nvarchar', length: 20, unique: true })
+  @Column({ type: 'varchar', length: 20, unique: true })
   codigo!: string; // Ejemplo: EVA-0001
 
   @Column({ type: 'uuid' })
@@ -19,13 +19,13 @@ export class EvaluacionModel {
   @Column({ type: 'uuid', nullable: true })
   medicoId!: string | null; // FOREIGN KEY a Usuario(id)
 
-  @Column({ type: 'datetime2' })
+  @Column({ type: 'timestamp' })
   fecha!: Date;
 
-  @Column({ type: 'nvarchar', length: 500, nullable: true })
+  @Column({ type: 'varchar', length: 500, nullable: true })
   resumen!: string;
 
-  @Column({ type: 'nvarchar', length: 500, nullable: true })
+  @Column({ type: 'varchar', length: 500, nullable: true })
   recomendaciones!: string;
 
   @Column({ type: 'uuid', nullable: true })

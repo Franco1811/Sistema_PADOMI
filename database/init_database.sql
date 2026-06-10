@@ -77,6 +77,7 @@ CREATE TABLE Especialidad (
     descripcion VARCHAR(255) NULL
 );
 GO
+select * from Especialidad
 
 -- Tabla de Usuarios (Con llave foránea al Rol y Especialidad)
 CREATE TABLE Usuario (
@@ -94,6 +95,8 @@ CREATE TABLE Usuario (
     FOREIGN KEY (especialidadId) REFERENCES Especialidad(id)
 );
 GO
+select * from Usuario
+
 
 -- Tabla de Pacientes
 CREATE TABLE Paciente (
@@ -109,6 +112,7 @@ CREATE TABLE Paciente (
     FOREIGN KEY (medicoAsignadoId) REFERENCES Usuario(id)
 );
 GO
+select * from paciente
 
 -- Tabla de Métricas Biométricas
 CREATE TABLE Metrica (
@@ -121,6 +125,20 @@ CREATE TABLE Metrica (
     rangoMax FLOAT NOT NULL
 );
 GO
+select * from Metrica
+INSERT INTO Metrica (id, codigo, nombre, unidad, descripcion, rangoMin, rangoMax)
+VALUES (
+  NEWID(),
+  'MET-0007',
+  'Temperatura Corporal',
+  '°C',
+  'Temperatura corporal del paciente',
+  36.0,
+  37.5
+);
+
+
+
 
 -- Tabla de Enfermedades Crónicas
 CREATE TABLE EnfermedadCronica (
