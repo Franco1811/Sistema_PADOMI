@@ -68,7 +68,7 @@ DB_HOST=db.vgcvjnpfuvhkfxkrpdqt.supabase.co
 DB_PORT=5432
 DB_USERNAME=postgres
 # Asegúrate de incluir las comillas dobles literales en la contraseña para que dotenv la parsee correctamente
-DB_PASSWORD='"PaDoMi_2026_TeLeMeTrIa_#Secur3!"'
+DB_PASSWORD='"tu_contraseña_de_supabase"'
 DB_NAME=postgres
 USE_IN_MEMORY=false
 ```
@@ -87,7 +87,7 @@ pnpm dev
 ```
 
 Este comando levantará concurrentemente:
-*   **Backend API:** `http://localhost:3000` (con conexión y siembra de datos automática a Supabase)
+*   **Backend API:** `http://localhost:3000` (con conexión a Supabase y carga automática de datos iniciales de prueba)
 *   **Frontend React:** `http://localhost:5173` (Dashboard Clínico)
 *   **Azure Function:** `http://localhost:7071/api/HttpTrigger` (Ingesta IoT de telemetría)
 
