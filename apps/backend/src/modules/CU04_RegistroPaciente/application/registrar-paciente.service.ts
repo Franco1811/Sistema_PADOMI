@@ -61,4 +61,8 @@ export class RegistrarPacienteService {
 
     return await this.pacienteRepository.guardar(paciente);
   }
+
+  async listarPacientes(): Promise<Paciente[]> {
+  return await this.pacienteRepository.listarTodos();
+}
 }

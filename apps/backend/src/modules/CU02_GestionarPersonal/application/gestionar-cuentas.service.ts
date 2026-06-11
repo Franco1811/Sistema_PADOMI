@@ -1,7 +1,3 @@
-// Servicio de aplicación para el caso de uso Gestionar Cuentas de Personal (CU-02)
-// Orquesta la lógica administrativa: verifica existencia de DNI, cifra contraseñas y solicita guardar.
-// Puede reutilizar lógica de validación de otros servicios.
-
 import { IUsuarioRepository } from '../../../../../../shared/domain/interface/usuario.interface';
 import { repositoryFactory } from '../../../../../../shared/infrastructure/repositories/repository.factory';
 import { Usuario } from '../../../../../../shared/domain/entities/usuario.entity';
@@ -10,6 +6,8 @@ import { Especialidad } from '../../../../../../shared/domain/entities/especiali
 import { UsuarioBuilder } from '../../../../../../shared/domain/builders/usuario.builder';
 import { RegistroPersonalDto } from './registro-personal.dto';
 import * as bcrypt from 'bcrypt';
+import { AppDataSource } from '../../../../../../shared/infrastructure/data-source';
+import { EspecialidadModel } from '../../../../../../shared/infrastructure/models/especialidad.model';
 
 export class GestionarCuentasService {
   private usuarioRepository: IUsuarioRepository;
@@ -37,15 +35,19 @@ export class GestionarCuentasService {
     const rolId = dto.rol === 'ADMIN' ? 1 : 2;
     const rolObj = new Rol(rolId, dto.rol);
 
+    // Buscar especialidad en la base de datos
     let espObj: Especialidad | undefined = undefined;
     if (dto.especialidad) {
-      let espId = 1;
-      const upperEsp = dto.especialidad.toUpperCase();
-      if (upperEsp === 'CARDIOLOGIA') espId = 1;
-      else if (upperEsp === 'GERIATRIA') espId = 2;
-      else if (upperEsp === 'NEUMOLOGIA') espId = 3;
-      else if (upperEsp === 'MEDICINA GENERAL') espId = 4;
-      espObj = new Especialidad(espId, dto.especialidad);
+      const especialidadRepository = AppDataSource.getRepository(EspecialidadModel);
+      const especialidadEncontrada = await especialidadRepository.findOne({
+        where: { nombre: dto.especialidad }
+      });
+      
+      if (especialidadEncontrada) {
+        espObj = new Especialidad(especialidadEncontrada.id, especialidadEncontrada.nombre);
+      } else {
+        throw new Error(`Especialidad "${dto.especialidad}" no encontrada en la base de datos`);
+      }
     }
 
     const usuario = new UsuarioBuilder()
@@ -74,7 +76,6 @@ export class GestionarCuentasService {
       throw new Error("Usuario no encontrado");
     }
 
-    // Actualizar campos si se proporcionan
     if (dto.email && dto.email !== usuario.email) {
       const existeEmail = await this.usuarioRepository.buscarPorEmail(dto.email);
       if (existeEmail) {
@@ -90,13 +91,15 @@ export class GestionarCuentasService {
     let especialidad: Especialidad | undefined = usuario.especialidad;
     if (dto.especialidad !== undefined) {
       if (dto.especialidad) {
-        let espId = 1;
-        const upperEsp = dto.especialidad.toUpperCase();
-        if (upperEsp === 'CARDIOLOGIA') espId = 1;
-        else if (upperEsp === 'GERIATRIA') espId = 2;
-        else if (upperEsp === 'NEUMOLOGIA') espId = 3;
-        else if (upperEsp === 'MEDICINA GENERAL') espId = 4;
-        especialidad = new Especialidad(espId, dto.especialidad);
+        const especialidadRepository = AppDataSource.getRepository(EspecialidadModel);
+        const especialidadEncontrada = await especialidadRepository.findOne({
+          where: { nombre: dto.especialidad }
+        });
+        
+        if (!especialidadEncontrada) {
+          throw new Error(`Especialidad "${dto.especialidad}" no encontrada`);
+        }
+        especialidad = new Especialidad(especialidadEncontrada.id, especialidadEncontrada.nombre);
       } else {
         especialidad = undefined;
       }
@@ -119,13 +122,10 @@ export class GestionarCuentasService {
       throw new Error("Usuario no encontrado");
     }
 
-    // Idempotencia (Requisito 7): Si el usuario ya está inactivo, no hacemos nada ni escribimos en base de datos.
     if (!usuario.activo) {
       return usuario;
     }
 
-    // RNF-34: El modelo lógico contiene un bloqueo estricto anti-auto-desactivación,
-    // impidiendo que el último Administrador activo sea desactivado del sistema.
     if (usuario.rol.nombre === 'ADMIN' && usuario.activo) {
       const todos = await this.usuarioRepository.listarTodos();
       const adminsActivos = todos.filter(u => u.rol.nombre === 'ADMIN' && u.activo);
@@ -135,7 +135,7 @@ export class GestionarCuentasService {
     }
 
     const usuarioDeshabilitado = usuario.clone({
-      activo: false // Desactivado
+      activo: false
     });
 
     return await this.usuarioRepository.actualizar(usuarioDeshabilitado);

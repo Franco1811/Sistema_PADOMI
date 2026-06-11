@@ -29,4 +29,16 @@ export class RegistroPacienteController {
       res.status(400).json({ error: error instanceof Error ? error.message : 'Error al registrar paciente' });
     }
   }
+
+  async listar(req: Request, res: Response): Promise<void> {
+  try {
+    const pacientes = await this.service.listarPacientes();
+    res.status(200).json(pacientes);
+  } catch (error) {
+    res.status(500).json({ error: error instanceof Error ? error.message : 'Error al listar pacientes' });
+  }
+}
+
+
+
 }

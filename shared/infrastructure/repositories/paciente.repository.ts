@@ -5,8 +5,9 @@ import { PacienteMapping } from '../mappings/paciente.mapping';
 import { Paciente } from '../../domain/entities/paciente.entity';
 import { IPacienteRepository } from '../../domain/interface/paciente.interface';
 
+
 export class PacienteRepository implements IPacienteRepository {
-  private repository: any;
+  private repository: Repository<PacienteModel>;
 
   constructor() {
     this.repository = AppDataSource.getRepository(PacienteModel);
@@ -53,12 +54,19 @@ export class PacienteRepository implements IPacienteRepository {
     return `PAC-${String(nextNumber).padStart(4, '0')}`;
   }
 
+  async listarTodos(): Promise<Paciente[]> {
+    const models = await this.repository.find({
+      order: { id: 'DESC' }
+    });
+    return models.map((model: PacienteModel) => PacienteMapping.toEntity(model));
+  }
+
   async contarPorMedicoAsignado(medicoId: string): Promise<number> {
     return await this.repository.count({ where: { medicoAsignadoId: medicoId } });
   }
 
   async listarPorMedicoAsignado(medicoId: string): Promise<Paciente[]> {
     const models = await this.repository.find({ where: { medicoAsignadoId: medicoId } });
-    return models.map((model: any) => PacienteMapping.toEntity(model));
+    return models.map((model: PacienteModel) => PacienteMapping.toEntity(model));
   }
 }

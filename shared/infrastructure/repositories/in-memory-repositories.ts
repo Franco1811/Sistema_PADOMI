@@ -52,6 +52,10 @@ export class InMemoryUsuarioRepository implements IUsuarioRepository {
 export class InMemoryPacienteRepository implements IPacienteRepository {
   private items: Paciente[] = [];
 
+  async listarTodos(): Promise<Paciente[]> {
+    return this.items;
+  }
+
   async guardar(paciente: Paciente): Promise<Paciente> {
     this.items.push(paciente);
     return paciente;
