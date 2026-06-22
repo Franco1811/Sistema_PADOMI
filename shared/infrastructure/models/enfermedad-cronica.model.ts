@@ -1,6 +1,6 @@
 // Modelo ORM compartido para la entidad EnfermedadCronica
 // Utilizado en CU-04 (Registrar Paciente Crónico) para asociar enfermedades a pacientes
-// Define la estructura física de la tabla de enfermedades crónicas en Azure SQL usando TypeORM.
+// Define la estructura física de la tabla de enfermedades crónicas en Supabase (PostgreSQL) usando TypeORM.
 
 import { Entity, PrimaryGeneratedColumn, Column, Unique } from 'typeorm';
 

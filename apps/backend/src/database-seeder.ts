@@ -153,7 +153,13 @@ export class DatabaseSeeder {
     const u4 = umbralRepo.create({ id: 'f4f4f4f4-f4f4-f4f4-f4f4-f4f4f4f4f4f4', codigo: 'UMB-0004', pacienteId: pac2.id, metricaId: m4.id, valorMin: 95, valorMax: 98 });
     const u5 = umbralRepo.create({ id: 'f5f5f5f5-f5f5-f5f5-f5f5-f5f5f5f5f5f5', codigo: 'UMB-0005', pacienteId: pac3.id, metricaId: m2.id, valorMin: 90, valorMax: 130 });
     const u6 = umbralRepo.create({ id: 'f6f6f6f6-f6f6-f6f6-f6f6-f6f6f6f6f6f6', codigo: 'UMB-0006', pacienteId: pac3.id, metricaId: m1.id, valorMin: 80, valorMax: 120 });
-    await umbralRepo.save([u1, u2, u3, u4, u5, u6]);
+    
+    // Umbrales adicionales para asegurar que todos los pacientes tengan Frecuencia Cardíaca y Saturación de Oxígeno (requeridos por el dashboard en vivo)
+    const u7 = umbralRepo.create({ id: 'f7f7f7f7-f7f7-f7f7-f7f7-f7f7f7f7f7f7', codigo: 'UMB-0007', pacienteId: pac1.id, metricaId: m4.id, valorMin: 95, valorMax: 100 });
+    const u8 = umbralRepo.create({ id: 'f8f8f8f8-f8f8-f8f8-f8f8-f8f8f8f8f8f8', codigo: 'UMB-0008', pacienteId: pac3.id, metricaId: m3.id, valorMin: 60, valorMax: 100 });
+    const u9 = umbralRepo.create({ id: 'f9f9f9f9-f9f9-f9f9-f9f9-f9f9f9f9f9f9', codigo: 'UMB-0009', pacienteId: pac3.id, metricaId: m4.id, valorMin: 95, valorMax: 100 });
+
+    await umbralRepo.save([u1, u2, u3, u4, u5, u6, u7, u8, u9]);
 
     console.log('[Seeder] Siembra de datos iniciales completada exitosamente.');
   }

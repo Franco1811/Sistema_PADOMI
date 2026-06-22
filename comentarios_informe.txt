@@ -208,7 +208,7 @@ usuario.entity.ts: Entidad pura que representa al usuario. Contiene métodos de 
 usuario.interface.ts: Interfaz que define las operaciones necesarias para la autenticación, principalmente el método buscarPorEmail().
 Capa 4: Infraestructura 
 Detalles de persistencia y herramientas externas (TypeORM/Bcrypt).
-usuario.model.ts: Modelo del ORM que define la tabla de usuarios en Azure SQL (columnas para email, password hash, rol, etc.).
+usuario.model.ts: Modelo del ORM que define la tabla de usuarios en Supabase (PostgreSQL) (columnas para email, password hash, rol, etc.).
 usuario.mapping.ts: Transforma el modelo de la base de datos (que trae el hash) a la entidad de dominio para que el servicio pueda operar con ella de forma segura.
 usuario.repository.ts: Implementación real que realiza la consulta SQL mediante TypeORM para recuperar los datos del usuario.
 
@@ -230,7 +230,7 @@ Capa 4: Infraestructura
 Implementación técnica con TypeORM.
 usuario.model.ts: El mismo modelo de base de datos que mapea a la tabla de usuarios en SQL.
 usuario.mapping.ts: El traductor que convierte los datos de la base de datos a la entidad para que el servicio pueda mostrarlos en el dashboard del administrador.
-usuario.repository.ts: Reutiliza la implementación real del repositorio de usuarios para ejecutar consultas físicas en Azure SQL, manejando listados, inserciones y actualizaciones.
+usuario.repository.ts: Reutiliza la implementación real del repositorio de usuarios para ejecutar consultas físicas en Supabase (PostgreSQL), manejando listados, inserciones y actualizaciones.
 
 
 CU-03: Gestionar Catálogo de Métricas
@@ -250,7 +250,7 @@ Capa 4: Infraestructura
 Detalles técnicos y persistencia con TypeORM.
 metrica.model.ts: Define la estructura de la tabla en SQL, incluyendo restricciones como el Unique Constraint (RNF-49) para evitar nombres de métricas repetidos.
 metrica.mapping.ts: El "traductor" que transforma la Entidad al Modelo físico y viceversa.
-metrica.repository.ts:Implementación real de la persistencia que se conecta con el repositorio de TypeORM para ejecutar las consultas físicas en Azure SQL.
+metrica.repository.ts:Implementación real de la persistencia que se conecta con el repositorio de TypeORM para ejecutar las consultas físicas en Supabase (PostgreSQL).
 
 
 CU-04: Registrar Paciente Crónico
@@ -270,7 +270,7 @@ Capa 4: Infraestructura
 Detalles técnicos y persistencia física en SQL.
 paciente.model.ts: Define la estructura de la tabla de pacientes en la base de datos de Azure usando TypeORM. No contiene lógica, solo la definición física de los campos.
 paciente.mapping.ts: El mapeador que traduce entre la entidad de dominio Paciente y el modelo físico de la base de datos PacienteModel.
-paciente.repository.ts:Implementación real de la persistencia que ejecuta las consultas físicas en Azure SQL Database mediante el repositorio de TypeORM.).
+paciente.repository.ts:Implementación real de la persistencia que ejecuta las consultas físicas en Supabase (PostgreSQL) Database mediante el repositorio de TypeORM.).
 
 
 
@@ -289,9 +289,9 @@ paciente.entity.ts: Entidad de dominio pura. Valida la estructura del paciente e
 umbral.entity.ts:Entidad pura que representa los límites personalizados de alerta. Su constructor autovalida la coherencia de los rangos (valor mínimo positivo y valor máximo estrictamente mayor al mínimo).
 Capa 4: Infraestructura 
 Persistencia técnica y optimización de acceso.
-paciente.model.ts y umbral.model.ts: Definen la estructura física de las tablas relacionales de pacientes y umbrales en Azure SQL.
+paciente.model.ts y umbral.model.ts: Definen la estructura física de las tablas relacionales de pacientes y umbrales en Supabase (PostgreSQL).
 paciente.mapping.ts y umbral.mapping.ts: Mapeadores que traducen entre las entidades puras del dominio y los modelos físicos ORM.
-paciente.repository.ts:Implementaciones de infraestructura que ejecutan las transacciones físicas (SELECT, INSERT, UPDATE) en Azure SQL Database a través del Data Source de TypeORM.
+paciente.repository.ts:Implementaciones de infraestructura que ejecutan las transacciones físicas (SELECT, INSERT, UPDATE) en Supabase (PostgreSQL) Database a través del Data Source de TypeORM.
 
 
 CU-06: Monitorear Dashboard Clínico
@@ -309,7 +309,7 @@ alerta.entity.ts: Aunque la alerta nace en el CU-09, aquí se utiliza para deter
 dashboard.interface.ts: Interfaz que define los métodos de consulta masiva y filtrado, manteniendo la independencia de la base de datos SQL.
 Capa 4: Infraestructura 
 Optimización de consultas y persistencia.
-alerta.model.ts: Representación física de las alertas en la base de datos de Azure SQL.
+alerta.model.ts: Representación física de las alertas en la base de datos de Supabase (PostgreSQL).
 alerta.mapping.ts: Transforma los estados de la base de datos (generalmente códigos numéricos para ahorrar espacio) en etiquetas semánticas de dominio para el médico.
 monitoreo.repository.ts: Implementación de la consulta SQL optimizada. Utiliza Paginación (máximo 50 resultados por lote) para garantizar fluidez visual y no saturar la memoria del servidor.
 

@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { X, Heart, Activity, ShieldAlert, FileSpreadsheet } from 'lucide-react';
 import type { Metrica } from '../../services/metricas.service';
 
@@ -17,11 +18,8 @@ interface MonitoreoModalProps {
   atenderAlerta: (alertaId: string, resumen: string, recomendaciones: string) => Promise<boolean>;
   cargarAlertasPaciente: (pacienteId: string) => Promise<void>;
   catalogoMetricas: Metrica[];
-  telemetriaFC: number;
-  telemetriaSPO2: number;
-  graficoFCPoints: number[];
-  graficoSPO2Points: number[];
-  generateSvgPath: (points: number[], isSpO2?: boolean) => string;
+  telemetria: any;
+  umbralesPaciente: any[];
 }
 
 export function MonitoreoModal({
@@ -40,17 +38,16 @@ export function MonitoreoModal({
   atenderAlerta,
   cargarAlertasPaciente,
   catalogoMetricas,
-  telemetriaFC,
-  telemetriaSPO2,
-  graficoFCPoints,
-  graficoSPO2Points,
-  generateSvgPath
+  telemetria,
+  umbralesPaciente
 }: MonitoreoModalProps) {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   if (!selectedPaciente) return null;
 
   const handleSubmetAtencion = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!evaluandoAlerta) return;
+    if (!evaluandoAlerta || isSubmitting) return;
     if (!resumenClinico.trim()) {
       alert("El diagnóstico / resumen es obligatorio.");
       return;
@@ -60,12 +57,17 @@ export function MonitoreoModal({
       return;
     }
 
-    const ok = await atenderAlerta(evaluandoAlerta.id, resumenClinico, recomendacionesClinicas);
-    if (ok) {
-      setEvaluandoAlerta(null);
-      setResumenClinico('');
-      setRecomendacionesClinicas('');
-      cargarAlertasPaciente(selectedPaciente.paciente.id);
+    setIsSubmitting(true);
+    try {
+      const ok = await atenderAlerta(evaluandoAlerta.id, resumenClinico, recomendacionesClinicas);
+      if (ok) {
+        setEvaluandoAlerta(null);
+        setResumenClinico('');
+        setRecomendacionesClinicas('');
+        cargarAlertasPaciente(selectedPaciente.paciente.id);
+      }
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -135,82 +137,102 @@ export function MonitoreoModal({
           
           {/* Columna Izquierda: Sensores */}
           <div style={{ flex: '1.2 1 450px', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1rem' }}>
-              
-              {/* Canal 1: Frecuencia Cardíaca */}
-              <div className="sensor-card">
-                <div className="sensor-meta">
-                  <span>Frecuencia Cardíaca</span>
-                  <Heart size={18} style={{ color: 'var(--critico-color)' }} className="heartbeat-icon" />
+            {!umbralesPaciente || umbralesPaciente.length === 0 ? (
+              <div style={{
+                padding: '3rem 2rem',
+                textAlign: 'center',
+                background: 'rgba(255, 255, 255, 0.02)',
+                borderRadius: '16px',
+                border: '1px dashed var(--border-color)',
+                color: 'var(--text-secondary)',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '1rem',
+                height: '100%',
+                minHeight: '220px'
+              }}>
+                <Activity size={40} style={{ color: 'var(--text-secondary)', opacity: 0.6 }} />
+                <div>
+                  <h4 style={{ margin: '0 0 0.5rem 0', color: 'var(--text-primary)', fontSize: '0.95rem', fontWeight: 700 }}>Sin métricas configuradas</h4>
+                  <p style={{ margin: 0, fontSize: '0.78rem', lineHeight: 1.4 }}>Este paciente no cuenta con métricas ni umbrales de alerta configurados.</p>
                 </div>
-                <div className="sensor-value-row">
-                  <span className="sensor-value">{telemetriaFC}</span>
-                  <span className="sensor-unit">lpm</span>
-                </div>
-                {/* Gráfico Sparkline */}
-                <div className="sensor-sparkline">
-                  <svg viewBox="0 0 300 80" className="sparkline-svg">
-                    <path
-                      d={generateSvgPath(graficoFCPoints)}
-                      fill="none"
-                      stroke="var(--critico-color)"
-                      strokeWidth="2.5"
-                    />
-                  </svg>
-                </div>
-                <span style={{ fontSize: '0.72rem', color: 'var(--text-secondary)' }}>
-                  {(() => {
-                    const m = catalogoMetricas.find(m =>
-                      m.nombre.toLowerCase().includes('frecuencia') ||
-                      m.nombre.toLowerCase().includes('cardiaca') ||
-                      m.nombre.toLowerCase().includes('card\u00edaca')
-                    );
-                    return m ? `Rango Normal: ${m.rangoMin} \u2013 ${m.rangoMax} ${m.unidad}` : 'Rango Normal: cargando...';
-                  })()}
-                </span>
+                <button
+                  className="btn-primary"
+                  onClick={() => setIsEditingFicha(true)}
+                  style={{ fontSize: '0.75rem', padding: '0.45rem 1rem', background: 'var(--essalud-azul)', color: '#fff', border: 'none', borderRadius: '8px', fontWeight: 700, cursor: 'pointer' }}
+                >
+                  Configurar Métricas
+                </button>
               </div>
+            ) : (
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1rem' }}>
+                {umbralesPaciente.map((u) => {
+                  const met = catalogoMetricas.find(m => m.id === u.metricaId);
+                  if (!met) return null;
 
-              {/* Canal 2: Saturación de Oxígeno */}
-              <div className="sensor-card">
-                <div className="sensor-meta">
-                  <span>Saturación de Oxígeno</span>
-                  <Activity size={18} style={{ color: 'var(--accent-color)' }} />
-                </div>
-                <div className="sensor-value-row">
-                  <span className="sensor-value">{telemetriaSPO2}</span>
-                  <span className="sensor-unit">%</span>
-                </div>
-                {/* Gráfico Sparkline */}
-                <div className="sensor-sparkline">
-                  <svg viewBox="0 0 300 80" className="sparkline-svg">
-                    <path
-                      d={generateSvgPath(graficoSPO2Points, true)}
-                      fill="none"
-                      stroke="var(--accent-color)"
-                      strokeWidth="2.5"
-                    />
-                  </svg>
-                </div>
-                <span style={{ fontSize: '0.72rem', color: 'var(--text-secondary)' }}>
-                  {(() => {
-                    const m = catalogoMetricas.find(m =>
-                      m.nombre.toLowerCase().includes('saturaci') ||
-                      m.nombre.toLowerCase().includes('ox') ||
-                      m.nombre.toLowerCase().includes('spo')
-                    );
-                    return m ? `Rango Normal: ${m.rangoMin} \u2013 ${m.rangoMax} ${m.unidad}` : 'Rango Normal: cargando...';
-                  })()}
-                </span>
+                  const valorActual = telemetria.valores[u.metricaId] ?? ((Number(u.valorMin) + Number(u.valorMax)) / 2);
+                  const puntos = telemetria.historicos[u.metricaId] ?? Array(10).fill(valorActual);
+
+                  const isFC = met.nombre.toLowerCase().includes('frecuencia') || met.nombre.toLowerCase().includes('cardiaca') || met.nombre.toLowerCase().includes('card\u00edaca');
+                  const isGlucosa = met.nombre.toLowerCase().includes('gluco');
+                  const isPresion = met.nombre.toLowerCase().includes('presi') || met.nombre.toLowerCase().includes('tensi') || met.nombre.toLowerCase().includes('arterial');
+
+                  let IconComponent = Activity;
+                  let iconColor = 'var(--accent-color)';
+                  if (isFC) {
+                    IconComponent = Heart;
+                    iconColor = 'var(--critico-color)';
+                  } else if (isGlucosa) {
+                    iconColor = '#f59e0b';
+                  } else if (isPresion) {
+                    iconColor = '#8b5cf6';
+                  }
+
+                  const path = telemetria.generateSvgPath(puntos, Number(met.rangoMin), Number(met.rangoMax));
+
+                  return (
+                    <div key={u.metricaId} className="sensor-card">
+                      <div className="sensor-meta">
+                        <span>{met.nombre}</span>
+                        <IconComponent size={18} style={{ color: iconColor }} className={isFC ? "heartbeat-icon" : ""} />
+                      </div>
+                      <div className="sensor-value-row">
+                        <span className="sensor-value">
+                          {typeof valorActual === 'number' ? valorActual.toFixed(1) : valorActual}
+                        </span>
+                        <span className="sensor-unit">{met.unidad}</span>
+                      </div>
+                      {/* Gráfico Sparkline */}
+                      <div className="sensor-sparkline">
+                        <svg viewBox="0 0 300 80" className="sparkline-svg">
+                          <path
+                            d={path}
+                            fill="none"
+                            stroke={iconColor}
+                            strokeWidth="2.5"
+                          />
+                        </svg>
+                      </div>
+                      <span style={{ fontSize: '0.72rem', color: 'var(--text-secondary)', display: 'block' }}>
+                        Rango Normal: {met.rangoMin} – {met.rangoMax} {met.unidad}
+                      </span>
+                      <span style={{ fontSize: '0.68rem', color: 'var(--text-secondary)', display: 'block', marginTop: '0.2rem' }}>
+                        Límite: {u.valorMin} – {u.valorMax} {met.unidad}
+                      </span>
+                    </div>
+                  );
+                })}
               </div>
-
-            </div>
+            )}
           </div>
 
           {/* Columna Derecha: Alertas */}
           <div style={{ flex: '1 1 320px', display: 'flex', flexDirection: 'column' }}>
             <div className="alerts-history-section" style={{ background: 'var(--card-bg)', border: '1px solid var(--border-color)', padding: '1rem', borderRadius: '12px', height: '100%', display: 'flex', flexDirection: 'column' }}>
               <h3 style={{ fontSize: '0.95rem', fontWeight: 700, margin: '0 0 0.75rem 0', color: 'var(--text-primary)', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.4rem' }}>
-                Historial de Alertas (24h)
+                Historial de Alertas (Mensual)
               </h3>
               {loadingAlertas ? (
                 <div style={{ color: 'var(--text-secondary)', fontSize: '0.82rem', padding: '1rem', textAlign: 'center' }}>Cargando alertas...</div>
@@ -257,7 +279,7 @@ export function MonitoreoModal({
 
         {/* Modal de Formulario de Evaluación Médica Superpuesto (CU-07) */}
         {evaluandoAlerta && (
-          <div className="modal-overlay" style={{ background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(3px)', position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, zIndex: 100, display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '1.5rem', borderRadius: '24px' }}>
+          <div className="modal-overlay" style={{ background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(3px)', position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 9999, display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '1.5rem' }}>
             <div className="modal-content" style={{ maxWidth: '500px', width: '100%', padding: '2rem' }}>
               
               {/* Botón de cerrar de la evaluación */}
@@ -305,8 +327,21 @@ export function MonitoreoModal({
                   <button type="button" onClick={() => setEvaluandoAlerta(null)} style={{ padding: '0.45rem 1rem', background: 'transparent', border: '1px solid var(--border-color)', color: 'var(--text-secondary)', borderRadius: '6px', fontSize: '0.78rem', cursor: 'pointer', fontWeight: 600 }}>
                     Cancelar
                   </button>
-                  <button type="submit" style={{ padding: '0.45rem 1rem', background: 'var(--critico-color)', color: '#fff', border: 'none', borderRadius: '6px', fontSize: '0.78rem', cursor: 'pointer', fontWeight: 700 }}>
-                    Guardar y Registrar Atención
+                   <button 
+                    type="submit" 
+                    disabled={isSubmitting} 
+                    style={{ 
+                      padding: '0.45rem 1rem', 
+                      background: isSubmitting ? 'var(--text-secondary)' : 'var(--critico-color)', 
+                      color: '#fff', 
+                      border: 'none', 
+                      borderRadius: '6px', 
+                      fontSize: '0.78rem', 
+                      cursor: isSubmitting ? 'not-allowed' : 'pointer', 
+                      fontWeight: 700 
+                    }}
+                  >
+                    {isSubmitting ? 'Registrando...' : 'Guardar y Registrar Atención'}
                   </button>
                 </div>
               </form>

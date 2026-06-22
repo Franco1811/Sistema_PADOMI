@@ -148,6 +148,14 @@ export class InMemoryAlertaRepository implements IAlertaRepository {
   async buscarActivasPorPaciente(pacienteId: string): Promise<Alerta[]> {
     return this.items.filter(x => x.pacienteId === pacienteId && !x.atendida);
   }
+
+  async buscarHistorialPorPaciente(pacienteId: string): Promise<Alerta[]> {
+    const limiteFecha = new Date();
+    limiteFecha.setDate(limiteFecha.getDate() - 30);
+    return this.items
+      .filter(x => x.pacienteId === pacienteId && x.fecha >= limiteFecha)
+      .sort((a, b) => b.fecha.getTime() - a.fecha.getTime());
+  }
   async guardar(alerta: Alerta): Promise<Alerta> {
     this.items.push(alerta);
     return alerta;

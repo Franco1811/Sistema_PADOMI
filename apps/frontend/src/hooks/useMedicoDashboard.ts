@@ -174,6 +174,18 @@ export function useMedicoDashboard(
       setEditDireccion(data.paciente.direccion || '');
       setEditUmbrales(data.umbrales || []);
       setEnfermedadesPaciente(data.enfermedades || []);
+      
+      // Actualizar selectedPaciente con toda la información cargada desde Supabase
+      setSelectedPaciente((prev: any) => {
+        if (!prev || prev.paciente.id !== pacienteId) return prev;
+        return {
+          ...prev,
+          paciente: {
+            ...prev.paciente,
+            ...data.paciente
+          }
+        };
+      });
     } catch (err) {
       console.error('Error al cargar perfil del paciente:', err);
     }
@@ -341,7 +353,7 @@ export function useMedicoDashboard(
       setLecturasHistoricas([]);
       setIsEditingFicha(false);
     }
-  }, [selectedPaciente]);
+  }, [selectedPaciente?.paciente?.id]);
 
   return {
     totalPacientes,

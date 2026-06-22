@@ -10,11 +10,11 @@ export class AtencionController {
     this.service = new AtenderAlertaService();
   }
 
-  obtenerAlertasActivas = async (req: Request, res: Response): Promise<void> => {
+  obtenerHistorialAlertas = async (req: Request, res: Response): Promise<void> => {
     try {
       const pacienteId = req.params.pacienteId as string;
       const repository = repositoryFactory.getAlertaRepository();
-      const alertas = await repository.buscarActivasPorPaciente(pacienteId);
+      const alertas = await repository.buscarHistorialPorPaciente(pacienteId);
       res.status(200).json(alertas);
     } catch (error: any) {
       res.status(400).json({ error: error.message });
@@ -34,6 +34,7 @@ export class AtencionController {
       
       res.status(200).json({ mensaje: 'Alerta gestionada exitosamente' });
     } catch (error: any) {
+      console.error('Error al atender alerta en backend:', error);
       // Distinguir colisión (409 Conflict) de error general (400)
       if (error.message.includes("ya ha sido atendida") || error.message.includes("otro colega")) {
         res.status(409).json({ error: error.message });

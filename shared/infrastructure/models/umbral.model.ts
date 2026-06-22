@@ -1,6 +1,6 @@
 // Modelo ORM compartido para la entidad Umbral
 // Utilizado en CU-04 (Registrar Paciente Crónico) para configurar umbrales personalizados
-// Define la estructura física de la tabla de umbrales en Azure SQL usando TypeORM.
+// Define la estructura física de la tabla de umbrales en Supabase (PostgreSQL) usando TypeORM.
 // Incluye restricción única compuesta (pacienteId, metricaId).
 
 import { Entity, PrimaryGeneratedColumn, Column, Unique } from 'typeorm';

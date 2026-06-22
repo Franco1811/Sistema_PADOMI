@@ -1,4 +1,4 @@
-import { Repository } from 'typeorm';
+import { Repository, MoreThanOrEqual } from 'typeorm';
 import { AppDataSource } from '../data-source';
 import { AlertaModel } from '../models/alerta.model';
 import { AlertaMapping } from '../mappings/alerta.mapping';
@@ -20,6 +20,21 @@ export class AlertaRepository implements IAlertaRepository {
   async buscarActivasPorPaciente(pacienteId: string): Promise<Alerta[]> {
     const models = await this.repository.find({
       where: { pacienteId, atendida: false },
+      order: { fecha: 'DESC' }
+    });
+    return models.map(model => AlertaMapping.toEntity(model));
+  }
+
+  async buscarHistorialPorPaciente(pacienteId: string): Promise<Alerta[]> {
+    // Retorna el historial mensual (últimos 30 días) tanto atendidas como no atendidas
+    const limiteFecha = new Date();
+    limiteFecha.setDate(limiteFecha.getDate() - 30);
+
+    const models = await this.repository.find({
+      where: { 
+        pacienteId,
+        fecha: MoreThanOrEqual(limiteFecha)
+      },
       order: { fecha: 'DESC' }
     });
     return models.map(model => AlertaMapping.toEntity(model));

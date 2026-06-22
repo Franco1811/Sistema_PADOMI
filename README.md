@@ -15,7 +15,7 @@ La arquitectura está estructurada en módulos para separar responsabilidades y 
 ├── functions/
 │   └── Ingesta_Biometrica/  # Azure Function local (Puerto 7071) para ingesta IoT
 ├── shared/             # Kernel compartido (Entidades, Interfaces y Modelos de Postgres)
-├── database/           # Scripts SQL (SQL Server y traducción compatible con PostgreSQL)
+├── database/           # Scripts SQL (Traducción compatible con PostgreSQL para Supabase)
 ├── pnpm-workspace.yaml # Configuración del Monorrepositorio
 └── package.json        # Orquestador global de scripts del proyecto
 ```

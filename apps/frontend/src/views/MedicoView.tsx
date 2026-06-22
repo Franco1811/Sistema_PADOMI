@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { io, Socket } from 'socket.io-client';
 import {
   ShieldAlert,
@@ -30,7 +30,12 @@ interface MedicoViewProps {
 
 export function MedicoView({ usuario, token, onLogout, addToast }: MedicoViewProps) {
   const dashboard = useMedicoDashboard(usuario, token, addToast);
-  const telemetria = useTelemetriaSimulada(dashboard.selectedPaciente, dashboard.catalogoMetricas, dashboard.lecturasHistoricas);
+  const telemetria = useTelemetriaSimulada(dashboard.selectedPaciente, dashboard.catalogoMetricas, dashboard.lecturasHistoricas, dashboard.editUmbrales);
+
+  const selectedPacienteRef = useRef(dashboard.selectedPaciente);
+  useEffect(() => {
+    selectedPacienteRef.current = dashboard.selectedPaciente;
+  }, [dashboard.selectedPaciente]);
 
   // Conexión WebSockets
   useEffect(() => {
@@ -58,7 +63,8 @@ export function MedicoView({ usuario, token, onLogout, addToast }: MedicoViewPro
 
       dashboard.cargarPacientes();
 
-      if (dashboard.selectedPaciente && dashboard.selectedPaciente.paciente.id === alerta.pacienteId) {
+      const currentSelected = selectedPacienteRef.current;
+      if (currentSelected && currentSelected.paciente.id === alerta.pacienteId) {
         dashboard.setSelectedPaciente((prev: any) => prev ? {
           ...prev,
           estado: alerta.severidad,
@@ -71,7 +77,7 @@ export function MedicoView({ usuario, token, onLogout, addToast }: MedicoViewPro
     return () => {
       socket.disconnect();
     };
-  }, [dashboard.selectedPaciente, token]);
+  }, [usuario.id, token]);
 
   // Filtrado local en el cliente para Gravedad y Alertas Activas
   const pacientesFiltrados = dashboard.pacientes.filter(p => {
@@ -203,11 +209,8 @@ export function MedicoView({ usuario, token, onLogout, addToast }: MedicoViewPro
             atenderAlerta={dashboard.atenderAlerta}
             cargarAlertasPaciente={dashboard.cargarAlertasPaciente}
             catalogoMetricas={dashboard.catalogoMetricas}
-            telemetriaFC={telemetria.telemetriaFC}
-            telemetriaSPO2={telemetria.telemetriaSPO2}
-            graficoFCPoints={telemetria.graficoFCPoints}
-            graficoSPO2Points={telemetria.graficoSPO2Points}
-            generateSvgPath={telemetria.generateSvgPath}
+            telemetria={telemetria}
+            umbralesPaciente={dashboard.editUmbrales}
           />
         )
       )}
@@ -277,31 +280,54 @@ export function MedicoView({ usuario, token, onLogout, addToast }: MedicoViewPro
             </div>
             <div className="emergency-body">
               <div className="alert-box-success">
-                La alerta <strong>{dashboard.protocoloEmergencia.codigo}</strong> ha sido marcada como atendida en la base de datos de Azure SQL Server bajo la responsabilidad del doctor activo.
+                La alerta <strong>{dashboard.protocoloEmergencia.codigo}</strong> ha sido marcada como atendida en la base de datos de Supabase bajo la responsabilidad del doctor activo.
               </div>
 
-              <div className="protocol-section">
-                <h3><Phone size={18} /> Protocolo Clínico de Contacto Obligatorio</h3>
-                <p className="protocol-desc">Es su deber médico legal iniciar el contacto directo inmediato con el paciente o coordinar el despacho de auxilio.</p>
+              <div className="emergency-protocol-grid">
+                <div className="protocol-info-column">
+                  <h3><Phone size={18} /> Protocolo Clínico de Contacto Obligatorio</h3>
+                  <p className="protocol-desc">Es su deber médico legal iniciar el contacto directo inmediato con el paciente o coordinar el despacho de auxilio.</p>
+                  
+                  <div className="protocol-checklist">
+                    <div className="checklist-item">
+                      <span className="check-bullet">1</span>
+                      <span>Llame al número del paciente o de su contacto de emergencia.</span>
+                    </div>
+                    <div className="checklist-item">
+                      <span className="check-bullet">2</span>
+                      <span>Confirme su estado de conciencia y síntomas actuales.</span>
+                    </div>
+                    <div className="checklist-item">
+                      <span className="check-bullet">3</span>
+                      <span>Indique las medidas inmediatas o despache una unidad PADOMI.</span>
+                    </div>
+                  </div>
+                </div>
 
                 <div className="patient-contact-card">
                   <div className="contact-field">
-                    <span className="label">Paciente:</span>
-                    <span className="value">{dashboard.protocoloEmergencia.paciente.nombres}</span>
+                    <span className="label">Paciente</span>
+                    <span className="value-name">{dashboard.protocoloEmergencia.paciente.nombres}</span>
                   </div>
                   <div className="contact-field">
-                    <span className="label">Diagnóstico de Base:</span>
-                    <span className="value">{dashboard.protocoloEmergencia.paciente.diagnostico}</span>
+                    <span className="label">Diagnóstico de Base</span>
+                    <span className="value-text">{dashboard.protocoloEmergencia.paciente.diagnostico || 'No registrado'}</span>
                   </div>
                   <div className="contact-field highlight">
-                    <span className="label"><Phone size={16} /> Teléfono del Paciente:</span>
-                    <a href={`tel:${dashboard.protocoloEmergencia.paciente.telefono || ''}`} className="value-phone-link">
-                      {dashboard.protocoloEmergencia.paciente.telefono || 'No registrado'}
-                    </a>
+                    <span className="label"><Phone size={14} /> Teléfono del Paciente</span>
+                    {dashboard.protocoloEmergencia.paciente.telefono ? (
+                      <a href={`tel:${dashboard.protocoloEmergencia.paciente.telefono}`} className="value-phone-link">
+                        {dashboard.protocoloEmergencia.paciente.telefono}
+                      </a>
+                    ) : (
+                      <span className="value-text" style={{ fontStyle: 'italic', color: 'var(--text-secondary)' }}>
+                        No registrado
+                      </span>
+                    )}
                   </div>
                   <div className="contact-field highlight">
-                    <span className="label"><MapPin size={16} /> Dirección Domiciliaria:</span>
-                    <span className="value">
+                    <span className="label"><MapPin size={14} /> Dirección Domiciliaria</span>
+                    <span className="value-text">
                       {dashboard.protocoloEmergencia.paciente.direccion || 'No registrada'}
                     </span>
                   </div>

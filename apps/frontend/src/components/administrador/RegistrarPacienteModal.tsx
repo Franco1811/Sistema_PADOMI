@@ -126,7 +126,7 @@ export function RegistrarPacienteModal({ isOpen, onClose, onSuccess, token }: Re
         direccion: formData.direccion || undefined
       };
 
-      const response = await fetch('http://localhost:3000/api/pacientes/registro', {
+      const response = await fetch('http://localhost:3000/api/pacientes', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

@@ -1,6 +1,6 @@
 // Modelo ORM compartido para la entidad Lectura
 // Utilizado en CU-08 (Ingestar Datos Biométricos)
-// Define la estructura física de la tabla de lecturas en Azure SQL usando TypeORM.
+// Define la estructura física de la tabla de lecturas en Supabase (PostgreSQL) usando TypeORM.
 
 import { Entity, PrimaryGeneratedColumn, Column, Unique } from 'typeorm';
 

@@ -536,9 +536,9 @@ POST {{hostname}}/ingesta
 Content-Type: application/json
 
 {
-  "pacienteId": "remplace_con_uuid_de_paciente",
-  "metricaId": "remplace_con_uuid_de_metrica",
-  "valor": 120.0
+  "pacienteId": "df25697b-3620-4cfc-bdd2-1bd0484bb851",
+  "metricaId": "90000000-0000-0000-0000-000000000005",
+  "valor": 110.0
 }
 
 ###

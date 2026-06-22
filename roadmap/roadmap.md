@@ -1,13 +1,13 @@
 # Roadmap de Desarrollo PADOMI
 
 ## Fase 1: Cimientos de Persistencia (La Base de Datos)
-**Objetivo:** Transformar entidades lógicas en tablas físicas en Azure SQL usando TypeORM y poblar el sistema con datos falsos (Seeders).
+**Objetivo:** Transformar entidades lógicas en tablas físicas en Supabase (PostgreSQL) usando TypeORM y poblar el sistema con datos falsos (Seeders).
 
 - [x] **Paso 1.1: Modelado TypeORM (shared/infrastructure/models)**
   - Crear archivos .model.ts para Usuario, Paciente, Metrica y Lectura.
   - Configurar restricciones como Unique Constraint (RNF-49) en métricas.
 - [x] **Paso 1.2: Conexión y Mappings (shared/infrastructure)**
-  - Configurar data-source.ts para Azure SQL.
+  - Configurar data-source.ts para Supabase (PostgreSQL).
   - Desarrollar mapping.ts para traducir Modelos de DB a Entidades Puras.
 - [x] **Paso 1.3: Generación de Datos Ficticios (Seeders)**
   - Crear scripts en database/seeders/ para médicos, métricas y pacientes de prueba.

@@ -1,6 +1,6 @@
 // Modelo ORM para la tabla de relación PacienteEnfermedad (N:M)
 // Relación muchos a muchos entre Paciente y EnfermedadCronica
-// Define la estructura física de la tabla de relación en Azure SQL usando TypeORM.
+// Define la estructura física de la tabla de relación en Supabase (PostgreSQL) usando TypeORM.
 
 import { Entity, PrimaryColumn, Column } from 'typeorm';
 

@@ -28,7 +28,7 @@ Este documento detalla la lógica de negocio, las reglas clínicas, las medidas 
    * El **Email** debe ser institucional y contener el carácter `@`.
    * La **Especialidad** es obligatoria si el rol seleccionado es `'MEDICO'`.
 3. **Blindaje contra Duplicados (Doble Capa):**
-   * **En la Creación:** Verifica mediante el repositorio si el DNI o el Email ya existen en Azure SQL, devolviendo un error `400` limpio antes de ejecutar la inserción.
+   * **En la Creación:** Verifica mediante el repositorio si el DNI o el Email ya existen en Supabase, devolviendo un error `400` limpio antes de ejecutar la inserción.
    * **En la Actualización:** Si se modifica el Email, valida que no esté en uso por otra cuenta, evitando excepciones de clave duplicada en la base de datos.
 4. **Regla de Negocio Crítica (RNF-34):**
    * Impide la desactivación del último Administrador activo del sistema, garantizando que la plataforma nunca se quede sin administración.
@@ -68,7 +68,7 @@ Este documento detalla la lógica de negocio, las reglas clínicas, las medidas 
 2. **Validación de Carga Laboral del Médico (RNF-20):**
    * Valida en el repositorio que el médico asignado no supere el límite máximo de **500 pacientes asignados**. Si se supera, el sistema bloquea el registro con un mensaje controlado para evitar sobrecarga clínica.
 3. **Validación Existencial de Médico:**
-   * Verifica que el UUID enviado en `medicoAsignadoId` exista físicamente en la base de datos de usuarios, evitando excepciones crudas de SQL Server.
+   * Verifica que el UUID enviado en `medicoAsignadoId` exista físicamente en la base de datos de usuarios, evitando excepciones crudas de la base de datos.
 4. **Verificación de Rol Médico Obligatorio:**
    * Garantiza que el usuario asignado tenga el rol clínico de `'MEDICO'`. Impide que pacientes sean asignados por error a enfermeros o administrativos.
 5. **Formatos y Edades Clínicas Coherentes:**
@@ -107,4 +107,4 @@ Este documento detalla la lógica de negocio, las reglas clínicas, las medidas 
 ## Medidas de Seguridad Transversales (Infraestructura API)
 * **Protección Anti-DoS (Denegación de Servicio):** Configuración de un límite estricto de tamaño en el parser de Express (`express.json({ limit: '50kb' })`) en `app.ts` para rechazar cuerpos de petición inmensos de forma inmediata (`413 Payload Too Large`), protegiendo la RAM del servidor.
 * **Interceptor de Errores de Sintaxis JSON:** Captura cualquier error de formato en el body (como comas huérfanas o comillas rotas) en la capa de parsing, respondiendo con un JSON estructurado de error en lugar de filtrar paths del servidor en páginas HTML.
-* **Arquitectura Limpia (Clean Architecture):** Todo el código está dividido estrictamente en capas (Presentación/Controladores, Aplicación/Servicios, Dominio/Entidades y Repositorios de Infraestructura), logrando desacoplamiento total de la base de datos relacional Azure SQL.
+* **Arquitectura Limpia (Clean Architecture):** Todo el código está dividido estrictamente en capas (Presentación/Controladores, Aplicación/Servicios, Dominio/Entidades y Repositorios de Infraestructura), logrando desacoplamiento total de la base de datos relacional PostgreSQL en Supabase.

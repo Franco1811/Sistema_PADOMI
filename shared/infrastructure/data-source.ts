@@ -24,7 +24,7 @@ import { EspecialidadModel } from './models/especialidad.model';
  * Clase DatabaseConnection
  * Implementa el Patrón de Diseño Creacional: SINGLETON.
  * Garantiza que la aplicación tenga una única instancia de conexión (DataSource)
- * hacia la base de datos Azure SQL Server, administrando un pool de conexiones único,
+ * hacia la base de datos PostgreSQL en Supabase, administrando un pool de conexiones único,
  * previniendo el consumo excesivo de sockets y previniendo errores de límite en la nube.
  */
 export class DatabaseConnection {

@@ -1,6 +1,6 @@
 // Modelo ORM compartido para la entidad Metrica
 // Utilizado en CU-03 (Gestionar Catálogo de Métricas)
-// Define la estructura física de la tabla de métricas clínicas en Azure SQL usando TypeORM.
+// Define la estructura física de la tabla de métricas clínicas en Supabase (PostgreSQL) usando TypeORM.
 // Incluye restricciones únicas en codigo y nombre (RNF-49).
 
 import { Entity, PrimaryGeneratedColumn, Column, Unique } from 'typeorm';

@@ -1,6 +1,6 @@
 // Implementación real de la persistencia de usuarios usando TypeORM
 // Compartida y utilizada en CU-01 (Iniciar Sesión) y CU-02 (Gestionar Cuentas de Personal)
-// Gestiona las operaciones CRUD de usuarios en Azure SQL.
+// Gestiona las operaciones CRUD de usuarios en Supabase (PostgreSQL).
 
 import { Repository } from 'typeorm';
 import { AppDataSource } from '../data-source';
