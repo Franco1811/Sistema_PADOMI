@@ -541,6 +541,18 @@ Content-Type: application/json
   "valor": 110.0
 }
 
+
+### 8.4 Ingestar a través de Azure Functions (Localhost Puerto 7071)
+# Requiere haber iniciado la Azure Function mediante 'pnpm --filter ingesta-biometrica-function start'
+POST {{hostname}}/ingesta
+Content-Type: application/json
+
+{
+  "pacienteId": "e6c5c0a0-4f74-428d-9e9c-3e8c3d0a4f74",
+  "metricaId": "90000000-0000-0000-0000-000000000005",
+  "valor": 120.0
+}
+
 ###
 
 ### 8.4 Ingestar a través de Azure Functions (Localhost Puerto 7071)

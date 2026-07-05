@@ -106,7 +106,7 @@ CREATE TABLE Metrica (
 );
 INSERT INTO Metrica (id, codigo, nombre, unidad, descripcion, rangoMin, rangoMax)
 VALUES (
-  NEWID(),
+  gen_random_uuid(),
   'MET-0007',
   'Temperatura Corporal',
   '°C',
