@@ -124,20 +124,20 @@ export function RegistrarPersonalModal({ isOpen, onClose, onSuccess, token }: Re
       setError('DNI inválido. Debe contener 8 dígitos.');
       return false;
     }
-    if (formData.nombre.length < 2) {
-      setError('Nombre inválido. Mínimo 2 caracteres.');
+    if (!/^[\p{L}]+(?:[ '\u002D][\p{L}]+)*$/u.test(formData.nombre.trim())) {
+      setError('El nombre solo debe contener letras, espacios, apóstrofes o guiones.');
       return false;
     }
-    if (formData.apellido.length < 2) {
-      setError('Apellido inválido. Mínimo 2 caracteres.');
+    if (!/^[\p{L}]+(?:[ '\u002D][\p{L}]+)*$/u.test(formData.apellido.trim())) {
+      setError('El apellido solo debe contener letras, espacios, apóstrofes o guiones.');
       return false;
     }
-    if (!formData.email.includes('@') || !formData.email.includes('.')) {
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email.trim())) {
       setError('Email institucional inválido.');
       return false;
     }
-    if (formData.password.length < 6) {
-      setError('La contraseña debe tener al menos 6 caracteres.');
+    if (formData.password.length < 8 || !/[a-z]/.test(formData.password) || !/[A-Z]/.test(formData.password) || !/\d/.test(formData.password) || !/[^\w\s]/.test(formData.password)) {
+      setError('La contraseña debe tener 8 caracteres, mayúscula, minúscula, número y símbolo.');
       return false;
     }
     if (formData.password !== formData.confirmPassword) {
@@ -291,7 +291,7 @@ export function RegistrarPersonalModal({ isOpen, onClose, onSuccess, token }: Re
                     name="password"
                     value={formData.password}
                     onChange={handleChange}
-                    placeholder="Mínimo 6 caracteres"
+                    placeholder="Mínimo 8 caracteres, con símbolo"
                     className="form-input"
                     required
                   />

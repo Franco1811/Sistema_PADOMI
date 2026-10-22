@@ -1,0 +1,414 @@
+# ==============================================================================
+# SISTEMA DE TELEMETRÍA Y GESTIÓN DE ALERTAS (PADOMI - ESSALUD)
+# BATERÍA DE PRUEBAS DE INTEGRACIÓN - SEMANA 10 (24 CASOS FORMALES)
+# ==============================================================================
+# Instrucciones:
+# 1. Ejecuta primero las peticiones 0.1 y 0.2 (Login) para generar los tokens JWT.
+# 2. Las siguientes peticiones consumen dinámicamente el token correspondiente
+#    mediante las variables {{loginAdmin.response.body.token}} y {{loginMedico.response.body.token}}.
+# 3. Cada caso corresponde exactamente a los IDs 1 al 24 de la Semana 09.
+# ==============================================================================
+
+@hostname = http://localhost:3000/api
+
+# Identificadores de soporte generados automáticamente o preconfigurados:
+@adminRaizId = d0a4d592-ee4f-4c23-9d27-7b1a53e4a28a
+@medicoRaizId = 99999999-9999-9999-9999-999999999999
+
+
+# ==============================================================================
+# PASO 0: AUTENTICACIÓN (GENERACIÓN DE TOKENS JWT)
+# ==============================================================================
+
+### 0.1 Iniciar Sesión como Administrador
+# @name loginAdmin
+POST {{hostname}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "admin.padomi@essalud.gob.pe",
+  "password": "admin_secreto"
+}
+
+### 0.2 Iniciar Sesión como Médico Tratante
+# @name loginMedico
+POST {{hostname}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "carlos.mendoza@essalud.gob.pe",
+  "password": "carlos_secreto"
+}
+
+
+# ==============================================================================
+# MÓDULO 01: CRUD DE PERSONAL MÉDICO Y ADMINISTRATIVO (CASOS 1 AL 6)
+# ==============================================================================
+
+### Prueba 01 (INT-01): Registrar Personal Médico Válido (Flujo Feliz)
+# Salida esperada: HTTP 201 Created (Genera código correlativo USU-XXXX)
+# @name caso01
+POST {{hostname}}/personal
+Content-Type: application/json
+Authorization: Bearer {{loginAdmin.response.body.token}}
+
+{
+  "dni": "70415264",
+  "nombre": "Franco Emerson",
+  "apellido": "Gonzalez Poma",
+  "email": "franco.gonzalez@essalud.gob.pe",
+  "password": "Medico2026@!",
+  "rol": "MEDICO",
+  "especialidad": "Geriatría"
+}
+
+### Prueba 02 (INT-02): Registrar Administrador Válido (Sin Especialidad)
+# Salida esperada: HTTP 201 Created (Admin creado sin requerir especialidad)
+POST {{hostname}}/personal
+Content-Type: application/json
+Authorization: Bearer {{loginAdmin.response.body.token}}
+
+{
+  "dni": "72839402",
+  "nombre": "Nicole Darlene",
+  "apellido": "Tito Huacho",
+  "email": "nicole.tito@essalud.gob.pe",
+  "password": "Admin2026@Root!",
+  "rol": "ADMIN"
+}
+
+### Prueba 03 (INT-03): Registrar Médico con Otra Especialidad (Cardiología)
+# Salida esperada: HTTP 201 Created
+POST {{hostname}}/personal
+Content-Type: application/json
+Authorization: Bearer {{loginAdmin.response.body.token}}
+
+{
+  "dni": "45812048",
+  "nombre": "Carlos Alberto",
+  "apellido": "Mendoza Ramos",
+  "email": "carlos.mendoza2@essalud.gob.pe",
+  "password": "Medico2026@!",
+  "rol": "MEDICO",
+  "especialidad": "Cardiología"
+}
+
+### Prueba 04 (INT-04): Rechazo por Múltiples Datos Inválidos
+# Entrada: DNI 7 dígitos, email comercial @gmail, clave débil '12345'
+# Salida esperada: HTTP 400 Bad Request
+POST {{hostname}}/personal
+Content-Type: application/json
+Authorization: Bearer {{loginAdmin.response.body.token}}
+
+{
+  "dni": "7041526",
+  "nombre": "Angelo",
+  "apellido": "Zavala",
+  "email": "angelo.zavala@gmail.com",
+  "password": "12345",
+  "rol": "MEDICO"
+}
+
+### Prueba 05 (INT-05): Rechazo por DNI Duplicado
+# Entrada: Reenvío con DNI '70415264' ya registrado en el Caso 01
+# Salida esperada: HTTP 400 Bad Request o HTTP 409 Conflict ("El DNI ya está registrado")
+POST {{hostname}}/personal
+Content-Type: application/json
+Authorization: Bearer {{loginAdmin.response.body.token}}
+
+{
+  "dni": "70415264",
+  "nombre": "Jesus",
+  "apellido": "Medina",
+  "email": "jesus.medina@essalud.gob.pe",
+  "password": "Medico2026@!",
+  "rol": "MEDICO",
+  "especialidad": "Geriatría"
+}
+
+### Prueba 06 (INT-06): Rechazo por Rol No Permitido en RBAC
+# Entrada: rol "ENFERMERO" (no autorizado en el sistema)
+# Salida esperada: HTTP 400 Bad Request ("Rol inválido")
+POST {{hostname}}/personal
+Content-Type: application/json
+Authorization: Bearer {{loginAdmin.response.body.token}}
+
+{
+  "dni": "88888881",
+  "nombre": "Laura",
+  "apellido": "Reyes",
+  "email": "laura.reyes@essalud.gob.pe",
+  "password": "Clave123@Safe",
+  "rol": "ENFERMERO"
+}
+
+
+# ==============================================================================
+# MÓDULO 02: CRUD DE PACIENTES CRÓNICOS (CASOS 7 AL 12)
+# ==============================================================================
+
+### Prueba 07 (INT-07): Registrar Paciente Crónico Válido (Flujo Feliz)
+# Salida esperada: HTTP 201 Created (Genera código PAC-0001)
+# @name caso07
+POST {{hostname}}/pacientes
+Content-Type: application/json
+Authorization: Bearer {{loginAdmin.response.body.token}}
+
+{
+  "dni": "10234567",
+  "nombres": "Humberto Morales Ruiz",
+  "edad": 78,
+  "diagnostico": "Hipertensión Crónica y EPOC",
+  "medicoAsignadoId": "{{loginMedico.response.body.usuario.id}}",
+  "telefono": "987654321",
+  "direccion": "Jr. Lampa 450 Lima"
+}
+
+### Prueba 08 (INT-08): Registrar Segundo Paciente Correlativo
+# Salida esperada: HTTP 201 Created (Genera código PAC-0002)
+# @name caso08
+POST {{hostname}}/pacientes
+Content-Type: application/json
+Authorization: Bearer {{loginAdmin.response.body.token}}
+
+{
+  "dni": "40556677",
+  "nombres": "Teresa Ramos Diaz",
+  "edad": 82,
+  "diagnostico": "Diabetes Mellitus Tipo 2",
+  "medicoAsignadoId": "{{loginMedico.response.body.usuario.id}}",
+  "telefono": "976543210",
+  "direccion": "Av. Arequipa 1230 Lince"
+}
+
+### Prueba 09 (INT-09): Rechazo por DNI de Paciente Duplicado
+# Entrada: Mismo DNI '10234567' del Caso 07
+# Salida esperada: HTTP 400 Bad Request ("Ya existe un paciente con ese DNI.")
+POST {{hostname}}/pacientes
+Content-Type: application/json
+Authorization: Bearer {{loginAdmin.response.body.token}}
+
+{
+  "dni": "10234567",
+  "nombres": "Carlos Quispe Silva",
+  "edad": 69,
+  "diagnostico": "Cardiopatía Isquémica",
+  "medicoAsignadoId": "{{loginMedico.response.body.usuario.id}}",
+  "telefono": "999888777"
+}
+
+### Prueba 10 (INT-10): Rechazo por Múltiples Valores Límite Inválidos
+# Entrada: DNI 7 dígitos, nombre corto 'A', edad negativa -3
+# Salida esperada: HTTP 400 Bad Request
+POST {{hostname}}/pacientes
+Content-Type: application/json
+Authorization: Bearer {{loginAdmin.response.body.token}}
+
+{
+  "dni": "1023456",
+  "nombres": "A",
+  "edad": -3,
+  "diagnostico": "HTA",
+  "medicoAsignadoId": "{{loginMedico.response.body.usuario.id}}",
+  "telefono": "48765432"
+}
+
+### Prueba 11 (INT-11): Rechazo por Asignar a Usuario con Rol ADMIN
+# Entrada: Asignar como médico al ID del usuario Administrador
+# Salida esperada: HTTP 400 Bad Request ("El usuario asignado debe tener el rol de MEDICO.")
+POST {{hostname}}/pacientes
+Content-Type: application/json
+Authorization: Bearer {{loginAdmin.response.body.token}}
+
+{
+  "dni": "71239845",
+  "nombres": "Jorge Benitez Paz",
+  "edad": 74,
+  "diagnostico": "Arritmia Cardíaca",
+  "medicoAsignadoId": "{{loginAdmin.response.body.usuario.id}}",
+  "telefono": "991223344"
+}
+
+### Prueba 12 (INT-12): Rechazo por Asignación a Médico Inexistente
+# Entrada: UUID aleatorio que no existe en la base de datos
+# Salida esperada: HTTP 400 Bad Request ("El médico asignado no existe.")
+POST {{hostname}}/pacientes
+Content-Type: application/json
+Authorization: Bearer {{loginAdmin.response.body.token}}
+
+{
+  "dni": "73456712",
+  "nombres": "Rosa Flores Soto",
+  "edad": 88,
+  "diagnostico": "Insuficiencia Renal",
+  "medicoAsignadoId": "a0000000-0000-0000-0000-000000000000",
+  "telefono": "912345678"
+}
+
+
+# ==============================================================================
+# MÓDULO 03: CRUD DE CATÁLOGO DE MÉTRICAS Y UMBRALES (CASOS 13 AL 18)
+# ==============================================================================
+
+### Prueba 13 (INT-13): Crear Métrica Temperatura Corporal en Catálogo
+# Salida esperada: HTTP 201 Created (Rango normal: 36.0 - 37.5 °C)
+# @name caso13
+POST {{hostname}}/metricas
+Content-Type: application/json
+Authorization: Bearer {{loginAdmin.response.body.token}}
+
+{
+  "nombre": "Temperatura Corporal",
+  "unidad": "°C",
+  "descripcion": "Temperatura corporal del paciente",
+  "rangoMin": 36.0,
+  "rangoMax": 37.5
+}
+
+### Prueba 14 (INT-14): Crear Métrica Frecuencia Cardíaca
+# Salida esperada: HTTP 201 Created (Rango normal: 60.0 - 100.0 bpm)
+POST {{hostname}}/metricas
+Content-Type: application/json
+Authorization: Bearer {{loginAdmin.response.body.token}}
+
+{
+  "nombre": "Frecuencia Cardíaca",
+  "unidad": "bpm",
+  "descripcion": "Pulsaciones por minuto",
+  "rangoMin": 60.0,
+  "rangoMax": 100.0
+}
+
+### Prueba 15 (INT-15): Crear Métrica Saturación de Oxígeno (SpO2)
+# Salida esperada: HTTP 201 Created (Rango normal: 95.0 - 100.0 %)
+POST {{hostname}}/metricas
+Content-Type: application/json
+Authorization: Bearer {{loginAdmin.response.body.token}}
+
+{
+  "nombre": "Saturación de Oxígeno",
+  "unidad": "%",
+  "descripcion": "Porcentaje de saturación SpO2 por oxímetro de pulso",
+  "rangoMin": 95.0,
+  "rangoMax": 100.0
+}
+
+### Prueba 16 (INT-16): Bloqueo por Incoherencia Numérica (Min >= Max)
+# Entrada: rangoMin: 100.0, rangoMax: 60.0 (Violación RNF-11)
+# Salida esperada: HTTP 400 Bad Request ("El rango máximo debe ser mayor al mínimo")
+POST {{hostname}}/metricas
+Content-Type: application/json
+Authorization: Bearer {{loginAdmin.response.body.token}}
+
+{
+  "nombre": "Presión Sistólica Error",
+  "unidad": "mmHg",
+  "rangoMin": 140.0,
+  "rangoMax": 90.0
+}
+
+### Prueba 17 (INT-17): Rechazo por Rango Mínimo Negativo
+# Entrada: rangoMin: -5.0
+# Salida esperada: HTTP 400 Bad Request ("El rango mínimo debe ser positivo")
+POST {{hostname}}/metricas
+Content-Type: application/json
+Authorization: Bearer {{loginAdmin.response.body.token}}
+
+{
+  "nombre": "Temperatura Invalida Negativa",
+  "unidad": "°C",
+  "rangoMin": -5.0,
+  "rangoMax": 40.0
+}
+
+### Prueba 18 (INT-18): Rechazo por Falta de Privilegios (Médico Intenta Crear Métrica)
+# Entrada: Petición con Token de Médico tratante
+# Salida esperada: HTTP 403 Forbidden ("Acceso no autorizado")
+POST {{hostname}}/metricas
+Content-Type: application/json
+Authorization: Bearer {{loginMedico.response.body.token}}
+
+{
+  "nombre": "Métrica No Autorizada",
+  "unidad": "mg/dL",
+  "rangoMin": 70.0,
+  "rangoMax": 110.0
+}
+
+
+# ==============================================================================
+# MÓDULO 04: CRUD DE TELEMETRÍA IOT Y ALERTAS CLÍNICAS (CASOS 19 AL 24)
+# ==============================================================================
+
+### Prueba 19 (INT-19): Ingesta Telemétrica NORMAL (Color Verde)
+# Entrada: 36.6 °C (dentro de 36.0 y 37.5)
+# Salida esperada: HTTP 201 Created (Severidad: NORMAL, sin alerta)
+POST {{hostname}}/ingesta
+Content-Type: application/json
+
+{
+  "pacienteId": "{{caso07.response.body.id}}",
+  "metricaId": "{{caso13.response.body.id}}",
+  "valor": 36.6
+}
+
+### Prueba 20 (INT-20): Ingesta Telemétrica con Desvío Leve -> ADVERTENCIA (Color Amarillo)
+# Entrada: 37.9 °C (desvío leve <= 10%)
+# Salida esperada: HTTP 201 Created (Severidad: ADVERTENCIA)
+POST {{hostname}}/ingesta
+Content-Type: application/json
+
+{
+  "pacienteId": "{{caso07.response.body.id}}",
+  "metricaId": "{{caso13.response.body.id}}",
+  "valor": 37.9
+}
+
+### Prueba 21 (INT-21): Ingesta Telemétrica Severa -> CRÍTICO (Color Rojo + Alerta)
+# Entrada: 39.4 °C (Fiebre severa > 10% desvío)
+# Salida esperada: HTTP 201 Created (Severidad: CRITICO, dispara alerta en tiempo real)
+# @name caso21
+POST {{hostname}}/ingesta
+Content-Type: application/json
+
+{
+  "pacienteId": "{{caso07.response.body.id}}",
+  "metricaId": "{{caso13.response.body.id}}",
+  "valor": 39.4
+}
+
+### Prueba 22 (INT-22): Descarte de Paquete de Paciente Inexistente (RF-10)
+# Entrada: UUID de paciente inexistente
+# Salida esperada: HTTP 400 Bad Request ("El paciente especificado no existe.")
+POST {{hostname}}/ingesta
+Content-Type: application/json
+
+{
+  "pacienteId": "b0000000-0000-0000-0000-000000000000",
+  "metricaId": "{{caso13.response.body.id}}",
+  "valor": 38.0
+}
+
+### Prueba 23 (INT-23): Descarte por Métrica No Existente en Catálogo
+# Entrada: UUID de métrica inexistente
+# Salida esperada: HTTP 400 Bad Request ("La métrica especificada no existe.")
+POST {{hostname}}/ingesta
+Content-Type: application/json
+
+{
+  "pacienteId": "{{caso07.response.body.id}}",
+  "metricaId": "c0000000-0000-0000-0000-000000000000",
+  "valor": 38.5
+}
+
+### Prueba 24 (INT-24): Atender Alerta Médica Crítica (CU-07)
+# Salida esperada: HTTP 200 OK ("Alerta gestionada exitosamente")
+POST {{hostname}}/alertas/{{caso21.response.body.alerta.id}}/atender
+Content-Type: application/json
+Authorization: Bearer {{loginMedico.response.body.token}}
+
+{
+  "medicoId": "{{loginMedico.response.body.usuario.id}}",
+  "resumen": "Paciente contactado telefónicamente. Se prescribe antipirético y control en 2 horas.",
+  "recomendaciones": "Monitoreo continuo de temperatura y baño tibio asistido."
+}

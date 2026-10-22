@@ -58,8 +58,10 @@ export class PersonalController {
         nombre: req.body.nombre,
         apellido: req.body.apellido,
         email: req.body.email,
+        password: req.body.password,
         rol: req.body.rol,
-        especialidad: req.body.especialidad
+        especialidad: req.body.especialidad,
+        activo: req.body.activo
       };
 
       const usuario = await this.service.actualizarPersonal(idStr, dto);

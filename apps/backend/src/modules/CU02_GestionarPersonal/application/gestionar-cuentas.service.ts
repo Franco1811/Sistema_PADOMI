@@ -8,12 +8,19 @@ import { RegistroPersonalDto } from './registro-personal.dto';
 import * as bcrypt from 'bcrypt';
 import { AppDataSource } from '../../../../../../shared/infrastructure/data-source';
 import { EspecialidadModel } from '../../../../../../shared/infrastructure/models/especialidad.model';
+import { IPacienteRepository } from '../../../../../../shared/domain/interface/paciente.interface';
 
 export class GestionarCuentasService {
   private usuarioRepository: IUsuarioRepository;
+  private pacienteRepository: IPacienteRepository;
 
-  constructor() {
-    this.usuarioRepository = repositoryFactory.getUsuarioRepository();
+  constructor(
+    usuarioRepository?: IUsuarioRepository,
+    pacienteRepository?: IPacienteRepository,
+    private findEspecialidad?: (nombre: string) => Promise<Especialidad | null>
+  ) {
+    this.usuarioRepository = usuarioRepository || repositoryFactory.getUsuarioRepository();
+    this.pacienteRepository = pacienteRepository || repositoryFactory.getPacienteRepository();
   }
 
   async crearPersonal(dto: RegistroPersonalDto): Promise<Usuario> {
@@ -38,16 +45,7 @@ export class GestionarCuentasService {
     // Buscar especialidad en la base de datos
     let espObj: Especialidad | undefined = undefined;
     if (dto.especialidad) {
-      const especialidadRepository = AppDataSource.getRepository(EspecialidadModel);
-      const especialidadEncontrada = await especialidadRepository.findOne({
-        where: { nombre: dto.especialidad }
-      });
-      
-      if (especialidadEncontrada) {
-        espObj = new Especialidad(especialidadEncontrada.id, especialidadEncontrada.nombre);
-      } else {
-        throw new Error(`Especialidad "${dto.especialidad}" no encontrada en la base de datos`);
-      }
+      espObj = await this.resolverEspecialidad(dto.especialidad);
     }
 
     const usuario = new UsuarioBuilder()
@@ -76,6 +74,14 @@ export class GestionarCuentasService {
       throw new Error("Usuario no encontrado");
     }
 
+    if (dto.nombre !== undefined) RegistroPersonalDto.validarNombre(dto.nombre, 'Nombre');
+    if (dto.apellido !== undefined) RegistroPersonalDto.validarNombre(dto.apellido, 'Apellido');
+    if (dto.email !== undefined) RegistroPersonalDto.validarEmail(dto.email);
+    if (dto.password !== undefined) RegistroPersonalDto.validarPassword(dto.password);
+    if (dto.rol !== undefined && !['MEDICO', 'ADMIN'].includes(dto.rol)) {
+      throw new Error('Rol inválido');
+    }
+
     if (dto.email && dto.email !== usuario.email) {
       const existeEmail = await this.usuarioRepository.buscarPorEmail(dto.email);
       if (existeEmail) {
@@ -87,19 +93,14 @@ export class GestionarCuentasService {
     const apellido = dto.apellido || usuario.apellido;
     const email = dto.email || usuario.email;
     const rol = dto.rol ? new Rol(dto.rol === 'ADMIN' ? 1 : 2, dto.rol) : usuario.rol;
+    const passwordHash = dto.password
+      ? await bcrypt.hash(dto.password, 10)
+      : usuario.passwordHash;
     
     let especialidad: Especialidad | undefined = usuario.especialidad;
     if (dto.especialidad !== undefined) {
       if (dto.especialidad) {
-        const especialidadRepository = AppDataSource.getRepository(EspecialidadModel);
-        const especialidadEncontrada = await especialidadRepository.findOne({
-          where: { nombre: dto.especialidad }
-        });
-        
-        if (!especialidadEncontrada) {
-          throw new Error(`Especialidad "${dto.especialidad}" no encontrada`);
-        }
-        especialidad = new Especialidad(especialidadEncontrada.id, especialidadEncontrada.nombre);
+        especialidad = await this.resolverEspecialidad(dto.especialidad);
       } else {
         especialidad = undefined;
       }
@@ -109,8 +110,10 @@ export class GestionarCuentasService {
       nombre,
       apellido,
       email,
+      passwordHash,
       rol,
-      especialidad
+      especialidad,
+      ...(dto.activo !== undefined ? { activo: dto.activo } : {})
     });
 
     return await this.usuarioRepository.actualizar(usuarioActualizado);
@@ -134,10 +137,41 @@ export class GestionarCuentasService {
       }
     }
 
+    if (usuario.rol.nombre === 'MEDICO') {
+      const pacientesAsignados = await this.pacienteRepository.contarPorMedicoAsignado(id);
+      if (pacientesAsignados > 0) {
+        throw new Error('No se puede deshabilitar al médico porque tiene pacientes vigentes asignados');
+      }
+    }
+
     const usuarioDeshabilitado = usuario.clone({
       activo: false
     });
 
     return await this.usuarioRepository.actualizar(usuarioDeshabilitado);
+  }
+
+  private async resolverEspecialidad(nombre: string): Promise<Especialidad> {
+    if (this.findEspecialidad) {
+      const esp = await this.findEspecialidad(nombre);
+      if (!esp) {
+        throw new Error(`Especialidad "${nombre}" no encontrada en la base de datos`);
+      }
+      return esp;
+    }
+
+    if (AppDataSource.isInitialized) {
+      const especialidadRepository = AppDataSource.getRepository(EspecialidadModel);
+      const especialidadEncontrada = await especialidadRepository.findOne({
+        where: { nombre }
+      });
+      if (especialidadEncontrada) {
+        return new Especialidad(especialidadEncontrada.id, especialidadEncontrada.nombre);
+      } else {
+        throw new Error(`Especialidad "${nombre}" no encontrada en la base de datos`);
+      }
+    }
+
+    return new Especialidad(1, nombre);
   }
 }

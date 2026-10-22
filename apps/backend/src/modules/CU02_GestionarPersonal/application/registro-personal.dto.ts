@@ -9,23 +9,34 @@ export class RegistroPersonalDto {
   password!: string;
   rol!: 'MEDICO' | 'ADMIN';
   especialidad?: string;
+  activo?: boolean;
+
+  static validarNombre(valor: string | undefined, campo: string): void {
+    if (!valor || !/^[\p{L}]+(?:[ '\u002D][\p{L}]+)*$/u.test(valor.trim())) {
+      throw new Error(`${campo} inválido. Solo se permiten letras, espacios, apóstrofes y guiones`);
+    }
+  }
+
+  static validarEmail(valor: string | undefined): void {
+    if (!valor || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(valor.trim())) {
+      throw new Error('Email institucional inválido');
+    }
+  }
+
+  static validarPassword(valor: string | undefined): void {
+    if (!valor || valor.length < 8 || !/[a-z]/.test(valor) || !/[A-Z]/.test(valor) || !/\d/.test(valor) || !/[^\w\s]/.test(valor)) {
+      throw new Error('La contraseña debe tener al menos 8 caracteres, mayúscula, minúscula, número y símbolo');
+    }
+  }
 
   validar(): void {
     if (!this.dni || !/^\d{8}$/.test(this.dni)) {
       throw new Error("DNI inválido");
     }
-    if (!this.nombre || this.nombre.length < 2) {
-      throw new Error("Nombre inválido");
-    }
-    if (!this.apellido || this.apellido.length < 2) {
-      throw new Error("Apellido inválido");
-    }
-    if (!this.email || !this.email.includes('@')) {
-      throw new Error("Email institucional inválido");
-    }
-    if (!this.password || this.password.length < 6) {
-      throw new Error("La contraseña debe tener al menos 6 caracteres");
-    }
+    RegistroPersonalDto.validarNombre(this.nombre, 'Nombre');
+    RegistroPersonalDto.validarNombre(this.apellido, 'Apellido');
+    RegistroPersonalDto.validarEmail(this.email);
+    RegistroPersonalDto.validarPassword(this.password);
     if (!this.rol || !['MEDICO', 'ADMIN'].includes(this.rol)) {
       throw new Error("Rol inválido");
     }

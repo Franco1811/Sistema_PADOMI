@@ -3,7 +3,9 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "dev": "ts-node src/server.ts"
+    "dev": "ts-node src/server.ts",
+    "test": "ts-node src/modules/CU02_GestionarPersonal/application/ejecutar-pruebas.ts",
+    "test:depuracion": "ts-node src/modules/CU02_GestionarPersonal/application/ejecutar-depuracion.ts"
   },
   "dependencies": {
     "bcrypt": "^6.0.0",

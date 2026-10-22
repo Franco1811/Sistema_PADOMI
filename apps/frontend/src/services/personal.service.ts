@@ -26,6 +26,7 @@ export interface CrearPersonalInput {
   password?: string;
   rol: string; // 'ADMIN' o 'MEDICO'
   especialidad?: string; // e.g., 'Geriatría'
+  activo?: boolean;
 }
 
 export const PersonalService = {

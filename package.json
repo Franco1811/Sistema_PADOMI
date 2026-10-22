@@ -11,6 +11,9 @@
 		"dev:backend": "pnpm --filter backend dev",
 		"dev:frontend": "pnpm --filter frontend dev",
 		"dev:functions": "pnpm --filter ingesta-biometrica-function start",
-		"dev": "concurrently \"pnpm dev:backend\" \"pnpm dev:frontend\" \"pnpm dev:functions\""
+		"dev": "concurrently \"pnpm dev:backend\" \"pnpm dev:frontend\" \"pnpm dev:functions\"",
+		"test": "pnpm --filter backend test",
+		"test:backend": "pnpm --filter backend test",
+		"test:depuracion": "pnpm --filter backend test:depuracion"
 	}
 }

@@ -6,6 +6,7 @@ import {
   Plus, 
   Edit, 
   UserX, 
+  UserCheck,
   Trash2, 
   Check, 
   AlertCircle,
@@ -67,7 +68,7 @@ export function AdminView({ usuario, token, onLogout }: AdminViewProps) {
   const [pacienteSeleccionadoId, setPacienteSeleccionadoId] = useState<string | null>(null);
   
   const [confirmAction, setConfirmAction] = useState<{
-    type: 'eliminarPersonal' | 'eliminarMetrica' | 'eliminarPaciente' | 'deshabilitarPersonal';
+    type: 'eliminarPersonal' | 'eliminarMetrica' | 'eliminarPaciente' | 'deshabilitarPersonal' | 'habilitarPersonal';
     id?: string;
     nombre?: string;
   } | null>(null);
@@ -152,6 +153,15 @@ export function AdminView({ usuario, token, onLogout }: AdminViewProps) {
     setShowConfirmModal(true);
   };
 
+  const handleHabilitarPersonal = (id: string, nombre: string) => {
+    setConfirmAction({
+      type: 'habilitarPersonal',
+      id,
+      nombre
+    });
+    setShowConfirmModal(true);
+  };
+
   const handleRegistroExitoso = () => {
     mostrarMensajeTemporal('exito', 'Personal registrado correctamente.');
     cargarDatos();
@@ -219,6 +229,10 @@ export function AdminView({ usuario, token, onLogout }: AdminViewProps) {
       if (confirmAction.type === 'deshabilitarPersonal' && confirmAction.id) {
         await PersonalService.deshabilitar(confirmAction.id, token);
         mostrarMensajeTemporal('exito', 'Personal deshabilitado correctamente.');
+        cargarDatos();
+      } else if (confirmAction.type === 'habilitarPersonal' && confirmAction.id) {
+        await PersonalService.actualizar(confirmAction.id, { activo: true }, token);
+        mostrarMensajeTemporal('exito', 'Personal habilitado correctamente.');
         cargarDatos();
       } else if (confirmAction.type === 'eliminarMetrica' && confirmAction.id) {
         await MetricasService.eliminar(confirmAction.id, token);
@@ -482,6 +496,15 @@ export function AdminView({ usuario, token, onLogout }: AdminViewProps) {
                                   title="Deshabilitar Cuenta"
                                 >
                                   <UserX size={16} />
+                                </button>
+                              )}
+                              {!p.activo && (
+                                <button 
+                                  onClick={() => handleHabilitarPersonal(p.id, `${p.nombre} ${p.apellido}`)}
+                                  style={{ background: 'transparent', border: 'none', color: '#10b981', cursor: 'pointer', padding: '0.25rem' }}
+                                  title="Habilitar Cuenta"
+                                >
+                                  <UserCheck size={16} />
                                 </button>
                               )}
                             </div>
@@ -761,16 +784,26 @@ export function AdminView({ usuario, token, onLogout }: AdminViewProps) {
         title={
           confirmAction?.type === 'eliminarMetrica' 
             ? 'Eliminar Métrica' 
-            : 'Deshabilitar Personal'
+            : confirmAction?.type === 'habilitarPersonal'
+              ? 'Habilitar Personal'
+              : 'Deshabilitar Personal'
         }
         message={
           confirmAction?.type === 'eliminarMetrica'
             ? `¿Está seguro de eliminar la métrica "${confirmAction?.nombre}"? Esta acción no se puede deshacer.`
-            : `¿Está seguro de deshabilitar a "${confirmAction?.nombre}"? El usuario no podrá acceder al sistema.`
+            : confirmAction?.type === 'habilitarPersonal'
+              ? `¿Está seguro de habilitar a "${confirmAction?.nombre}"? El usuario podrá volver a acceder al sistema.`
+              : `¿Está seguro de deshabilitar a "${confirmAction?.nombre}"? El usuario no podrá acceder al sistema.`
         }
-        confirmText={confirmAction?.type === 'eliminarMetrica' ? 'Eliminar' : 'Deshabilitar'}
+        confirmText={
+          confirmAction?.type === 'eliminarMetrica'
+            ? 'Eliminar'
+            : confirmAction?.type === 'habilitarPersonal'
+              ? 'Habilitar'
+              : 'Deshabilitar'
+        }
         cancelText="Cancelar"
-        type="danger"
+        type={confirmAction?.type === 'habilitarPersonal' ? 'info' : 'danger'}
       />
     </div>
   );
