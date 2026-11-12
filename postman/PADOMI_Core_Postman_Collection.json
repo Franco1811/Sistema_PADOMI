@@ -1,0 +1,837 @@
+{
+  "info": {
+    "_postman_id": "8f9d2b1a-4c3e-4d5a-9b1c-7e6f5a4d3c2b",
+    "name": "PADOMI EsSalud - Suite Automatizada CORE Clínico y Telemetría IoT (TC3)",
+    "description": "Suite de pruebas automatizadas enfocada en el CORE de negocio del Sistema de Telemetría y Gestión de Alertas para Salud Crítica (PADOMI - EsSalud).\n\nCubre:\n1. Paso 0 (Setup Silencioso): Obtención de tokens JWT (Admin y Médico).\n2. CORE MÓDULO 1 (CU-03): Parametrización de Umbrales y Catálogo de Métricas Clínicas (Fronteras matemáticas RNF-11: rangoMin < rangoMax, valores negativos y RBAC).\n3. CORE MÓDULO 2 (CU-04): Registro de Pacientes Crónicos y Reglas de Asignación Médica (Integridad de rol MEDICO, unicidad de DNI y valores límite).\n4. CORE MÓDULO 3 (CU-08 y CU-09): Ingesta Biométrica IoT Serverless y Motor de Reglas Clínicas Event-Driven (Triaje Crítico/Rojo, Advertencia/Amarillo, Normal/Verde y rechazo de valores biológicos negativos).\n5. CORE MÓDULO 4 (CU-07): Atención de Emergencia Médica y Control Transaccional de Colisiones / Condición de Carrera (ACID HTTP 409 Conflict - RNF-06).",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000/api",
+      "type": "string"
+    },
+    {
+      "key": "adminToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "medicoToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "adminId",
+      "value": "D0A4D592-EE4F-4C23-9D27-7B1A53E4A28A",
+      "type": "string"
+    },
+    {
+      "key": "medicoId",
+      "value": "99999999-9999-9999-9999-999999999999",
+      "type": "string"
+    },
+    {
+      "key": "metricaCoreId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "pacienteCoreId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "dniPacienteCore",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "lecturaCriticaId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "alertaCriticaId",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "00. Setup Silencioso (Tokens de Contexto)",
+      "item": [
+        {
+          "name": "0.1 Contexto Token Admin (Pre-condición)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Pre-condición: Token JWT de Administrador generado', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('token');",
+                  "    pm.collectionVariables.set('adminToken', jsonData.token);",
+                  "    if (jsonData.usuario && jsonData.usuario.id) {",
+                  "        pm.collectionVariables.set('adminId', jsonData.usuario.id);",
+                  "    }",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin.padomi@essalud.gob.pe\",\n  \"password\": \"admin_secreto\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "0.2 Contexto Token Médico Tratante (Pre-condición)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Pre-condición: Token JWT de Médico Tratante generado', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('token');",
+                  "    pm.collectionVariables.set('medicoToken', jsonData.token);",
+                  "    if (jsonData.usuario && jsonData.usuario.id) {",
+                  "        pm.collectionVariables.set('medicoId', jsonData.usuario.id);",
+                  "    }",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"carlos.mendoza@essalud.gob.pe\",\n  \"password\": \"carlos_secreto\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "01. CORE: Catálogo de Métricas y Umbrales Clínicos (CU-03)",
+      "item": [
+        {
+          "name": "CORE-01 (CP-INT-13): Registrar Métrica Clínica Temperatura Corporal (36.0 - 37.5 °C)",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "const suffix = Math.floor(1000 + Math.random() * 9000);",
+                  "pm.collectionVariables.set('nombreMetricaTemp', 'Temperatura Corporal IoT ' + suffix);"
+                ],
+                "type": "text/javascript"
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('HTTP 201 Created: Métrica clínica creada en catálogo', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "pm.test('Regla de Dominio CU-03: Genera código correlativo MET-XXXX y respeta umbral [36.0 - 37.5]', function () {",
+                  "    const data = pm.response.json();",
+                  "    pm.expect(data).to.have.property('id');",
+                  "    pm.expect(data.codigo).to.match(/^MET-\\d{4}$/);",
+                  "    pm.expect(data.rangoMin).to.eql(36);",
+                  "    pm.expect(data.rangoMax).to.eql(37.5);",
+                  "    pm.collectionVariables.set('metricaCoreId', data.id);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"{{nombreMetricaTemp}}\",\n  \"unidad\": \"°C\",\n  \"descripcion\": \"Temperatura corporal monitoreada por sensor IoT PADOMI\",\n  \"rangoMin\": 36.0,\n  \"rangoMax\": 37.5\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/metricas",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "metricas"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "CORE-02 (CP-INT-16): Bloqueo de Umbral Clínico Incoherente (rangoMin >= rangoMax - RNF-11)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('HTTP 400 Bad Request: Bloquea inversión de umbrales clínicos (Min 140 >= Max 90)', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "pm.test('Regla Matemática RNF-11: Mensaje informa incoherencia de rango máximo vs mínimo', function () {",
+                  "    const data = pm.response.json();",
+                  "    pm.expect(data).to.have.property('error');",
+                  "    pm.expect(data.error.toLowerCase()).to.include('rango');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Presión Sistólica Invertida\",\n  \"unidad\": \"mmHg\",\n  \"descripcion\": \"Intento con umbral mínimo mayor al máximo\",\n  \"rangoMin\": 140.0,\n  \"rangoMax\": 90.0\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/metricas",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "metricas"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "CORE-03 (CP-INT-17): Bloqueo de Umbral Biológico Negativo (rangoMin < 0)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('HTTP 400 Bad Request: Rechaza parámetro biométrico negativo (-5.0 °C)', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "pm.test('Validación de Frontera Clínica: Exige valores positivos', function () {",
+                  "    const data = pm.response.json();",
+                  "    pm.expect(data).to.have.property('error');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Temperatura Inválida Negativa\",\n  \"unidad\": \"°C\",\n  \"rangoMin\": -5.0,\n  \"rangoMax\": 40.0\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/metricas",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "metricas"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "02. CORE: Gestión de Pacientes Crónicos y Asignación Médica (CU-04)",
+      "item": [
+        {
+          "name": "CORE-04 (CP-INT-07): Alta de Paciente Crónico PADOMI y Asignación a Médico Tratante",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "const randomDni = String(Math.floor(10000000 + Math.random() * 89999999));",
+                  "pm.collectionVariables.set('dniPacienteCore', randomDni);"
+                ],
+                "type": "text/javascript"
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('HTTP 201 Created: Paciente crónico registrado exitosamente', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "pm.test('Regla de Negocio CU-04: Genera código PAC-XXXX y vincula médico tratante', function () {",
+                  "    const data = pm.response.json();",
+                  "    pm.expect(data).to.have.property('id');",
+                  "    pm.expect(data.codigo).to.match(/^PAC-\\d{4}$/);",
+                  "    pm.expect(data.dni).to.eql(pm.collectionVariables.get('dniPacienteCore'));",
+                  "    pm.collectionVariables.set('pacienteCoreId', data.id);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"dni\": \"{{dniPacienteCore}}\",\n  \"nombres\": \"Humberto Morales Ruiz\",\n  \"edad\": 78,\n  \"diagnostico\": \"Hipertensión Crónica Severa y EPOC\",\n  \"medicoAsignadoId\": \"{{medicoId}}\",\n  \"telefono\": \"987654321\",\n  \"direccion\": \"Jr. Lampa 450 Cercado de Lima\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/pacientes",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "pacientes"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "CORE-05 (CP-INT-09): Bloqueo de Duplicidad de Historial Clínico por DNI",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('HTTP 400 Bad Request: Impide duplicar paciente con mismo DNI', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "pm.test('Integridad Clínica: Devuelve mensaje de DNI duplicado', function () {",
+                  "    const data = pm.response.json();",
+                  "    pm.expect(data).to.have.property('error');",
+                  "    pm.expect(data.error.toLowerCase()).to.include('dni');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"dni\": \"{{dniPacienteCore}}\",\n  \"nombres\": \"Paciente Duplicado Prueba\",\n  \"edad\": 69,\n  \"diagnostico\": \"Cardiopatía Isquémica\",\n  \"medicoAsignadoId\": \"{{medicoId}}\",\n  \"telefono\": \"999888777\",\n  \"direccion\": \"Av. Arequipa 1200\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/pacientes",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "pacientes"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "CORE-06 (CP-INT-11): Bloqueo por Asignar Paciente a Personal sin Rol MEDICO (Admin)",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "const randomDni2 = String(Math.floor(10000000 + Math.random() * 89999999));",
+                  "pm.collectionVariables.set('dniPacienteTemp', randomDni2);"
+                ],
+                "type": "text/javascript"
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('HTTP 400 Bad Request: Rechaza asignar paciente crónico a un usuario ADMIN', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "pm.test('Regla de Negocio Médica: Exige rol MEDICO para monitoreo clínico', function () {",
+                  "    const data = pm.response.json();",
+                  "    pm.expect(data).to.have.property('error');",
+                  "    pm.expect(data.error.toUpperCase()).to.include('MEDICO');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"dni\": \"{{dniPacienteTemp}}\",\n  \"nombres\": \"Jorge Benitez Paz\",\n  \"edad\": 74,\n  \"diagnostico\": \"Arritmia Cardíaca\",\n  \"medicoAsignadoId\": \"{{adminId}}\",\n  \"telefono\": \"991223344\",\n  \"direccion\": \"Av. Brasil 890\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/pacientes",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "pacientes"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "03. CORE: Ingesta Biométrica IoT y Motor de Reglas de Triaje (CU-08 / CU-09)",
+      "item": [
+        {
+          "name": "CORE-07 (CP-INT-21): Ingesta Biométrica IoT Severa >10% (41.8 °C -> CRÍTICO Rojo + Disparo de Alerta)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('HTTP 201 Created: Lectura crítica de hipertermia severa (41.8 °C > margen 10%) recibida', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "pm.test('Event-Driven CU-09: Retorna lectura LEC-XXXX sin bloquear al dispositivo IoT', function () {",
+                  "    const data = pm.response.json();",
+                  "    pm.expect(data).to.have.property('id');",
+                  "    pm.expect(data.valor).to.eql(41.8);",
+                  "    pm.collectionVariables.set('lecturaCriticaId', data.id);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"pacienteId\": \"{{pacienteCoreId}}\",\n  \"metricaId\": \"{{metricaCoreId}}\",\n  \"valor\": 41.8\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/ingesta",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "ingesta"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "CORE-08 (CP-INT-20): Ingesta Biométrica IoT con Desvío Leve <=10% (37.9 °C -> ADVERTENCIA Amarillo)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('HTTP 201 Created: Lectura con desvío leve registrada', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "pm.test('Dominio CU-08: Registra valor 37.9 °C y dispara evento al Motor de Reglas', function () {",
+                  "    const data = pm.response.json();",
+                  "    pm.expect(data.valor).to.eql(37.9);",
+                  "    pm.expect(data.pacienteId).to.eql(pm.collectionVariables.get('pacienteCoreId'));",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"pacienteId\": \"{{pacienteCoreId}}\",\n  \"metricaId\": \"{{metricaCoreId}}\",\n  \"valor\": 37.9\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/ingesta",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "ingesta"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "CORE-09 (CP-INT-19): Ingesta Biométrica IoT NORMAL (36.6 °C -> Triaje Verde)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('HTTP 201 Created: Lectura biométrica IoT procesada', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "pm.test('Rendimiento RNF-10: Respuesta asíncrona de ingesta IoT rápida', function () {",
+                  "    pm.expect(pm.response.responseTime).to.be.below(2000);",
+                  "});",
+                  "pm.test('Dominio CU-08: Genera código LEC-XXXX con valor normal 36.6 °C', function () {",
+                  "    const data = pm.response.json();",
+                  "    pm.expect(data.codigo).to.match(/^LEC-\\d{4}$/);",
+                  "    pm.expect(data.valor).to.eql(36.6);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"pacienteId\": \"{{pacienteCoreId}}\",\n  \"metricaId\": \"{{metricaCoreId}}\",\n  \"valor\": 36.6\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/ingesta",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "ingesta"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "CORE-10 (Frontera Sensor IoT): Rechazo de Lectura Biométrica Negativa por Falla de Sensor (-12.5 °C)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('HTTP 400 Bad Request: Descarta paquete IoT con valor negativo biológicamente imposible', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "pm.test('Entidad de Dominio Lectura: Protege la base de datos de lecturas corruptas', function () {",
+                  "    const data = pm.response.json();",
+                  "    pm.expect(data).to.have.property('error');",
+                  "    pm.expect(data.error.toLowerCase()).to.include('positivo');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"pacienteId\": \"{{pacienteCoreId}}\",\n  \"metricaId\": \"{{metricaCoreId}}\",\n  \"valor\": -12.5\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/ingesta",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "ingesta"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "04. CORE: Triaje de Emergencias y Prevención de Condición de Carrera (CU-07)",
+      "item": [
+        {
+          "name": "CORE-11 (Verificación Motor CU-09): Confirmar Generación Automática de Alerta CRÍTICA y ADVERTENCIA",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "// Esperamos 1.5s para que el bus de eventos asíncrono termine de persistir en Supabase",
+                  "setTimeout(function(){}, 1500);"
+                ],
+                "type": "text/javascript"
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('HTTP 200 OK: Historial de alertas del paciente recuperado', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test('Motor de Reglas CU-09: Clasificó correctamente las lecturas en CRITICO y ADVERTENCIA', function () {",
+                  "    const alertas = pm.response.json();",
+                  "    pm.expect(alertas).to.be.an('array');",
+                  "    pm.expect(alertas.length).to.be.at.least(2);",
+                  "    const alertaCritica = alertas.find(a => a.severidad === 'CRITICO' && a.atendida === false);",
+                  "    const alertaAdvertencia = alertas.find(a => a.severidad === 'ADVERTENCIA');",
+                  "    pm.expect(alertaCritica, 'Debe existir la alerta CRITICO generada por 41.8 °C').to.not.be.undefined;",
+                  "    pm.expect(alertaAdvertencia, 'Debe existir la alerta ADVERTENCIA generada por 37.9 °C').to.not.be.undefined;",
+                  "    pm.collectionVariables.set('alertaCriticaId', alertaCritica.id);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{medicoToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/alertas/paciente/{{pacienteCoreId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "alertas",
+                "paciente",
+                "{{pacienteCoreId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "CORE-12 (CP-INT-24): Médico Tratante Atiende Alerta Crítica y Registra Intervención (CU-07)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('HTTP 200 OK: Alerta crítica marcada como atendida y auditada', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test('Confirmación Transaccional CU-07: Devuelve mensaje de éxito', function () {",
+                  "    const data = pm.response.json();",
+                  "    pm.expect(data.mensaje).to.include('Alerta gestionada exitosamente');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{medicoToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"medicoId\": \"{{medicoId}}\",\n  \"resumen\": \"Paciente contactado telefónicamente de inmediato. Presentaba hipertermia crítica de 41.8 °C. Se indicó antipirético oral.\",\n  \"recomendaciones\": \"Monitoreo continuo por sensor IoT cada 30 minutos y envío de unidad móvil PADOMI.\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/alertas/{{alertaCriticaId}}/atender",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "alertas",
+                "{{alertaCriticaId}}",
+                "atender"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "CORE-13 (Condición de Carrera RNF-06): Bloqueo ACID ante Segundo Médico Intentando Atender la Misma Alerta",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('HTTP 409 Conflict: Bloquea colisión concurrente sobre alerta ya atendida (RNF-06)', function () {",
+                  "    pm.response.to.have.status(409);",
+                  "});",
+                  "pm.test('Control de Concurrencia ACID: Informa que otro médico ya gestionó la emergencia', function () {",
+                  "    const data = pm.response.json();",
+                  "    pm.expect(data).to.have.property('error');",
+                  "    pm.expect(data.error.toLowerCase()).to.include('atendida');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{medicoToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"medicoId\": \"{{medicoId}}\",\n  \"resumen\": \"Intento duplicado concurrente de segundo médico de guardia.\",\n  \"recomendaciones\": \"N/A\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/alertas/{{alertaCriticaId}}/atender",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "alertas",
+                "{{alertaCriticaId}}",
+                "atender"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}
