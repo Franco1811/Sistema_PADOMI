@@ -7,35 +7,37 @@ import * as crypto from 'crypto';
 
 export class IngestaService {
   private lecturaRepository: ILecturaRepository;
+  // Semáforo de exclusión mutua (Mutex) para evitar colisión de código correlativo LEC-XXXX bajo ráfagas concurrentes IoT (JMeter)
+  private static colaConcurrencia: Promise<any> = Promise.resolve();
 
   constructor() {
     this.lecturaRepository = repositoryFactory.getLecturaRepository();
   }
 
   async procesarIngesta(dto: IngestaDto): Promise<Lectura> {
-    // 1. Validar DTO
+    // 1. Validar DTO y reglas de dominio de la entidad antes de tocar la BD
     dto.validar();
+    new Lectura(crypto.randomUUID(), 'LEC-0000', dto.pacienteId, dto.metricaId, dto.valor, new Date());
 
-    // 2. Generar código
-    const codigo = await this.lecturaRepository.generarCodigo();
+    // 2. Sección crítica sincronizada para generación de código correlativo e inserción atómica
+    const ejecutarSeccionCritica = async (): Promise<Lectura> => {
+      const codigo = await this.lecturaRepository.generarCodigo();
+      const lectura = new Lectura(
+        crypto.randomUUID(),
+        codigo,
+        dto.pacienteId,
+        dto.metricaId,
+        dto.valor,
+        new Date()
+      );
+      return await this.lecturaRepository.guardar(lectura);
+    };
 
-    // 3. Crear entidad de Dominio
-    const lectura = new Lectura(
-      crypto.randomUUID(),
-      codigo,
-      dto.pacienteId,
-      dto.metricaId,
-      dto.valor,
-      new Date()
-    );
+    const operacion = IngestaService.colaConcurrencia.then(ejecutarSeccionCritica, ejecutarSeccionCritica);
+    IngestaService.colaConcurrencia = operacion.catch(() => {});
+    const lecturaGuardada = await operacion;
 
-    // 4. Guardar en base de datos
-    const lecturaGuardada = await this.lecturaRepository.guardar(lectura);
-
-    // 5. Desacoplamiento mediante Eventos (Event-Driven Architecture)
-    // En lugar de procesar las reglas clínicas aquí mismo y hacer esperar al dispositivo IoT,
-    // emitimos un evento en segundo plano. Esto permite que el endpoint devuelva el '201 Created'
-    // instantáneamente, mientras que el Motor de Reglas hace el trabajo pesado por detrás.
+    // 3. Desacoplamiento mediante Eventos (Event-Driven Architecture)
     eventBus.emit('nueva_lectura', lecturaGuardada);
 
     return lecturaGuardada;
