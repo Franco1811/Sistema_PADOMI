@@ -1,7 +1,10 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Mail, Lock, AlertTriangle, Info } from 'lucide-react';
 import { AuthService } from '../services/auth.service';
 import type { Usuario } from '../services/auth.service';
+
+// 1. Importar el hook de accesibilidad
+import { useAccessibility } from '../accessibility/AccessibilityContext';
 
 import essaludLogo from '../assets/essalud-logo.png';
 
@@ -15,11 +18,27 @@ interface LoginViewProps {
 }
 
 export function LoginView({ onLoginSuccess }: LoginViewProps) {
+  // 2. Extraer la función de lectura de texto
+  const { speakText } = useAccessibility();
+
   const [emailInput, setEmailInput] = useState('');
   const [passwordInput, setPasswordInput] = useState('');
   const [loginError, setLoginError] = useState<string | null>(null);
   const [loadingLogin, setLoadingLogin] = useState(false);
   const [showRecoverModal, setShowRecoverModal] = useState(false);
+
+  // Manejo de atajos de teclado (Tecla Escape para cerrar el modal de recuperación)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        speakText("Cerrando ventana de recuperación");
+        setShowRecoverModal(false);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [speakText]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -47,17 +66,28 @@ export function LoginView({ onLoginSuccess }: LoginViewProps) {
               src={LOGO_ESSALUD_URL}
               alt="EsSalud"
               className="login-logo-essalud"
+              onClick={() => speakText("Institución EsSalud, Atención Domiciliaria PADOMI")}
             />
 
             <div className="login-brand-text">
-              <span className="login-brand-subtitle">ATENCION DOMICILIARIA</span>
-              <h1 className="login-brand-title">PADOMI</h1>
-              <p className="login-brand-description">Módulo de Gestión y Monitoreo de Pacientes Crónicos</p>
+              <span className="login-brand-subtitle" onClick={(e) => speakText(e.currentTarget.innerText)}>
+                ATENCION DOMICILIARIA
+              </span>
+              <h1 className="login-brand-title" onClick={(e) => speakText(e.currentTarget.innerText)}>
+                PADOMI
+              </h1>
+              <p className="login-brand-description" onClick={(e) => speakText(e.currentTarget.innerText)}>
+                Módulo de Gestión y Monitoreo de Pacientes Crónicos
+              </p>
             </div>
           </div>
 
           {loginError && (
-            <div className="alert-item-row critico" style={{ padding: '0.85rem 1rem', borderRadius: '12px' }}>
+            <div 
+              className="alert-item-row critico" 
+              style={{ padding: '0.85rem 1rem', borderRadius: '12px' }}
+              onClick={() => speakText(`Error de acceso: ${loginError}`)}
+            >
               <AlertTriangle size={18} style={{ color: 'var(--critico-color)' }} />
               <span style={{ fontSize: '0.85rem', fontWeight: 500 }}>{loginError}</span>
             </div>
@@ -65,8 +95,10 @@ export function LoginView({ onLoginSuccess }: LoginViewProps) {
 
           <form className="login-fields" onSubmit={handleSubmit}>
             <div className="login-input-group">
-              <label htmlFor="login-email">Correo Electrónico Institucional</label>
-              <div className="login-input-wrapper">
+              <label htmlFor="login-email" onClick={(e) => speakText(e.currentTarget.innerText)}>
+                Correo Electrónico Institucional
+              </label>
+              <div className="login-input-wrapper" onClick={() => speakText("Campo de entrada para correo electrónico institucional del tipo essalud punto gob punto pe")}>
                 <Mail className="login-input-icon" size={18} />
                 <input
                   type="email"
@@ -82,17 +114,22 @@ export function LoginView({ onLoginSuccess }: LoginViewProps) {
 
             <div className="login-input-group">
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <label htmlFor="login-pass">Contraseña</label>
+                <label htmlFor="login-pass" onClick={(e) => speakText(e.currentTarget.innerText)}>
+                  Contraseña
+                </label>
                 <button
                   type="button"
                   className="login-action-link"
-                  onClick={() => setShowRecoverModal(true)}
+                  onClick={() => {
+                    speakText("¿Olvidó su contraseña?");
+                    setShowRecoverModal(true);
+                  }}
                   style={{ background: 'none', border: 'none', font: 'inherit', padding: 0 }}
                 >
                   ¿Olvidó su contraseña?
                 </button>
               </div>
-              <div className="login-input-wrapper">
+              <div className="login-input-wrapper" onClick={() => speakText("Campo de entrada para contraseña de acceso")}>
                 <Lock className="login-input-icon" size={18} />
                 <input
                   type="password"
@@ -110,6 +147,7 @@ export function LoginView({ onLoginSuccess }: LoginViewProps) {
               type="submit"
               className="login-btn-submit"
               disabled={loadingLogin}
+              onClick={() => speakText(loadingLogin ? 'Validando credenciales' : 'Iniciar Sesión')}
             >
               {loadingLogin ? 'Validando credenciales...' : 'Iniciar Sesión'}
             </button>
@@ -125,7 +163,10 @@ export function LoginView({ onLoginSuccess }: LoginViewProps) {
           className="login-banner-fullscreen-image"
         />
         <div className="login-banner-overlay-gradient"></div>
-        <div className="login-banner-content-overlay">
+        <div 
+          className="login-banner-content-overlay"
+          onClick={() => speakText("Monitoreo Continuo 24/7. El sistema de telemetría PADOMI procesa señales biométricas en tiempo real.")}
+        >
           <h3>Monitoreo Continuo 24/7</h3>
           <p>El sistema de telemetría PADOMI procesa señales biométricas en tiempo real, facilitando la intervención oportuna en emergencias críticas.</p>
         </div>
@@ -135,20 +176,29 @@ export function LoginView({ onLoginSuccess }: LoginViewProps) {
       {showRecoverModal && (
         <div className="login-modal-overlay">
           <div className="login-modal">
-            <div className="login-modal-header">
+            <div className="login-modal-header" onClick={() => speakText("Restablecer contraseña")}>
               <Info size={36} style={{ color: 'var(--essalud-azul)' }} />
               <h2>RESTABLECER CONTRASEÑA</h2>
             </div>
             <div className="login-modal-body">
-              <p className="login-modal-text">
+              <p 
+                className="login-modal-text"
+                onClick={(e) => speakText(e.currentTarget.innerText)}
+              >
                 Por políticas de seguridad del sector salud de <strong>EsSalud</strong>, los médicos clínicos y el personal asistencial no pueden restablecer sus credenciales de forma autónoma.
               </p>
-              <div className="login-modal-alert">
+              <div 
+                className="login-modal-alert"
+                onClick={(e) => speakText(e.currentTarget.innerText)}
+              >
                 Deberá comunicarse con el <strong>Administrador del Sistema PADOMI</strong> o enviar un ticket a soporte institucional para solicitar la regeneración de su contraseña provisional.
               </div>
               <button
                 className="login-modal-btn"
-                onClick={() => setShowRecoverModal(false)}
+                onClick={() => {
+                  speakText("Entendido");
+                  setShowRecoverModal(false);
+                }}
               >
                 Entendido
               </button>

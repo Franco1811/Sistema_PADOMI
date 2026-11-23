@@ -1,6 +1,7 @@
 // EditarPacienteModal.tsx
 import { useState, useEffect } from 'react';
 import { X, User, Check, AlertCircle, Phone, MapPin, Stethoscope, Activity, Save } from 'lucide-react';
+import { useAccessibility } from '../../accessibility/AccessibilityContext';
 
 interface EditarPacienteModalProps {
   isOpen: boolean;
@@ -47,6 +48,8 @@ interface FormData {
 }
 
 export function EditarPacienteModal({ isOpen, onClose, onSuccess, token, pacienteId }: EditarPacienteModalProps) {
+  const { speakText } = useAccessibility();
+
   const [paciente, setPaciente] = useState<PacienteData | null>(null);
   const [metricas, setMetricas] = useState<Metrica[]>([]);
   const [umbralesActuales, setUmbralesActuales] = useState<Umbral[]>([]);
@@ -145,6 +148,7 @@ export function EditarPacienteModal({ isOpen, onClose, onSuccess, token, pacient
 
     } catch (err: any) {
       setError(err.message);
+      speakText(`Error: ${err.message}`);
     } finally {
       setLoadingData(false);
     }
@@ -178,6 +182,7 @@ export function EditarPacienteModal({ isOpen, onClose, onSuccess, token, pacient
     
     if (metricasSinUmbral.length === 0) {
       setError('Todas las métricas ya tienen umbrales configurados');
+      speakText('Todas las métricas ya tienen umbrales configurados');
       return;
     }
 
@@ -194,6 +199,7 @@ export function EditarPacienteModal({ isOpen, onClose, onSuccess, token, pacient
         }
       ]
     }));
+    speakText(`Se agregó el umbral para ${nuevaMetrica.nombre}`);
   };
 
   const eliminarUmbral = (metricaId: string) => {
@@ -201,19 +207,21 @@ export function EditarPacienteModal({ isOpen, onClose, onSuccess, token, pacient
       ...prev,
       umbrales: prev.umbrales.filter(u => u.metricaId !== metricaId)
     }));
+    speakText('Umbral eliminado');
   };
 
   const validateForm = (): boolean => {
     if (formData.diagnostico && formData.diagnostico.trim().length < 3) {
       setError('El diagnóstico debe tener al menos 3 caracteres.');
+      speakText('El diagnóstico debe tener al menos 3 caracteres.');
       return false;
     }
 
-    // Validar umbrales
     const metricasIds = new Set<string>();
     for (const u of formData.umbrales) {
       if (metricasIds.has(u.metricaId)) {
         setError('No se permiten métricas duplicadas en los umbrales.');
+        speakText('No se permiten métricas duplicadas en los umbrales.');
         return false;
       }
       metricasIds.add(u.metricaId);
@@ -221,17 +229,20 @@ export function EditarPacienteModal({ isOpen, onClose, onSuccess, token, pacient
       const metrica = metricas.find(m => m.id === u.metricaId);
       if (metrica) {
         if (u.valorMin < metrica.rangoMin || u.valorMax > metrica.rangoMax) {
-          setError(`Los valores para "${metrica.nombre}" deben estar dentro del rango permitido (${metrica.rangoMin} - ${metrica.rangoMax}).`);
+          setError(`Los valores para "${metrica.nombre}" deben estar dentro del rango permitido.`);
+          speakText(`Los valores para "${metrica.nombre}" deben estar dentro del rango permitido.`);
           return false;
         }
       }
 
       if (u.valorMin < 0) {
         setError('El valor mínimo debe ser positivo.');
+        speakText('El valor mínimo debe ser positivo.');
         return false;
       }
       if (u.valorMax <= u.valorMin) {
         setError('El valor máximo debe ser mayor al mínimo.');
+        speakText('El valor máximo debe ser mayor al mínimo.');
         return false;
       }
     }
@@ -259,7 +270,6 @@ export function EditarPacienteModal({ isOpen, onClose, onSuccess, token, pacient
         updateData.direccion = formData.direccion;
       }
 
-      // Comparar umbrales actuales con los nuevos
       const umbralesModificados = formData.umbrales.filter(u => {
         const actual = umbralesActuales.find(a => a.metricaId === u.metricaId);
         return !actual || actual.valorMin !== u.valorMin || actual.valorMax !== u.valorMax;
@@ -275,6 +285,7 @@ export function EditarPacienteModal({ isOpen, onClose, onSuccess, token, pacient
 
       if (Object.keys(updateData).length === 0) {
         setSuccess('No se detectaron cambios para actualizar.');
+        speakText('No se detectaron cambios para actualizar.');
         setTimeout(() => setSuccess(''), 3000);
         setLoading(false);
         return;
@@ -295,12 +306,14 @@ export function EditarPacienteModal({ isOpen, onClose, onSuccess, token, pacient
       }
 
       setSuccess('Perfil actualizado correctamente');
+      speakText('Perfil actualizado correctamente');
       setTimeout(() => {
         onSuccess();
         onClose();
       }, 1500);
     } catch (err: any) {
       setError(err.message);
+      speakText(`Error: ${err.message}`);
     } finally {
       setLoading(false);
     }
@@ -312,11 +325,11 @@ export function EditarPacienteModal({ isOpen, onClose, onSuccess, token, pacient
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-container" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
-          <div className="modal-title">
+          <div className="modal-title" onClick={() => speakText("Editar Perfil de Paciente")}>
             <User size={24} style={{ color: 'var(--accent-color)' }} />
             <h2>Editar Perfil de Paciente</h2>
           </div>
-          <button className="modal-close" onClick={onClose}>
+          <button className="modal-close" onClick={() => { speakText("Cerrar modal"); onClose(); }}>
             <X size={20} />
           </button>
         </div>
@@ -324,43 +337,45 @@ export function EditarPacienteModal({ isOpen, onClose, onSuccess, token, pacient
         <form onSubmit={handleSubmit}>
           <div className="modal-body">
             {error && (
-              <div className="error-message">
+              <div className="error-message" onClick={() => speakText(error)}>
                 <AlertCircle size={18} />
                 {error}
               </div>
             )}
             {success && (
-              <div className="success-message">
+              <div className="success-message" onClick={() => speakText(success)}>
                 <Check size={18} />
                 {success}
               </div>
             )}
 
             {loadingData ? (
-              <div style={{ textAlign: 'center', padding: '2rem' }}>Cargando datos del paciente...</div>
+              <div style={{ textAlign: 'center', padding: '2rem' }} onClick={() => speakText("Cargando datos del paciente")}>
+                Cargando datos del paciente...
+              </div>
             ) : (
               <>
                 {/* Información del paciente (solo lectura) */}
                 <div className="info-section">
-                  <h3>Información del Paciente</h3>
+                  <h3 onClick={() => speakText("Información del Paciente")}>Información del Paciente</h3>
                   <div className="info-grid">
-                    <div className="info-item">
+                    <div className="info-item" onClick={() => speakText(`Código: ${paciente?.codigo}`)}>
                       <label>Código:</label>
                       <span>{paciente?.codigo}</span>
                     </div>
-                    <div className="info-item">
+                    <div className="info-item" onClick={() => speakText(`DNI: ${paciente?.dni}`)}>
                       <label>DNI:</label>
                       <span>{paciente?.dni}</span>
                     </div>
-                    <div className="info-item">
+                    <div className="info-item" onClick={() => speakText(`Nombres: ${paciente?.nombres}`)}>
                       <label>Nombres:</label>
                       <span>{paciente?.nombres}</span>
                     </div>
-                    <div className="info-item">
+                    <div className="info-item" onClick={() => speakText(`Edad: ${paciente?.edad} años`)}>
                       <label>Edad:</label>
                       <span>{paciente?.edad} años</span>
                     </div>
-                    <div className="info-item">
+                    <div className="info-item" onClick={() => speakText(`Médico Asignado: ${paciente?.medicoNombre || 'No asignado'}`)}>
                       <label>Médico Asignado:</label>
                       <span>{paciente?.medicoNombre || 'No asignado'}</span>
                     </div>
@@ -372,7 +387,7 @@ export function EditarPacienteModal({ isOpen, onClose, onSuccess, token, pacient
                 {/* Formulario de edición */}
                 <div className="form-grid">
                   <div className="form-field full-width">
-                    <label className="form-label">Diagnóstico</label>
+                    <label className="form-label" onClick={() => speakText("Diagnóstico médico")}>Diagnóstico</label>
                     <textarea
                       name="diagnostico"
                       value={formData.diagnostico}
@@ -384,8 +399,8 @@ export function EditarPacienteModal({ isOpen, onClose, onSuccess, token, pacient
                   </div>
 
                   <div className="form-field">
-                    <label className="form-label">Teléfono</label>
-                    <div className="input-icon-wrapper">
+                    <label className="form-label" onClick={() => speakText("Teléfono de contacto")}>Teléfono</label>
+                    <div className="input-icon-wrapper" onClick={() => speakText("Campo de teléfono")}>
                       <Phone size={18} className="input-icon" />
                       <input
                         type="tel"
@@ -399,8 +414,8 @@ export function EditarPacienteModal({ isOpen, onClose, onSuccess, token, pacient
                   </div>
 
                   <div className="form-field">
-                    <label className="form-label">Dirección</label>
-                    <div className="input-icon-wrapper">
+                    <label className="form-label" onClick={() => speakText("Dirección domiciliaria")}>Dirección</label>
+                    <div className="input-icon-wrapper" onClick={() => speakText("Campo de dirección")}>
                       <MapPin size={18} className="input-icon" />
                       <input
                         type="text"
@@ -419,7 +434,7 @@ export function EditarPacienteModal({ isOpen, onClose, onSuccess, token, pacient
                 {/* Umbrales Personalizados */}
                 <div className="umbrales-section">
                   <div className="umbrales-header">
-                    <h3>Umbrales Personalizados</h3>
+                    <h3 onClick={() => speakText("Umbrales Personalizados")}>Umbrales Personalizados</h3>
                     <button
                       type="button"
                       onClick={agregarUmbral}
@@ -430,7 +445,7 @@ export function EditarPacienteModal({ isOpen, onClose, onSuccess, token, pacient
                   </div>
 
                   {formData.umbrales.length === 0 ? (
-                    <div className="empty-umbrales">
+                    <div className="empty-umbrales" onClick={() => speakText("No hay umbrales configurados")}>
                       <p>No hay umbrales configurados.</p>
                       <button type="button" onClick={agregarUmbral} className="btn-add-umbral-empty">
                         Agregar primer umbral
@@ -443,7 +458,7 @@ export function EditarPacienteModal({ isOpen, onClose, onSuccess, token, pacient
                         return (
                           <div key={umbral.metricaId} className="umbral-card">
                             <div className="umbral-header">
-                              <div className="umbral-title">
+                              <div className="umbral-title" onClick={() => speakText(`Métrica: ${umbral.metricaNombre || metrica?.nombre}`)}>
                                 <Stethoscope size={16} />
                                 <strong>{umbral.metricaNombre || metrica?.nombre}</strong>
                                 <span className="umbral-unidad">{metrica?.unidad}</span>
@@ -459,7 +474,7 @@ export function EditarPacienteModal({ isOpen, onClose, onSuccess, token, pacient
                             </div>
                             <div className="umbral-inputs">
                               <div className="umbral-input">
-                                <label>Valor Mínimo</label>
+                                <label onClick={() => speakText("Valor mínimo")}>Valor Mínimo</label>
                                 <input
                                   type="number"
                                   value={umbral.valorMin}
@@ -468,11 +483,11 @@ export function EditarPacienteModal({ isOpen, onClose, onSuccess, token, pacient
                                   className="form-input-small"
                                 />
                                 {metrica && (
-                                  <span className="umbral-hint">Rango permitido: {metrica.rangoMin} - {metrica.rangoMax}</span>
+                                  <span className="umbral-hint" onClick={() => speakText(`Rango permitido: ${metrica.rangoMin} a ${metrica.rangoMax}`)}>Rango permitido: {metrica.rangoMin} - {metrica.rangoMax}</span>
                                 )}
                               </div>
                               <div className="umbral-input">
-                                <label>Valor Máximo</label>
+                                <label onClick={() => speakText("Valor máximo")}>Valor Máximo</label>
                                 <input
                                   type="number"
                                   value={umbral.valorMax}
@@ -493,10 +508,10 @@ export function EditarPacienteModal({ isOpen, onClose, onSuccess, token, pacient
           </div>
 
           <div className="modal-footer">
-            <button type="button" className="btn-cancel" onClick={onClose}>
+            <button type="button" className="btn-cancel" onClick={() => { speakText("Cancelar"); onClose(); }}>
               Cancelar
             </button>
-            <button type="submit" className="btn-submit" disabled={loading || loadingData}>
+            <button type="submit" className="btn-submit" disabled={loading || loadingData} onClick={() => speakText("Guardar Cambios")}>
               {loading ? (
                 <>
                   <span className="spinner"></span>

@@ -18,7 +18,7 @@ export class RegistroPersonalDto {
   }
 
   static validarEmail(valor: string | undefined): void {
-    if (!valor || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(valor.trim())) {
+    if (!valor || !/^[^\s@]+@essalud\.gob\.pe$/.test(valor.trim().toLowerCase())) {
       throw new Error('Email institucional inválido');
     }
   }

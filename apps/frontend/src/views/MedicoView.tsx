@@ -19,6 +19,9 @@ import { PacienteCard } from '../components/medico/PacienteCard';
 import { MonitoreoModal } from '../components/medico/MonitoreoModal';
 import { GestionarFichaModal } from '../components/medico/GestionarFichaModal';
 
+// 1. Importar el hook de accesibilidad
+import { useAccessibility } from '../accessibility/AccessibilityContext';
+
 const BACKEND_URL = 'http://localhost:3000';
 
 interface MedicoViewProps {
@@ -29,6 +32,9 @@ interface MedicoViewProps {
 }
 
 export function MedicoView({ usuario, token, onLogout, addToast }: MedicoViewProps) {
+  // 2. Extraer la función de lectura de texto
+  const { speakText } = useAccessibility();
+
   const dashboard = useMedicoDashboard(usuario, token, addToast);
   const telemetria = useTelemetriaSimulada(dashboard.selectedPaciente, dashboard.catalogoMetricas, dashboard.lecturasHistoricas, dashboard.editUmbrales);
 
@@ -36,6 +42,22 @@ export function MedicoView({ usuario, token, onLogout, addToast }: MedicoViewPro
   useEffect(() => {
     selectedPacienteRef.current = dashboard.selectedPaciente;
   }, [dashboard.selectedPaciente]);
+
+  // Manejo de atajos de teclado (Tecla Escape para cerrar modales o protocolos activos)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        speakText("Cerrando ventana de monitoreo o protocolo");
+        dashboard.setSelectedPaciente(null);
+        dashboard.setIsEditingFicha(false);
+        dashboard.setAlertaEmergencia(null);
+        dashboard.setProtocoloEmergencia(null);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [speakText, dashboard]);
 
   // Conexión WebSockets
   useEffect(() => {
@@ -89,35 +111,43 @@ export function MedicoView({ usuario, token, onLogout, addToast }: MedicoViewPro
   return (
     <div className="dashboard-container">
       {/* Cabecera del Panel */}
-      <DashboardHeader
-        usuario={usuario}
-        isConnected={dashboard.isConnected}
-        totalPacientes={dashboard.totalPacientes}
-        alertasCriticas={dashboard.alertasCriticas}
-        onLogout={onLogout}
-      />
+      <div onClick={() => speakText(`Panel médico de telemetría para ${usuario.nombre}`)}>
+        <DashboardHeader
+          usuario={usuario}
+          isConnected={dashboard.isConnected}
+          totalPacientes={dashboard.totalPacientes}
+          alertasCriticas={dashboard.alertasCriticas}
+          onLogout={onLogout}
+        />
+      </div>
 
       {/* Controles de Búsqueda y Filtros */}
-      <FiltrosPanel
-        busqueda={dashboard.busqueda}
-        setBusqueda={dashboard.setBusqueda}
-        setPagina={dashboard.setPagina}
-        filtroEstado={dashboard.filtroEstado}
-        setFiltroEstado={dashboard.setFiltroEstado}
-        soloAlertasActivas={dashboard.soloAlertasActivas}
-        setSoloAlertasActivas={dashboard.setSoloAlertasActivas}
-        pacientesFiltradosLength={pacientesFiltrados.length}
-        pacientesTotalLength={dashboard.pacientes.length}
-      />
+      <div onClick={() => speakText("Sección de filtros y búsqueda de pacientes")}>
+        <FiltrosPanel
+          busqueda={dashboard.busqueda}
+          setBusqueda={dashboard.setBusqueda}
+          setPagina={dashboard.setPagina}
+          filtroEstado={dashboard.filtroEstado}
+          setFiltroEstado={dashboard.setFiltroEstado}
+          soloAlertasActivas={dashboard.soloAlertasActivas}
+          setSoloAlertasActivas={dashboard.setSoloAlertasActivas}
+          pacientesFiltradosLength={pacientesFiltrados.length}
+          pacientesTotalLength={dashboard.pacientes.length}
+        />
+      </div>
 
       {/* Grid de Pacientes de Alta Prioridad */}
       {dashboard.loadingPacientes ? (
-        <div className="loader-container">
+        <div className="loader-container" onClick={() => speakText("Cargando panel de telemetría y telemonitoreo")}>
           <div className="clinical-spinner" />
           <p>Cargando panel de telemetría y telemonitoreo...</p>
         </div>
       ) : pacientesFiltrados.length === 0 ? (
-        <div className="empty-state" style={{ padding: '4rem 2rem', textAlign: 'center', background: 'rgba(30,41,59,0.1)', borderRadius: '16px', border: '1px dashed var(--border-color)', marginTop: '1.5rem', width: '100%' }}>
+        <div 
+          className="empty-state" 
+          style={{ padding: '4rem 2rem', textAlign: 'center', background: 'rgba(30,41,59,0.1)', borderRadius: '16px', border: '1px dashed var(--border-color)', marginTop: '1.5rem', width: '100%' }}
+          onClick={() => speakText("No se encontraron pacientes con los filtros seleccionados")}
+        >
           <h3>No se encontraron pacientes</h3>
           <p>Verifique los filtros seleccionados o el criterio de búsqueda superior.</p>
         </div>
@@ -125,11 +155,15 @@ export function MedicoView({ usuario, token, onLogout, addToast }: MedicoViewPro
         <>
           <div className="patients-grid" style={{ marginTop: '1.5rem' }}>
             {pacientesFiltrados.map((p) => (
-              <PacienteCard
-                key={p.paciente.id}
-                p={p}
-                onClick={() => dashboard.setSelectedPaciente(p)}
-              />
+              <div 
+                key={p.paciente.id} 
+                onClick={() => speakText(`Paciente: ${p.paciente.nombres}, Diagnóstico: ${p.paciente.diagnostico || 'No registrado'}, Estado: ${p.estado}`)}
+              >
+                <PacienteCard
+                  p={p}
+                  onClick={() => dashboard.setSelectedPaciente(p)}
+                />
+              </div>
             ))}
           </div>
 
@@ -145,7 +179,7 @@ export function MedicoView({ usuario, token, onLogout, addToast }: MedicoViewPro
             if (!mostrarPaginador) return null;
 
             return (
-              <div className="pagination-panel">
+              <div className="pagination-panel" onClick={() => speakText(`Página actual ${dashboard.pagina}`)}>
                 <button
                   className="btn-pagination"
                   disabled={dashboard.pagina === 1}
@@ -219,7 +253,7 @@ export function MedicoView({ usuario, token, onLogout, addToast }: MedicoViewPro
       {dashboard.alertaEmergencia && (
         <div className="emergency-overlay">
           <div className="emergency-modal critical-flash">
-            <div className="emergency-header-flash">
+            <div className="emergency-header-flash" onClick={() => speakText("Alerta crítica detectada en el sistema")}>
               <ShieldAlert className="heartbeat-icon" size={48} />
               <h2>ALERTA CRÍTICA DETECTADA (CU-07)</h2>
             </div>
@@ -227,7 +261,7 @@ export function MedicoView({ usuario, token, onLogout, addToast }: MedicoViewPro
               <p style={{ fontSize: '1.05rem', color: 'var(--text-primary)', marginBottom: '1rem', lineHeight: 1.6 }}>
                 El paciente <strong>{dashboard.alertaEmergencia.pacienteNombre}</strong> ha registrado una lectura fuera del rango de seguridad:
               </p>
-              <div className="clinical-alert-box">
+              <div className="clinical-alert-box" onClick={() => speakText(dashboard.alertaEmergencia.mensaje)}>
                 <span className="metric-tag">{dashboard.alertaEmergencia.codigo}</span>
                 <p className="alert-msg">"{dashboard.alertaEmergencia.mensaje}"</p>
               </div>
@@ -238,6 +272,7 @@ export function MedicoView({ usuario, token, onLogout, addToast }: MedicoViewPro
               <button
                 className="emergency-btn-action"
                 onClick={() => {
+                  speakText("Atendiendo emergencia inmediatamente");
                   const alerta = {
                     id: dashboard.alertaEmergencia.id,
                     codigo: dashboard.alertaEmergencia.codigo,
@@ -274,12 +309,12 @@ export function MedicoView({ usuario, token, onLogout, addToast }: MedicoViewPro
       {dashboard.protocoloEmergencia && (
         <div className="emergency-overlay">
           <div className="emergency-modal protocol">
-            <div className="emergency-header-flash protocol">
+            <div className="emergency-header-flash protocol" onClick={() => speakText("Emergencia gestionada con éxito")}>
               <CheckCircle2 size={48} style={{ color: 'var(--normal-color)' }} />
               <h2>EMERGENCIA GESTIONADA</h2>
             </div>
             <div className="emergency-body">
-              <div className="alert-box-success">
+              <div className="alert-box-success" onClick={() => speakText(`La alerta ${dashboard.protocoloEmergencia.codigo} ha sido marcada como atendida`)}>
                 La alerta <strong>{dashboard.protocoloEmergencia.codigo}</strong> ha sido marcada como atendida en la base de datos de Supabase bajo la responsabilidad del doctor activo.
               </div>
 
@@ -305,15 +340,15 @@ export function MedicoView({ usuario, token, onLogout, addToast }: MedicoViewPro
                 </div>
 
                 <div className="patient-contact-card">
-                  <div className="contact-field">
+                  <div className="contact-field" onClick={() => speakText(`Paciente: ${dashboard.protocoloEmergencia.paciente.nombres}`)}>
                     <span className="label">Paciente</span>
                     <span className="value-name">{dashboard.protocoloEmergencia.paciente.nombres}</span>
                   </div>
-                  <div className="contact-field">
+                  <div className="contact-field" onClick={() => speakText(`Diagnóstico: ${dashboard.protocoloEmergencia.paciente.diagnostico || 'No registrado'}`)}>
                     <span className="label">Diagnóstico de Base</span>
                     <span className="value-text">{dashboard.protocoloEmergencia.paciente.diagnostico || 'No registrado'}</span>
                   </div>
-                  <div className="contact-field highlight">
+                  <div className="contact-field highlight" onClick={() => speakText(`Teléfono de contacto: ${dashboard.protocoloEmergencia.paciente.telefono || 'No registrado'}`)}>
                     <span className="label"><Phone size={14} /> Teléfono del Paciente</span>
                     {dashboard.protocoloEmergencia.paciente.telefono ? (
                       <a href={`tel:${dashboard.protocoloEmergencia.paciente.telefono}`} className="value-phone-link">
@@ -325,7 +360,7 @@ export function MedicoView({ usuario, token, onLogout, addToast }: MedicoViewPro
                       </span>
                     )}
                   </div>
-                  <div className="contact-field highlight">
+                  <div className="contact-field highlight" onClick={() => speakText(`Dirección: ${dashboard.protocoloEmergencia.paciente.direccion || 'No registrada'}`)}>
                     <span className="label"><MapPin size={14} /> Dirección Domiciliaria</span>
                     <span className="value-text">
                       {dashboard.protocoloEmergencia.paciente.direccion || 'No registrada'}
@@ -337,6 +372,7 @@ export function MedicoView({ usuario, token, onLogout, addToast }: MedicoViewPro
               <button
                 className="emergency-btn-action protocol-done"
                 onClick={() => {
+                  speakText("Finalizando protocolo de emergencia");
                   dashboard.setProtocoloEmergencia(null);
                   dashboard.setSelectedPaciente(null);
                 }}

@@ -8,13 +8,16 @@ import { LoginView } from './views/LoginView';
 import { AdminView } from './views/AdminView';
 import { MedicoView } from './views/MedicoView';
 
+// Importar el proveedor, la barra flotante y los atajos de accesibilidad
+import { AccessibilityProvider } from './accessibility/AccessibilityContext';
+import { AccessibilityToolbar } from './accessibility/AccessibilityToolbar';
+import { AccessibilityShortcuts } from './accessibility/AccessibilityShortcuts';
+
 export default function App() {
-  // Estados de Autenticación
   const [token, setToken] = useState<string | null>(AuthService.getToken());
   const [usuario, setUsuario] = useState<Usuario | null>(AuthService.getCurrentUser());
   const [toasts, setToasts] = useState<ToastItem[]>([]);
 
-  // Estado de Tema Claro / Oscuro
   const [theme, setTheme] = useState<'light' | 'dark'>(() => {
     return (localStorage.getItem('padomi_theme') as 'light' | 'dark') || 'dark';
   });
@@ -23,6 +26,25 @@ export default function App() {
     document.documentElement.setAttribute('data-theme', theme);
     localStorage.setItem('padomi_theme', theme);
   }, [theme]);
+
+  // Atajos de teclado accesibles (ODS 10 / WCAG)
+  useEffect(() => {
+    const handleGlobalKeyDown = (e: KeyboardEvent) => {
+      // Si presionan Alt + A, muestra un aviso de accesibilidad
+      if (e.altKey && e.key.toLowerCase() === 'a') {
+        e.preventDefault();
+        addToast('Accesibilidad', 'Atajo de teclado Alt + A activado correctamente.', 'INFO');
+      }
+      
+      // Si presionan la tecla Escape, simula el cierre de elementos flotantes
+      if (e.key === 'Escape') {
+        addToast('Navegación', 'Tecla Escape presionada: Limpiando vistas o modales.', 'INFO');
+      }
+    };
+
+    window.addEventListener('keydown', handleGlobalKeyDown);
+    return () => window.removeEventListener('keydown', handleGlobalKeyDown);
+  }, []);
 
   const addToast = (titulo: string, mensaje: string, severidad: 'CRITICO' | 'ADVERTENCIA' | 'INFO' | 'EXITO') => {
     const nuevoToast: ToastItem = {
@@ -41,9 +63,7 @@ export default function App() {
   const handleLoginSuccess = (newToken: string, nuevoUsuario: Usuario) => {
     setToken(newToken);
     setUsuario(nuevoUsuario);
-    // Limpiar toasts anteriores para evitar duplicados en la interfaz
     setToasts([]);
-    // Disparar toast de bienvenida con el tipo EXITO
     addToast('Acceso Exitoso', `Sesión iniciada como ${nuevoUsuario.rol.nombre}: ${nuevoUsuario.nombre}`, 'EXITO');
   };
 
@@ -51,30 +71,33 @@ export default function App() {
     AuthService.logout();
     setToken(null);
     setUsuario(null);
-    setToasts([]); // Limpiar los toasts en logout
+    setToasts([]);
   };
 
-  // Renderizado principal según el estado de sesión y rol
   return (
-    <div className="app-wrapper">
-      {/* Botón flotante para alternar entre Modo Claro y Modo Oscuro */}
-      <ThemeToggle theme={theme} setTheme={setTheme} />
+    <AccessibilityProvider>
+      {/* Componente global para escuchar los atajos de teclado de accesibilidad (Ctrl + Shift + S / R) */}
+      <AccessibilityShortcuts />
 
-      {!token || !usuario ? (
-        <LoginView onLoginSuccess={handleLoginSuccess} />
-      ) : usuario.rol.nombre === 'ADMIN' ? (
-        <AdminView usuario={usuario} token={token} onLogout={handleLogout} />
-      ) : (
-        <MedicoView 
-          usuario={usuario} 
-          token={token} 
-          onLogout={handleLogout} 
-          addToast={addToast} 
-        />
-      )}
+      <div className="app-wrapper">
+        <ThemeToggle theme={theme} setTheme={setTheme} />
 
-      {/* Notificaciones flotantes en tiempo real */}
-      <ToastContainer toasts={toasts} removeToast={removeToast} />
-    </div>
+        {!token || !usuario ? (
+          <LoginView onLoginSuccess={handleLoginSuccess} />
+        ) : usuario.rol.nombre === 'ADMIN' ? (
+          <AdminView usuario={usuario} token={token} onLogout={handleLogout} />
+        ) : (
+          <MedicoView 
+            usuario={usuario} 
+            token={token} 
+            onLogout={handleLogout} 
+            addToast={addToast} 
+          />
+        )}
+
+        <ToastContainer toasts={toasts} removeToast={removeToast} />
+        <AccessibilityToolbar />
+      </div>
+    </AccessibilityProvider>
   );
 }

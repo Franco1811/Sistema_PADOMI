@@ -1,5 +1,7 @@
+// RegistrarPersonalModal.tsx
 import { useState, useEffect } from 'react';
 import { X, UserPlus, Check, AlertCircle, Eye, EyeOff, Plus, Database } from 'lucide-react';
+import { useAccessibility } from '../../accessibility/AccessibilityContext';
 
 interface RegistrarPersonalModalProps {
   isOpen: boolean;
@@ -26,6 +28,8 @@ interface FormData {
 }
 
 export function RegistrarPersonalModal({ isOpen, onClose, onSuccess, token }: RegistrarPersonalModalProps) {
+  const { speakText } = useAccessibility();
+
   const [formData, setFormData] = useState<FormData>({
     dni: '',
     nombre: '',
@@ -76,6 +80,7 @@ export function RegistrarPersonalModal({ isOpen, onClose, onSuccess, token }: Re
   const handleCrearEspecialidad = async () => {
     if (!nuevaEspecialidad.nombre.trim()) {
       setError('El nombre de la especialidad es requerido');
+      speakText('El nombre de la especialidad es requerido');
       return;
     }
 
@@ -106,8 +111,10 @@ export function RegistrarPersonalModal({ isOpen, onClose, onSuccess, token }: Re
       setMostrarFormEspecialidad(false);
       setNuevaEspecialidad({ nombre: '', descripcion: '' });
       setError('');
+      speakText('Especialidad creada y seleccionada correctamente');
     } catch (err: any) {
       setError(err.message);
+      speakText(`Error: ${err.message}`);
     } finally {
       setCreandoEspecialidad(false);
     }
@@ -122,26 +129,32 @@ export function RegistrarPersonalModal({ isOpen, onClose, onSuccess, token }: Re
   const validateForm = (): boolean => {
     if (!/^\d{8}$/.test(formData.dni)) {
       setError('DNI inválido. Debe contener 8 dígitos.');
+      speakText('DNI inválido. Debe contener 8 dígitos.');
       return false;
     }
     if (!/^[\p{L}]+(?:[ '\u002D][\p{L}]+)*$/u.test(formData.nombre.trim())) {
       setError('El nombre solo debe contener letras, espacios, apóstrofes o guiones.');
+      speakText('El nombre solo debe contener letras, espacios, apóstrofes o guiones.');
       return false;
     }
     if (!/^[\p{L}]+(?:[ '\u002D][\p{L}]+)*$/u.test(formData.apellido.trim())) {
       setError('El apellido solo debe contener letras, espacios, apóstrofes o guiones.');
+      speakText('El apellido solo debe contener letras, espacios, apóstrofes o guiones.');
       return false;
     }
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email.trim())) {
       setError('Email institucional inválido.');
+      speakText('Email institucional inválido.');
       return false;
     }
     if (formData.password.length < 8 || !/[a-z]/.test(formData.password) || !/[A-Z]/.test(formData.password) || !/\d/.test(formData.password) || !/[^\w\s]/.test(formData.password)) {
       setError('La contraseña debe tener 8 caracteres, mayúscula, minúscula, número y símbolo.');
+      speakText('La contraseña debe tener 8 caracteres, mayúscula, minúscula, número y símbolo.');
       return false;
     }
     if (formData.password !== formData.confirmPassword) {
       setError('Las contraseñas no coinciden.');
+      speakText('Las contraseñas no coinciden.');
       return false;
     }
     return true;
@@ -179,11 +192,13 @@ export function RegistrarPersonalModal({ isOpen, onClose, onSuccess, token }: Re
         throw new Error(errorData.error || 'Error al registrar personal');
       }
 
+      speakText("Personal registrado correctamente");
       onSuccess();
       onClose();
       resetForm();
     } catch (err: any) {
       setError(err.message);
+      speakText(`Error: ${err.message}`);
     } finally {
       setLoading(false);
     }
@@ -211,11 +226,11 @@ export function RegistrarPersonalModal({ isOpen, onClose, onSuccess, token }: Re
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-container" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
-          <div className="modal-title">
+          <div className="modal-title" onClick={() => speakText("Registrar Nuevo Personal")}>
             <UserPlus size={24} style={{ color: 'var(--accent-color)' }} />
             <h2>Registrar Nuevo Personal</h2>
           </div>
-          <button className="modal-close" onClick={onClose}>
+          <button className="modal-close" onClick={() => { speakText("Cerrar modal"); onClose(); }}>
             <X size={20} />
           </button>
         </div>
@@ -223,7 +238,7 @@ export function RegistrarPersonalModal({ isOpen, onClose, onSuccess, token }: Re
         <form onSubmit={handleSubmit}>
           <div className="modal-body">
             {error && (
-              <div className="error-message">
+              <div className="error-message" onClick={() => speakText(error)}>
                 <AlertCircle size={18} />
                 {error}
               </div>
@@ -231,7 +246,7 @@ export function RegistrarPersonalModal({ isOpen, onClose, onSuccess, token }: Re
 
             <div className="form-grid">
               <div className="form-field full-width">
-                <label className="form-label">DNI *</label>
+                <label className="form-label" onClick={() => speakText("DNI del personal")}>DNI *</label>
                 <input
                   type="text"
                   name="dni"
@@ -245,7 +260,7 @@ export function RegistrarPersonalModal({ isOpen, onClose, onSuccess, token }: Re
               </div>
 
               <div className="form-field">
-                <label className="form-label">Nombres *</label>
+                <label className="form-label" onClick={() => speakText("Nombres del personal")}>Nombres *</label>
                 <input
                   type="text"
                   name="nombre"
@@ -258,7 +273,7 @@ export function RegistrarPersonalModal({ isOpen, onClose, onSuccess, token }: Re
               </div>
 
               <div className="form-field">
-                <label className="form-label">Apellidos *</label>
+                <label className="form-label" onClick={() => speakText("Apellidos del personal")}>Apellidos *</label>
                 <input
                   type="text"
                   name="apellido"
@@ -271,7 +286,7 @@ export function RegistrarPersonalModal({ isOpen, onClose, onSuccess, token }: Re
               </div>
 
               <div className="form-field full-width">
-                <label className="form-label">Correo Electrónico Institucional *</label>
+                <label className="form-label" onClick={() => speakText("Correo electrónico institucional")}>Correo Electrónico Institucional *</label>
                 <input
                   type="email"
                   name="email"
@@ -284,8 +299,8 @@ export function RegistrarPersonalModal({ isOpen, onClose, onSuccess, token }: Re
               </div>
 
               <div className="form-field">
-                <label className="form-label">Contraseña *</label>
-                <div className="password-wrapper">
+                <label className="form-label" onClick={() => speakText("Contraseña de acceso")}>Contraseña *</label>
+                <div className="password-wrapper" onClick={() => speakText("Campo de contraseña")}>
                   <input
                     type={showPassword ? "text" : "password"}
                     name="password"
@@ -298,7 +313,7 @@ export function RegistrarPersonalModal({ isOpen, onClose, onSuccess, token }: Re
                   <button
                     type="button"
                     className="password-toggle"
-                    onClick={() => setShowPassword(!showPassword)}
+                    onClick={() => { speakText(showPassword ? "Ocultar contraseña" : "Mostrar contraseña"); setShowPassword(!showPassword); }}
                   >
                     {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                   </button>
@@ -306,8 +321,8 @@ export function RegistrarPersonalModal({ isOpen, onClose, onSuccess, token }: Re
               </div>
 
               <div className="form-field">
-                <label className="form-label">Confirmar Contraseña *</label>
-                <div className="password-wrapper">
+                <label className="form-label" onClick={() => speakText("Confirmar contraseña")}>Confirmar Contraseña *</label>
+                <div className="password-wrapper" onClick={() => speakText("Campo de confirmación de contraseña")}>
                   <input
                     type={showConfirmPassword ? "text" : "password"}
                     name="confirmPassword"
@@ -320,7 +335,7 @@ export function RegistrarPersonalModal({ isOpen, onClose, onSuccess, token }: Re
                   <button
                     type="button"
                     className="password-toggle"
-                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    onClick={() => { speakText(showConfirmPassword ? "Ocultar contraseña" : "Mostrar contraseña"); setShowConfirmPassword(!showConfirmPassword); }}
                   >
                     {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                   </button>
@@ -328,12 +343,13 @@ export function RegistrarPersonalModal({ isOpen, onClose, onSuccess, token }: Re
               </div>
 
               <div className="form-field">
-                <label className="form-label">Rol *</label>
+                <label className="form-label" onClick={() => speakText("Rol en el sistema")}>Rol *</label>
                 <select
                   name="rol"
                   value={formData.rol}
                   onChange={handleChange}
                   className="form-select"
+                  onClick={() => speakText("Selector de rol")}
                 >
                   <option value="MEDICO">Médico</option>
                   <option value="ADMIN">Administrador</option>
@@ -342,10 +358,10 @@ export function RegistrarPersonalModal({ isOpen, onClose, onSuccess, token }: Re
 
               <div className="form-field full-width">
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
-                  <label className="form-label">Especialidad (Opcional)</label>
+                  <label className="form-label" onClick={() => speakText("Especialidad opcional")}>Especialidad (Opcional)</label>
                   <button
                     type="button"
-                    onClick={() => setMostrarFormEspecialidad(!mostrarFormEspecialidad)}
+                    onClick={() => { speakText("Gestionar especialidades"); setMostrarFormEspecialidad(!mostrarFormEspecialidad); }}
                     className="btn-gestionar-especialidad"
                   >
                     <Database size={14} /> Gestionar Especialidades
@@ -358,6 +374,7 @@ export function RegistrarPersonalModal({ isOpen, onClose, onSuccess, token }: Re
                   onChange={handleChange}
                   className="form-select"
                   disabled={cargandoEspecialidades}
+                  onClick={() => speakText("Selector de especialidad")}
                 >
                   <option value="">
                     {cargandoEspecialidades ? 'Cargando especialidades...' : 'Seleccionar especialidad (opcional)'}
@@ -368,7 +385,7 @@ export function RegistrarPersonalModal({ isOpen, onClose, onSuccess, token }: Re
                     </option>
                   ))}
                 </select>
-                <small style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>
+                <small style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }} onClick={() => speakText("Puedes seleccionar una especialidad existente o crear una nueva con el botón Gestionar Especialidades")}>
                   Puedes seleccionar una especialidad existente o crear una nueva con el botón "Gestionar Especialidades"
                 </small>
               </div>
@@ -377,17 +394,17 @@ export function RegistrarPersonalModal({ isOpen, onClose, onSuccess, token }: Re
               {mostrarFormEspecialidad && (
                 <div className="crear-especialidad-card">
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-                    <h4 style={{ margin: 0, color: 'var(--accent-color)' }}>Nueva Especialidad</h4>
+                    <h4 style={{ margin: 0, color: 'var(--accent-color)' }} onClick={() => speakText("Nueva Especialidad")}>Nueva Especialidad</h4>
                     <button
                       type="button"
-                      onClick={() => setMostrarFormEspecialidad(false)}
+                      onClick={() => { speakText("Cerrar formulario de especialidad"); setMostrarFormEspecialidad(false); }}
                       className="close-btn"
                     >
                       <X size={16} />
                     </button>
                   </div>
                   <div className="form-field">
-                    <label>Nombre de la especialidad *</label>
+                    <label onClick={() => speakText("Nombre de la especialidad")}>Nombre de la especialidad *</label>
                     <input
                       type="text"
                       value={nuevaEspecialidad.nombre}
@@ -397,7 +414,7 @@ export function RegistrarPersonalModal({ isOpen, onClose, onSuccess, token }: Re
                     />
                   </div>
                   <div className="form-field">
-                    <label>Descripción (opcional)</label>
+                    <label onClick={() => speakText("Descripción opcional de la especialidad")}>Descripción (opcional)</label>
                     <textarea
                       value={nuevaEspecialidad.descripcion}
                       onChange={(e) => setNuevaEspecialidad({ ...nuevaEspecialidad, descripcion: e.target.value })}
@@ -409,7 +426,7 @@ export function RegistrarPersonalModal({ isOpen, onClose, onSuccess, token }: Re
                   <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end', marginTop: '1rem' }}>
                     <button
                       type="button"
-                      onClick={() => setMostrarFormEspecialidad(false)}
+                      onClick={() => { speakText("Cancelar creación de especialidad"); setMostrarFormEspecialidad(false); }}
                       className="btn-cancel-small"
                     >
                       Cancelar
@@ -429,10 +446,10 @@ export function RegistrarPersonalModal({ isOpen, onClose, onSuccess, token }: Re
           </div>
 
           <div className="modal-footer">
-            <button type="button" className="btn-cancel" onClick={onClose}>
+            <button type="button" className="btn-cancel" onClick={() => { speakText("Cancelar"); onClose(); }}>
               Cancelar
             </button>
-            <button type="submit" className="btn-submit" disabled={loading}>
+            <button type="submit" className="btn-submit" disabled={loading} onClick={() => speakText("Registrar Personal")}>
               {loading ? (
                 <>
                   <span className="spinner"></span>
@@ -549,45 +566,43 @@ export function RegistrarPersonalModal({ isOpen, onClose, onSuccess, token }: Re
           }
 
           .form-input,
-.form-textarea {
-  padding: 0.75rem 1rem;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid var(--border-color);
-  border-radius: 12px;
-  color: var(--text-primary);
-  font-size: 0.9rem;
-  transition: all 0.2s;
-  font-family: inherit;
-}
+          .form-textarea {
+            padding: 0.75rem 1rem;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            color: var(--text-primary);
+            font-size: 0.9rem;
+            transition: all 0.2s;
+            font-family: inherit;
+          }
 
-/* Estilos específicos para selects */
-.form-select {
-  padding: 0.75rem 1rem;
-  background-color: #2d2d3f;
-  border: 1px solid var(--border-color);
-  border-radius: 12px;
-  color: #ffffff;
-  font-size: 0.9rem;
-  transition: all 0.2s;
-  cursor: pointer;
-}
+          .form-select {
+            padding: 0.75rem 1rem;
+            background-color: #2d2d3f;
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            color: #ffffff;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+            cursor: pointer;
+          }
 
-.form-select option {
-  background-color: #2d2d3f;
-  color: #ffffff;
-}
+          .form-select option {
+            background-color: #2d2d3f;
+            color: #ffffff;
+          }
 
-/* Modo claro para selects */
-[data-theme="light"] .form-select {
-  background-color: #ffffff;
-  color: #1a1a2e;
-  border-color: #e5e7eb;
-}
+          [data-theme="light"] .form-select {
+            background-color: #ffffff;
+            color: #1a1a2e;
+            border-color: #e5e7eb;
+          }
 
-[data-theme="light"] .form-select option {
-  background-color: #ffffff;
-  color: #1a1a2e;
-}
+          [data-theme="light"] .form-select option {
+            background-color: #ffffff;
+            color: #1a1a2e;
+          }
 
           .form-input:focus,
           .form-select:focus,

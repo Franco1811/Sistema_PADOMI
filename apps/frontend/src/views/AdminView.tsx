@@ -25,6 +25,9 @@ import { EditarPacienteModal } from '../components/administrador/EditarPacienteM
 import { ConfirmarModal } from '../components/administrador/ConfirmarModal';
 import { LOGO_ESSALUD_URL } from './LoginView';
 
+// 1. Importar el hook de accesibilidad
+import { useAccessibility } from '../accessibility/AccessibilityContext';
+
 interface AdminViewProps {
   usuario: Usuario;
   token: string;
@@ -45,6 +48,9 @@ interface Paciente {
 }
 
 export function AdminView({ usuario, token, onLogout }: AdminViewProps) {
+  // 2. Extraer la función de lectura de texto
+  const { speakText } = useAccessibility();
+
   const [activeTab, setActiveTab] = useState<'personal' | 'metricas' | 'pacientes'>('personal');
   const [personal, setPersonal] = useState<PersonalAccount[]>([]);
   const [metricas, setMetricas] = useState<Metrica[]>([]);
@@ -78,6 +84,38 @@ export function AdminView({ usuario, token, onLogout }: AdminViewProps) {
     cargarDatos();
   }, [activeTab]);
 
+// Manejo de atajos de teclado (Tecla Escape optimizada)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        speakText("Cerrando modal");
+        
+        // 1. Apagar todos los estados de los modales
+        setShowRegistrarModal(false);
+        setShowEditarModal(false);
+        setShowAgregarMetricaModal(false);
+        setShowEditarMetricaModal(false);
+        setShowRegistrarPacienteModal(false);
+        setShowEditarPacienteModal(false);
+        setShowConfirmModal(false);
+
+        // 2. Forzar la eliminación visual inmediata de cualquier capa de modal en el DOM
+        const overlays = document.querySelectorAll(
+          '.modal-overlay, div[style*="position: fixed"], .login-modal-overlay, .emergency-overlay'
+        );
+        overlays.forEach((el) => {
+          const htmlEl = el as HTMLElement;
+          if (htmlEl.style.zIndex && parseInt(htmlEl.style.zIndex) > 10) {
+            htmlEl.style.display = 'none';
+          }
+        });
+      }
+    };
+
+    // Usamos capture: true para asegurar que el evento capture la tecla antes que cualquier otro elemento
+    window.addEventListener('keydown', handleKeyDown, true);
+    return () => window.removeEventListener('keydown', handleKeyDown, true);
+  }, [speakText]);
   const cargarDatos = async () => {
     setLoading(true);
     setErrorMessage('');
@@ -98,7 +136,6 @@ export function AdminView({ usuario, token, onLogout }: AdminViewProps) {
     }
   };
 
-  // CORREGIDA: Ya no hace segunda llamada, usa el medicoNombre que viene del backend
   const cargarPacientes = async () => {
     setLoading(true);
     setErrorMessage('');
@@ -112,9 +149,6 @@ export function AdminView({ usuario, token, onLogout }: AdminViewProps) {
       }
       
       const data = await response.json();
-      console.log('Pacientes desde backend:', data); // Para depurar
-      
-      // El backend ya envía medicoNombre, solo asignamos los datos
       setPacientes(data);
     } catch (err: any) {
       console.error('Error cargando pacientes:', err);
@@ -134,17 +168,19 @@ export function AdminView({ usuario, token, onLogout }: AdminViewProps) {
     }
   };
 
-  // ==================== ACCIONES DE PERSONAL ====================
   const handleCrearPersonal = () => {
+    speakText("Registrar nuevo personal");
     setShowRegistrarModal(true);
   };
 
   const handleActualizarPersonal = (personal: any) => {
+    speakText(`Editar personal ${personal.nombre}`);
     setPersonalSeleccionado(personal);
     setShowEditarModal(true);
   };
 
   const handleDeshabilitarPersonal = (id: string, nombre: string) => {
+    speakText(`Deshabilitar cuenta de ${nombre}`);
     setConfirmAction({
       type: 'deshabilitarPersonal',
       id,
@@ -154,6 +190,7 @@ export function AdminView({ usuario, token, onLogout }: AdminViewProps) {
   };
 
   const handleHabilitarPersonal = (id: string, nombre: string) => {
+    speakText(`Habilitar cuenta de ${nombre}`);
     setConfirmAction({
       type: 'habilitarPersonal',
       id,
@@ -172,12 +209,13 @@ export function AdminView({ usuario, token, onLogout }: AdminViewProps) {
     cargarDatos();
   };
 
-  // ==================== ACCIONES DE MÉTRICAS ====================
   const handleCrearMetrica = () => {
+    speakText("Agregar nueva métrica");
     setShowAgregarMetricaModal(true);
   };
 
   const handleEditarMetrica = (metrica: any) => {
+    speakText(`Editar métrica ${metrica.nombre}`);
     setMetricaSeleccionada(metrica);
     setShowEditarMetricaModal(true);
   };
@@ -193,6 +231,7 @@ export function AdminView({ usuario, token, onLogout }: AdminViewProps) {
   };
 
   const handleEliminarMetrica = (id: string, nombre: string) => {
+    speakText(`Eliminar métrica ${nombre}`);
     setConfirmAction({
       type: 'eliminarMetrica',
       id,
@@ -201,12 +240,13 @@ export function AdminView({ usuario, token, onLogout }: AdminViewProps) {
     setShowConfirmModal(true);
   };
 
-  // ==================== ACCIONES DE PACIENTES ====================
   const handleRegistrarPaciente = () => {
+    speakText("Registrar nuevo paciente");
     setShowRegistrarPacienteModal(true);
   };
 
   const handleEditarPaciente = (pacienteId: string) => {
+    speakText("Editar perfil de paciente");
     setPacienteSeleccionadoId(pacienteId);
     setShowEditarPacienteModal(true);
   };
@@ -221,7 +261,6 @@ export function AdminView({ usuario, token, onLogout }: AdminViewProps) {
     cargarDatos();
   };
 
-  // ==================== EJECUTAR CONFIRMACIÓN ====================
   const ejecutarConfirmacion = async () => {
     if (!confirmAction) return;
     
@@ -247,7 +286,6 @@ export function AdminView({ usuario, token, onLogout }: AdminViewProps) {
     }
   };
 
-  // Filtrar pacientes por búsqueda
   const pacientesFiltrados = pacientes.filter(paciente =>
     paciente.nombres?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     paciente.dni?.includes(searchTerm) ||
@@ -258,7 +296,11 @@ export function AdminView({ usuario, token, onLogout }: AdminViewProps) {
     <div className="dashboard-container">
       {/* Cabecera del Panel del Administrador */}
       <header className="dashboard-header">
-        <div className="header-title-section" style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+        <div 
+          className="header-title-section" 
+          style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}
+          onClick={() => speakText(`Panel de Administración PADOMI. Administrador: ${usuario.nombre} ${usuario.apellido}`)}
+        >
           <img src={LOGO_ESSALUD_URL} alt="EsSalud Logo" className="dashboard-logo-essalud" />
           <div>
             <h1 style={{ margin: 0, fontSize: '1.8rem' }}>PADOMI Telemetría</h1>
@@ -285,19 +327,11 @@ export function AdminView({ usuario, token, onLogout }: AdminViewProps) {
               transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
               boxShadow: '0 4px 12px rgba(16, 185, 129, 0.3)'
             }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.transform = 'translateY(-2px)';
-              e.currentTarget.style.boxShadow = '0 6px 20px rgba(16, 185, 129, 0.4)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.transform = 'translateY(0)';
-              e.currentTarget.style.boxShadow = '0 4px 12px rgba(16, 185, 129, 0.3)';
-            }}
           >
             <UserPlus size={16} />
             <span>Registrar Paciente</span>
           </button>
-          <button className="btn-logout" onClick={onLogout}>
+          <button className="btn-logout" onClick={() => { speakText("Cerrar sesión"); onLogout(); }}>
             <LogOut size={14} /> Cerrar Sesión
           </button>
         </div>
@@ -309,7 +343,7 @@ export function AdminView({ usuario, token, onLogout }: AdminViewProps) {
         {/* Pestañas */}
         <div style={{ display: 'flex', borderBottom: '1px solid var(--border-color)', gap: '1rem', paddingBottom: '0.5rem' }}>
           <button 
-            onClick={() => setActiveTab('personal')}
+            onClick={() => { speakText("Gestión de Personal"); setActiveTab('personal'); }}
             style={{
               padding: '0.75rem 1.5rem',
               background: activeTab === 'personal' ? 'rgba(59, 130, 246, 0.1)' : 'transparent',
@@ -321,14 +355,13 @@ export function AdminView({ usuario, token, onLogout }: AdminViewProps) {
               fontWeight: 600,
               display: 'flex',
               alignItems: 'center',
-              gap: '0.5rem',
-              transition: 'all 0.2s ease'
+              gap: '0.5rem'
             }}
           >
             <Users size={18} /> Gestión de Personal (CU-02)
           </button>
           <button 
-            onClick={() => setActiveTab('metricas')}
+            onClick={() => { speakText("Catálogo de Métricas"); setActiveTab('metricas'); }}
             style={{
               padding: '0.75rem 1.5rem',
               background: activeTab === 'metricas' ? 'rgba(59, 130, 246, 0.1)' : 'transparent',
@@ -340,14 +373,13 @@ export function AdminView({ usuario, token, onLogout }: AdminViewProps) {
               fontWeight: 600,
               display: 'flex',
               alignItems: 'center',
-              gap: '0.5rem',
-              transition: 'all 0.2s ease'
+              gap: '0.5rem'
             }}
           >
             <Activity size={18} /> Catálogo de Métricas (CU-03)
           </button>
           <button 
-            onClick={() => setActiveTab('pacientes')}
+            onClick={() => { speakText("Gestión de Pacientes"); setActiveTab('pacientes'); }}
             style={{
               padding: '0.75rem 1.5rem',
               background: activeTab === 'pacientes' ? 'rgba(59, 130, 246, 0.1)' : 'transparent',
@@ -359,8 +391,7 @@ export function AdminView({ usuario, token, onLogout }: AdminViewProps) {
               fontWeight: 600,
               display: 'flex',
               alignItems: 'center',
-              gap: '0.5rem',
-              transition: 'all 0.2s ease'
+              gap: '0.5rem'
             }}
           >
             <UserPlus size={18} /> Gestión de Pacientes (CU-04)
@@ -369,12 +400,12 @@ export function AdminView({ usuario, token, onLogout }: AdminViewProps) {
 
         {/* Mensajes de feedback */}
         {successMessage && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'rgba(16, 185, 129, 0.15)', border: '1px solid #10b981', color: '#10b981', padding: '1rem', borderRadius: '12px', fontSize: '0.9rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'rgba(16, 185, 129, 0.15)', border: '1px solid #10b981', color: '#10b981', padding: '1rem', borderRadius: '12px', fontSize: '0.9rem' }} onClick={() => speakText(successMessage)}>
             <Check size={18} /> {successMessage}
           </div>
         )}
         {errorMessage && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'rgba(239, 68, 68, 0.15)', border: '1px solid #ef4444', color: '#ef4444', padding: '1rem', borderRadius: '12px', fontSize: '0.9rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'rgba(239, 68, 68, 0.15)', border: '1px solid #ef4444', color: '#ef4444', padding: '1rem', borderRadius: '12px', fontSize: '0.9rem' }} onClick={() => speakText(errorMessage)}>
             <AlertCircle size={18} /> {errorMessage}
           </div>
         )}
@@ -386,7 +417,7 @@ export function AdminView({ usuario, token, onLogout }: AdminViewProps) {
           {activeTab === 'personal' && (
             <div>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
-                <div>
+                <div onClick={() => speakText("Cuentas de Personal Médico y Administrativo. Crea, modifica y deshabilita usuarios.")}>
                   <h2 style={{ margin: 0, fontSize: '1.4rem' }}>Cuentas de Personal Médico y Administrativo</h2>
                   <p style={{ margin: '0.3rem 0 0 0', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
                     Crea, modifica y deshabilita usuarios con roles en el sistema de telemetría.
@@ -406,20 +437,10 @@ export function AdminView({ usuario, token, onLogout }: AdminViewProps) {
                     fontWeight: '600',
                     fontSize: '0.85rem',
                     cursor: 'pointer',
-                    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                    boxShadow: '0 4px 12px rgba(59, 130, 246, 0.3)',
-                    letterSpacing: '0.3px'
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.transform = 'translateY(-2px)';
-                    e.currentTarget.style.boxShadow = '0 6px 20px rgba(59, 130, 246, 0.4)';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.transform = 'translateY(0)';
-                    e.currentTarget.style.boxShadow = '0 4px 12px rgba(59, 130, 246, 0.3)';
+                    boxShadow: '0 4px 12px rgba(59, 130, 246, 0.3)'
                   }}
                 >
-                  <Plus size={18} style={{ transition: 'transform 0.2s' }} />
+                  <Plus size={18} />
                   <span>Registrar Personal</span>
                 </button>
               </div>
@@ -446,29 +467,32 @@ export function AdminView({ usuario, token, onLogout }: AdminViewProps) {
                     <tbody>
                       {personal.map((p) => (
                         <tr key={p.id} style={{ borderBottom: '1px solid var(--border-color)', opacity: p.activo ? 1 : 0.6 }}>
-                          <td style={{ padding: '1rem', fontWeight: 600 }}>{p.codigo}</td>
-                          <td style={{ padding: '1rem' }}>{p.nombre} {p.apellido}</td>
-                          <td style={{ padding: '1rem' }}>{p.dni}</td>
-                          <td style={{ padding: '1rem' }}>{p.email}</td>
+                          <td style={{ padding: '1rem', fontWeight: 600 }} onClick={() => speakText(`Código ${p.codigo}`)}>{p.codigo}</td>
+                          <td style={{ padding: '1rem' }} onClick={() => speakText(`Nombre: ${p.nombre} ${p.apellido}`)}>{p.nombre} {p.apellido}</td>
+                          <td style={{ padding: '1rem' }} onClick={() => speakText(`DNI ${p.dni}`)}>{p.dni}</td>
+                          <td style={{ padding: '1rem' }} onClick={() => speakText(`Correo ${p.email}`)}>{p.email}</td>
                           <td style={{ padding: '1rem' }}>
-                            <span style={{ 
-                              padding: '0.25rem 0.5rem', 
-                              borderRadius: '4px', 
-                              fontSize: '0.75rem', 
-                              fontWeight: 700,
-                              background: p.rol.nombre === 'ADMIN' ? 'rgba(139, 92, 246, 0.15)' : 'rgba(59, 130, 246, 0.15)',
-                              color: p.rol.nombre === 'ADMIN' ? '#a78bfa' : '#60a5fa'
-                            }}>
+                            <span 
+                              onClick={() => speakText(`Rol ${p.rol.nombre}`)}
+                              style={{ 
+                                padding: '0.25rem 0.5rem', 
+                                borderRadius: '4px', 
+                                fontSize: '0.75rem', 
+                                fontWeight: 700,
+                                background: p.rol.nombre === 'ADMIN' ? 'rgba(139, 92, 246, 0.15)' : 'rgba(59, 130, 246, 0.15)',
+                                color: p.rol.nombre === 'ADMIN' ? '#a78bfa' : '#60a5fa'
+                              }}
+                            >
                               {p.rol.nombre}
                             </span>
                           </td>
-                          <td style={{ padding: '1rem' }}>
+                          <td style={{ padding: '1rem' }} onClick={() => speakText(`Especialidad ${p.especialidad ? (typeof p.especialidad === 'string' ? p.especialidad : p.especialidad.nombre) : 'Ninguna'}`)}>
                             {p.especialidad 
                               ? (typeof p.especialidad === 'string' ? p.especialidad : p.especialidad.nombre) 
                               : '-'
                             }
                           </td>
-                          <td style={{ padding: '1rem' }}>
+                          <td style={{ padding: '1rem' }} onClick={() => speakText(`Estado ${p.activo ? 'Activo' : 'Inactivo'}`)}>
                             <span style={{ 
                               display: 'inline-flex', 
                               alignItems: 'center', 
@@ -522,7 +546,7 @@ export function AdminView({ usuario, token, onLogout }: AdminViewProps) {
           {activeTab === 'metricas' && (
             <div>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
-                <div>
+                <div onClick={() => speakText("Catálogo Global de Métricas Clínicas. Configura los rangos de referencia recomendados.")}>
                   <h2 style={{ margin: 0, fontSize: '1.4rem' }}>Catálogo Global de Métricas Clínicas</h2>
                   <p style={{ margin: '0.3rem 0 0 0', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
                     Configura las métricas que envían los dispositivos de telemetría y sus rangos de referencia recomendados.
@@ -542,20 +566,10 @@ export function AdminView({ usuario, token, onLogout }: AdminViewProps) {
                     fontWeight: '600',
                     fontSize: '0.85rem',
                     cursor: 'pointer',
-                    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                    boxShadow: '0 4px 12px rgba(59, 130, 246, 0.3)',
-                    letterSpacing: '0.3px'
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.transform = 'translateY(-2px)';
-                    e.currentTarget.style.boxShadow = '0 6px 20px rgba(59, 130, 246, 0.4)';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.transform = 'translateY(0)';
-                    e.currentTarget.style.boxShadow = '0 4px 12px rgba(59, 130, 246, 0.3)';
+                    boxShadow: '0 4px 12px rgba(59, 130, 246, 0.3)'
                   }}
                 >
-                  <Plus size={18} style={{ transition: 'transform 0.2s' }} />
+                  <Plus size={18} />
                   <span>Agregar Métrica</span>
                 </button>
               </div>
@@ -581,16 +595,16 @@ export function AdminView({ usuario, token, onLogout }: AdminViewProps) {
                     <tbody>
                       {metricas.map((m) => (
                         <tr key={m.id} style={{ borderBottom: '1px solid var(--border-color)' }}>
-                          <td style={{ padding: '1rem', fontWeight: 600 }}>{m.codigo}</td>
-                          <td style={{ padding: '1rem', fontWeight: 500 }}>{m.nombre}</td>
-                          <td style={{ padding: '1rem' }}>
+                          <td style={{ padding: '1rem', fontWeight: 600 }} onClick={() => speakText(`Código ${m.codigo}`)}>{m.codigo}</td>
+                          <td style={{ padding: '1rem', fontWeight: 500 }} onClick={() => speakText(`Métrica ${m.nombre}`)}>{m.nombre}</td>
+                          <td style={{ padding: '1rem' }} onClick={() => speakText(`Unidad ${m.unidad}`)}>
                             <code style={{ background: 'rgba(255,255,255,0.06)', padding: '0.2rem 0.4rem', borderRadius: '4px' }}>
                               {m.unidad}
                             </code>
                           </td>
-                          <td style={{ padding: '1rem', color: 'var(--text-secondary)' }}>{m.descripcion}</td>
-                          <td style={{ padding: '1rem', color: 'var(--accent-color)', fontWeight: 600 }}>{m.rangoMin}</td>
-                          <td style={{ padding: '1rem', color: 'var(--accent-color)', fontWeight: 600 }}>{m.rangoMax}</td>
+                          <td style={{ padding: '1rem', color: 'var(--text-secondary)' }} onClick={() => speakText(m.descripcion)}>{m.descripcion}</td>
+                          <td style={{ padding: '1rem', color: 'var(--accent-color)', fontWeight: 600 }} onClick={() => speakText(`Mínimo ${m.rangoMin}`)}>{m.rangoMin}</td>
+                          <td style={{ padding: '1rem', color: 'var(--accent-color)', fontWeight: 600 }} onClick={() => speakText(`Máximo ${m.rangoMax}`)}>{m.rangoMax}</td>
                           <td style={{ padding: '1rem', textAlign: 'right' }}>
                             <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
                               <button 
@@ -622,7 +636,7 @@ export function AdminView({ usuario, token, onLogout }: AdminViewProps) {
           {activeTab === 'pacientes' && (
             <div>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
-                <div>
+                <div onClick={() => speakText("Lista de Pacientes Crónicos registrados en el sistema.")}>
                   <h2 style={{ margin: 0, fontSize: '1.4rem' }}>Lista de Pacientes Crónicos</h2>
                   <p style={{ margin: '0.3rem 0 0 0', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
                     Visualiza y gestiona los pacientes registrados en el sistema.
@@ -661,27 +675,27 @@ export function AdminView({ usuario, token, onLogout }: AdminViewProps) {
                   <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.9rem' }}>
                     <thead>
                       <tr style={{ borderBottom: '1px solid var(--border-color)', color: 'var(--text-secondary)' }}>
-                        <th style={{ padding: '1rem' }}>Código</th>
-                        <th style={{ padding: '1rem' }}>DNI</th>
-                        <th style={{ padding: '1rem' }}>Nombres</th>
-                        <th style={{ padding: '1rem' }}>Edad</th>
-                        <th style={{ padding: '1rem' }}>Diagnóstico</th>
-                        <th style={{ padding: '1rem' }}>Médico Asignado</th>
-                        <th style={{ padding: '1rem' }}>Teléfono</th>
-                        <th style={{ padding: '1rem', textAlign: 'right' }}>Acciones</th>
+                        <th style={{ padding: '1rem' }} onClick={() => speakText("Columna Código")}>Código</th>
+                        <th style={{ padding: '1rem' }} onClick={() => speakText("Columna DNI")}>DNI</th>
+                        <th style={{ padding: '1rem' }} onClick={() => speakText("Columna Nombres")}>Nombres</th>
+                        <th style={{ padding: '1rem' }} onClick={() => speakText("Columna Edad")}>Edad</th>
+                        <th style={{ padding: '1rem' }} onClick={() => speakText("Columna Diagnóstico")}>Diagnóstico</th>
+                        <th style={{ padding: '1rem' }} onClick={() => speakText("Columna Médico Asignado")}>Médico Asignado</th>
+                        <th style={{ padding: '1rem' }} onClick={() => speakText("Columna Teléfono")}>Teléfono</th>
+                        <th style={{ padding: '1rem', textAlign: 'right' }} onClick={() => speakText("Columna Acciones")}>Acciones</th>
                       </tr>
                     </thead>
                     <tbody>
                       {pacientesFiltrados.map((p) => (
                         <tr key={p.id} style={{ borderBottom: '1px solid var(--border-color)' }}>
-                          <td style={{ padding: '1rem', fontWeight: 600 }}>{p.codigo}</td>
-                          <td style={{ padding: '1rem' }}>{p.dni}</td>
-                          <td style={{ padding: '1rem', fontWeight: 500 }}>{p.nombres}</td>
-                          <td style={{ padding: '1rem' }}>{p.edad} años</td>
-                          <td style={{ padding: '1rem', color: 'var(--text-secondary)', maxWidth: '200px', whiteSpace: 'normal' }}>
+                          <td style={{ padding: '1rem', fontWeight: 600 }} onClick={() => speakText(`Código ${p.codigo}`)}>{p.codigo}</td>
+                          <td style={{ padding: '1rem' }} onClick={() => speakText(`DNI ${p.dni}`)}>{p.dni}</td>
+                          <td style={{ padding: '1rem', fontWeight: 500 }} onClick={() => speakText(`Paciente ${p.nombres}`)}>{p.nombres}</td>
+                          <td style={{ padding: '1rem' }} onClick={() => speakText(`${p.edad} años`)}>{p.edad} años</td>
+                          <td style={{ padding: '1rem', color: 'var(--text-secondary)', maxWidth: '200px', whiteSpace: 'normal' }} onClick={() => speakText(`Diagnóstico: ${p.diagnostico || 'Ninguno'}`)}>
                             {p.diagnostico?.length > 50 ? `${p.diagnostico.substring(0, 50)}...` : p.diagnostico || '-'}
                           </td>
-                          <td style={{ padding: '1rem' }}>
+                          <td style={{ padding: '1rem' }} onClick={() => speakText(`Médico asignado: ${p.medicoNombre || 'No asignado'}`)}>
                             <span style={{ 
                               padding: '0.25rem 0.5rem', 
                               borderRadius: '4px', 
@@ -693,11 +707,11 @@ export function AdminView({ usuario, token, onLogout }: AdminViewProps) {
                               {p.medicoNombre || 'No asignado'}
                             </span>
                           </td>
-                          <td style={{ padding: '1rem' }}>{p.telefono || '-'}</td>
+                          <td style={{ padding: '1rem' }} onClick={() => speakText(`Teléfono ${p.telefono || 'No registrado'}`)}>{p.telefono || '-'}</td>
                           <td style={{ padding: '1rem', textAlign: 'right' }}>
                             <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
                               <button 
-                                onClick={() => handleEditarPaciente(p.id)}
+                                onClick={() => { speakText("Editar perfil de paciente"); handleEditarPaciente(p.id); }}
                                 style={{ background: 'transparent', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', padding: '0.25rem' }}
                                 title="Editar Perfil"
                               >

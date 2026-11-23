@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { X, User, Check, AlertCircle, Eye, EyeOff } from 'lucide-react';
+import { useAccessibility } from '../../accessibility/AccessibilityContext';
 
 interface EditarPersonalModalProps {
   isOpen: boolean;
@@ -31,6 +32,8 @@ interface FormData {
 }
 
 export function EditarPersonalModal({ isOpen, onClose, onSuccess, token, personalData }: EditarPersonalModalProps) {
+  const { speakText } = useAccessibility();
+
   const [formData, setFormData] = useState<FormData>({
     dni: '',
     nombre: '',
@@ -99,23 +102,28 @@ export function EditarPersonalModal({ isOpen, onClose, onSuccess, token, persona
   const validateForm = (): boolean => {
     if (!/^[\p{L}]+(?:[ '\u002D][\p{L}]+)*$/u.test(formData.nombre.trim())) {
       setError('El nombre solo debe contener letras, espacios, apóstrofes o guiones.');
+      speakText('El nombre solo debe contener letras, espacios, apóstrofes o guiones.');
       return false;
     }
     if (!/^[\p{L}]+(?:[ '\u002D][\p{L}]+)*$/u.test(formData.apellido.trim())) {
       setError('El apellido solo debe contener letras, espacios, apóstrofes o guiones.');
+      speakText('El apellido solo debe contener letras, espacios, apóstrofes o guiones.');
       return false;
     }
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email.trim())) {
       setError('Email institucional inválido.');
+      speakText('Email institucional inválido.');
       return false;
     }
     if (formData.cambiarPassword) {
       if (formData.password.length < 8 || !/[a-z]/.test(formData.password) || !/[A-Z]/.test(formData.password) || !/\d/.test(formData.password) || !/[^\w\s]/.test(formData.password)) {
         setError('La contraseña debe tener 8 caracteres, mayúscula, minúscula, número y símbolo.');
+        speakText('La contraseña debe tener 8 caracteres, mayúscula, minúscula, número y símbolo.');
         return false;
       }
       if (formData.password !== formData.confirmPassword) {
         setError('Las contraseñas no coinciden.');
+        speakText('Las contraseñas no coinciden.');
         return false;
       }
     }
@@ -157,10 +165,12 @@ export function EditarPersonalModal({ isOpen, onClose, onSuccess, token, persona
         throw new Error(errorData.error || 'Error al actualizar personal');
       }
 
+      speakText("Personal actualizado correctamente");
       onSuccess();
       onClose();
     } catch (err: any) {
       setError(err.message);
+      speakText(`Error: ${err.message}`);
     } finally {
       setLoading(false);
     }
@@ -172,11 +182,11 @@ export function EditarPersonalModal({ isOpen, onClose, onSuccess, token, persona
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-container" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
-          <div className="modal-title">
+          <div className="modal-title" onClick={() => speakText("Editar Personal")}>
             <User size={24} style={{ color: 'var(--accent-color)' }} />
             <h2>Editar Personal</h2>
           </div>
-          <button className="modal-close" onClick={onClose}>
+          <button className="modal-close" onClick={() => { speakText("Cerrar modal"); onClose(); }}>
             <X size={20} />
           </button>
         </div>
@@ -184,7 +194,7 @@ export function EditarPersonalModal({ isOpen, onClose, onSuccess, token, persona
         <form onSubmit={handleSubmit}>
           <div className="modal-body">
             {error && (
-              <div className="error-message">
+              <div className="error-message" onClick={() => speakText(error)}>
                 <AlertCircle size={18} />
                 {error}
               </div>
@@ -192,7 +202,7 @@ export function EditarPersonalModal({ isOpen, onClose, onSuccess, token, persona
 
             <div className="form-grid">
               <div className="form-field full-width">
-                <label className="form-label">DNI</label>
+                <label className="form-label" onClick={() => speakText("DNI no modificable")}>DNI</label>
                 <input
                   type="text"
                   value={formData.dni}
@@ -200,13 +210,13 @@ export function EditarPersonalModal({ isOpen, onClose, onSuccess, token, persona
                   disabled
                   style={{ opacity: 0.6, cursor: 'not-allowed' }}
                 />
-                <small style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>
+                <small style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }} onClick={() => speakText("El DNI no se puede modificar")}>
                   El DNI no se puede modificar
                 </small>
               </div>
 
               <div className="form-field">
-                <label className="form-label">Nombres *</label>
+                <label className="form-label" onClick={() => speakText("Nombres del personal")}>Nombres *</label>
                 <input
                   type="text"
                   name="nombre"
@@ -219,7 +229,7 @@ export function EditarPersonalModal({ isOpen, onClose, onSuccess, token, persona
               </div>
 
               <div className="form-field">
-                <label className="form-label">Apellidos *</label>
+                <label className="form-label" onClick={() => speakText("Apellidos del personal")}>Apellidos *</label>
                 <input
                   type="text"
                   name="apellido"
@@ -232,7 +242,7 @@ export function EditarPersonalModal({ isOpen, onClose, onSuccess, token, persona
               </div>
 
               <div className="form-field full-width">
-                <label className="form-label">Correo Electrónico Institucional *</label>
+                <label className="form-label" onClick={() => speakText("Correo electrónico institucional")}>Correo Electrónico Institucional *</label>
                 <input
                   type="email"
                   name="email"
@@ -245,7 +255,7 @@ export function EditarPersonalModal({ isOpen, onClose, onSuccess, token, persona
               </div>
 
               <div className="form-field full-width">
-                <label className="form-label" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <label className="form-label" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }} onClick={() => speakText("Cambiar contraseña")}>
                   <input
                     type="checkbox"
                     name="cambiarPassword"
@@ -260,8 +270,8 @@ export function EditarPersonalModal({ isOpen, onClose, onSuccess, token, persona
               {formData.cambiarPassword && (
                 <>
                   <div className="form-field">
-                    <label className="form-label">Nueva Contraseña *</label>
-                    <div className="password-wrapper">
+                    <label className="form-label" onClick={() => speakText("Nueva contraseña")}>Nueva Contraseña *</label>
+                    <div className="password-wrapper" onClick={() => speakText("Campo de nueva contraseña")}>
                       <input
                         type={showPassword ? "text" : "password"}
                         name="password"
@@ -274,7 +284,7 @@ export function EditarPersonalModal({ isOpen, onClose, onSuccess, token, persona
                       <button
                         type="button"
                         className="password-toggle"
-                        onClick={() => setShowPassword(!showPassword)}
+                        onClick={() => { speakText(showPassword ? "Ocultar contraseña" : "Mostrar contraseña"); setShowPassword(!showPassword); }}
                       >
                         {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                       </button>
@@ -282,8 +292,8 @@ export function EditarPersonalModal({ isOpen, onClose, onSuccess, token, persona
                   </div>
 
                   <div className="form-field">
-                    <label className="form-label">Confirmar Nueva Contraseña *</label>
-                    <div className="password-wrapper">
+                    <label className="form-label" onClick={() => speakText("Confirmar nueva contraseña")}>Confirmar Nueva Contraseña *</label>
+                    <div className="password-wrapper" onClick={() => speakText("Campo de confirmación de nueva contraseña")}>
                       <input
                         type={showConfirmPassword ? "text" : "password"}
                         name="confirmPassword"
@@ -296,7 +306,7 @@ export function EditarPersonalModal({ isOpen, onClose, onSuccess, token, persona
                       <button
                         type="button"
                         className="password-toggle"
-                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                        onClick={() => { speakText(showConfirmPassword ? "Ocultar contraseña" : "Mostrar contraseña"); setShowConfirmPassword(!showConfirmPassword); }}
                       >
                         {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                       </button>
@@ -306,12 +316,13 @@ export function EditarPersonalModal({ isOpen, onClose, onSuccess, token, persona
               )}
 
               <div className="form-field">
-                <label className="form-label">Rol *</label>
+                <label className="form-label" onClick={() => speakText("Rol en el sistema")}>Rol *</label>
                 <select
                   name="rol"
                   value={formData.rol}
                   onChange={handleChange}
                   className="form-select"
+                  onClick={() => speakText("Selector de rol")}
                 >
                   <option value="MEDICO">Médico</option>
                   <option value="ADMIN">Administrador</option>
@@ -319,7 +330,7 @@ export function EditarPersonalModal({ isOpen, onClose, onSuccess, token, persona
               </div>
 
               <div className="form-field">
-                <label className="form-label">Especialidad</label>
+                <label className="form-label" onClick={() => speakText("Especialidad del personal")}>Especialidad</label>
                 <input
                   type="text"
                   name="especialidad"
@@ -328,7 +339,7 @@ export function EditarPersonalModal({ isOpen, onClose, onSuccess, token, persona
                   placeholder="Ej: Cardiología, Geriatría, etc."
                   className="form-input"
                 />
-                <small style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>
+                <small style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }} onClick={() => speakText("Campo opcional")}>
                   Opcional
                 </small>
               </div>
@@ -336,10 +347,10 @@ export function EditarPersonalModal({ isOpen, onClose, onSuccess, token, persona
           </div>
 
           <div className="modal-footer">
-            <button type="button" className="btn-cancel" onClick={onClose}>
+            <button type="button" className="btn-cancel" onClick={() => { speakText("Cancelar"); onClose(); }}>
               Cancelar
             </button>
-            <button type="submit" className="btn-submit" disabled={loading}>
+            <button type="submit" className="btn-submit" disabled={loading} onClick={() => speakText("Actualizar Personal")}>
               {loading ? (
                 <>
                   <span className="spinner"></span>
@@ -500,45 +511,43 @@ export function EditarPersonalModal({ isOpen, onClose, onSuccess, token, persona
           }
 
           .form-input,
-.form-textarea {
-  padding: 0.75rem 1rem;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid var(--border-color);
-  border-radius: 12px;
-  color: var(--text-primary);
-  font-size: 0.9rem;
-  transition: all 0.2s;
-  font-family: inherit;
-}
+          .form-textarea {
+            padding: 0.75rem 1rem;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            color: var(--text-primary);
+            font-size: 0.9rem;
+            transition: all 0.2s;
+            font-family: inherit;
+          }
 
-/* Estilos específicos para selects */
-.form-select {
-  padding: 0.75rem 1rem;
-  background-color: #2d2d3f;
-  border: 1px solid var(--border-color);
-  border-radius: 12px;
-  color: #ffffff;
-  font-size: 0.9rem;
-  transition: all 0.2s;
-  cursor: pointer;
-}
+          .form-select {
+            padding: 0.75rem 1rem;
+            background-color: #2d2d3f;
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            color: #ffffff;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+            cursor: pointer;
+          }
 
-.form-select option {
-  background-color: #2d2d3f;
-  color: #ffffff;
-}
+          .form-select option {
+            background-color: #2d2d3f;
+            color: #ffffff;
+          }
 
-/* Modo claro para selects */
-[data-theme="light"] .form-select {
-  background-color: #ffffff;
-  color: #1a1a2e;
-  border-color: #e5e7eb;
-}
+          [data-theme="light"] .form-select {
+            background-color: #ffffff;
+            color: #1a1a2e;
+            border-color: #e5e7eb;
+          }
 
-[data-theme="light"] .form-select option {
-  background-color: #ffffff;
-  color: #1a1a2e;
-}
+          [data-theme="light"] .form-select option {
+            background-color: #ffffff;
+            color: #1a1a2e;
+          }
 
           .form-input:focus,
           .form-select:focus {

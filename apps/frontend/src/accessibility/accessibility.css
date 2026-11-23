@@ -1,0 +1,38 @@
+/* Estilo del Panel Flotante de Accesibilidad Móvil / Arrastrable */
+.accessibility-toolbar {
+  position: fixed !important;
+  background: #1e293b !important;
+  color: #fff !important;
+  padding: 15px !important;
+  border-radius: 12px !important;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5) !important;
+  z-index: 999999 !important;
+  width: 270px !important;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+  user-select: none;
+}
+
+.accessibility-drag-handle:active {
+  cursor: grabbing !important;
+}
+
+.accessibility-toolbar .control-group {
+  margin-top: 10px;
+  display: flex;
+  gap: 5px;
+  flex-wrap: wrap;
+}
+
+.accessibility-toolbar button {
+  background: #334155;
+  color: white;
+  border: 1px solid #475569;
+  padding: 5px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.accessibility-toolbar button:hover,
+.accessibility-toolbar button.active-btn {
+  background: #0284c7;
+}

@@ -2305,6 +2305,41 @@ body {
   background: rgba(15, 23, 42, 0.02) !important;
 }
 
+/* ==========================================================================
+   ESTILOS GLOBALES DE ACCESIBLES (ODS 10 / WCAG)
+   ========================================================================== */
 
+/* 1. Tamaños de Tipografía Global */
+html.font-normal {
+  font-size: 100% !important;
+}
+
+html.font-large {
+  font-size: 115% !important;
+}
+
+html.font-xlarge {
+  font-size: 130% !important;
+}
+
+/* 2. Modos de Daltonismo y Alto Contraste Global */
+html.mode-normal {
+  filter: none !important;
+}
+
+html.mode-protanopia {
+  /* Filtro cromático simulado / adaptado para Protanopia */
+  filter: contrast(120%) saturate(85%) hue-rotate(-10deg) !important;
+}
+
+html.mode-deuteranopia {
+  /* Filtro cromático simulado / adaptado para Deuteranopia */
+  filter: contrast(120%) saturate(90%) hue-rotate(15deg) !important;
+}
+
+html.mode-high-contrast {
+  /* Alto contraste institucional (WCAG 1.4.6) */
+  filter: contrast(160%) brightness(105%) !important;
+}
 
 

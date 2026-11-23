@@ -1,6 +1,7 @@
 // RegistrarPacienteModal.tsx
 import { useState, useEffect } from 'react';
 import { X, UserPlus, Check, AlertCircle, Phone, MapPin, Calendar, Stethoscope } from 'lucide-react';
+import { useAccessibility } from '../../accessibility/AccessibilityContext';
 
 interface RegistrarPacienteModalProps {
   isOpen: boolean;
@@ -28,6 +29,8 @@ interface FormData {
 }
 
 export function RegistrarPacienteModal({ isOpen, onClose, onSuccess, token }: RegistrarPacienteModalProps) {
+  const { speakText } = useAccessibility();
+
   const [formData, setFormData] = useState<FormData>({
     dni: '',
     nombres: '',
@@ -140,11 +143,13 @@ export function RegistrarPacienteModal({ isOpen, onClose, onSuccess, token }: Re
         throw new Error(errorData.error || 'Error al registrar paciente');
       }
 
+      speakText("Paciente registrado correctamente");
       onSuccess();
       onClose();
       resetForm();
     } catch (err: any) {
       setError(err.message);
+      speakText(`Error: ${err.message}`);
     } finally {
       setLoading(false);
     }
@@ -176,11 +181,11 @@ export function RegistrarPacienteModal({ isOpen, onClose, onSuccess, token }: Re
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-container" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
-          <div className="modal-title">
+          <div className="modal-title" onClick={() => speakText("Registrar Nuevo Paciente")}>
             <UserPlus size={24} style={{ color: 'var(--accent-color)' }} />
             <h2>Registrar Nuevo Paciente</h2>
           </div>
-          <button className="modal-close" onClick={onClose}>
+          <button className="modal-close" onClick={() => { speakText("Cerrar modal"); onClose(); }}>
             <X size={20} />
           </button>
         </div>
@@ -188,7 +193,7 @@ export function RegistrarPacienteModal({ isOpen, onClose, onSuccess, token }: Re
         <form onSubmit={handleSubmit}>
           <div className="modal-body">
             {error && (
-              <div className="error-message">
+              <div className="error-message" onClick={() => speakText(error)}>
                 <AlertCircle size={18} />
                 {error}
               </div>
@@ -196,7 +201,7 @@ export function RegistrarPacienteModal({ isOpen, onClose, onSuccess, token }: Re
 
             <div className="form-grid">
               <div className="form-field">
-                <label className="form-label">DNI *</label>
+                <label className="form-label" onClick={() => speakText("DNI del paciente")}>DNI *</label>
                 <input
                   type="text"
                   name="dni"
@@ -210,8 +215,8 @@ export function RegistrarPacienteModal({ isOpen, onClose, onSuccess, token }: Re
               </div>
 
               <div className="form-field">
-                <label className="form-label">Edad *</label>
-                <div className="input-icon-wrapper">
+                <label className="form-label" onClick={() => speakText("Edad del paciente")}>Edad *</label>
+                <div className="input-icon-wrapper" onClick={() => speakText("Campo de edad")}>
                   <Calendar size={18} className="input-icon" />
                   <input
                     type="number"
@@ -228,7 +233,7 @@ export function RegistrarPacienteModal({ isOpen, onClose, onSuccess, token }: Re
               </div>
 
               <div className="form-field full-width">
-                <label className="form-label">Nombres Completos *</label>
+                <label className="form-label" onClick={() => speakText("Nombres completos del paciente")}>Nombres Completos *</label>
                 <input
                   type="text"
                   name="nombres"
@@ -241,7 +246,7 @@ export function RegistrarPacienteModal({ isOpen, onClose, onSuccess, token }: Re
               </div>
 
               <div className="form-field full-width">
-                <label className="form-label">Diagnóstico *</label>
+                <label className="form-label" onClick={() => speakText("Diagnóstico médico")}>Diagnóstico *</label>
                 <textarea
                   name="diagnostico"
                   value={formData.diagnostico}
@@ -254,8 +259,8 @@ export function RegistrarPacienteModal({ isOpen, onClose, onSuccess, token }: Re
               </div>
 
               <div className="form-field full-width">
-                <label className="form-label">Médico Asignado *</label>
-                <div className="input-icon-wrapper">
+                <label className="form-label" onClick={() => speakText("Médico asignado")}>Médico Asignado *</label>
+                <div className="input-icon-wrapper" onClick={() => speakText("Selector de médico asignado")}>
                   <Stethoscope size={18} className="input-icon" />
                   <select
                     name="medicoAsignadoId"
@@ -274,20 +279,20 @@ export function RegistrarPacienteModal({ isOpen, onClose, onSuccess, token }: Re
                   </select>
                 </div>
                 {loadingMedicos && (
-                  <small style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>
+                  <small style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }} onClick={() => speakText("Cargando médicos")}>
                     Cargando médicos...
                   </small>
                 )}
                 {medicos.length === 0 && !loadingMedicos && (
-                  <small style={{ fontSize: '0.7rem', color: '#ef4444' }}>
+                  <small style={{ fontSize: '0.7rem', color: '#ef4444' }} onClick={() => speakText("No hay médicos disponibles")}>
                     No hay médicos disponibles. Contacte al administrador.
                   </small>
                 )}
               </div>
 
               <div className="form-field">
-                <label className="form-label">Teléfono</label>
-                <div className="input-icon-wrapper">
+                <label className="form-label" onClick={() => speakText("Teléfono de contacto")}>Teléfono</label>
+                <div className="input-icon-wrapper" onClick={() => speakText("Campo de teléfono")}>
                   <Phone size={18} className="input-icon" />
                   <input
                     type="tel"
@@ -301,8 +306,8 @@ export function RegistrarPacienteModal({ isOpen, onClose, onSuccess, token }: Re
               </div>
 
               <div className="form-field">
-                <label className="form-label">Dirección</label>
-                <div className="input-icon-wrapper">
+                <label className="form-label" onClick={() => speakText("Dirección domiciliaria")}>Dirección</label>
+                <div className="input-icon-wrapper" onClick={() => speakText("Campo de dirección")}>
                   <MapPin size={18} className="input-icon" />
                   <input
                     type="text"
@@ -318,10 +323,10 @@ export function RegistrarPacienteModal({ isOpen, onClose, onSuccess, token }: Re
           </div>
 
           <div className="modal-footer">
-            <button type="button" className="btn-cancel" onClick={onClose}>
+            <button type="button" className="btn-cancel" onClick={() => { speakText("Cancelar"); onClose(); }}>
               Cancelar
             </button>
-            <button type="submit" className="btn-submit" disabled={loading}>
+            <button type="submit" className="btn-submit" disabled={loading} onClick={() => speakText("Registrar Paciente")}>
               {loading ? (
                 <>
                   <span className="spinner"></span>
@@ -501,45 +506,43 @@ export function RegistrarPacienteModal({ isOpen, onClose, onSuccess, token }: Re
           }
 
           .form-input,
-.form-textarea {
-  padding: 0.75rem 1rem;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid var(--border-color);
-  border-radius: 12px;
-  color: var(--text-primary);
-  font-size: 0.9rem;
-  transition: all 0.2s;
-  font-family: inherit;
-}
+          .form-textarea {
+            padding: 0.75rem 1rem;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            color: var(--text-primary);
+            font-size: 0.9rem;
+            transition: all 0.2s;
+            font-family: inherit;
+          }
 
-/* Estilos específicos para selects */
-.form-select {
-  padding: 0.75rem 1rem;
-  background-color: #2d2d3f;
-  border: 1px solid var(--border-color);
-  border-radius: 12px;
-  color: #ffffff;
-  font-size: 0.9rem;
-  transition: all 0.2s;
-  cursor: pointer;
-}
+          .form-select {
+            padding: 0.75rem 1rem;
+            background-color: #2d2d3f;
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            color: #ffffff;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+            cursor: pointer;
+          }
 
-.form-select option {
-  background-color: #2d2d3f;
-  color: #ffffff;
-}
+          .form-select option {
+            background-color: #2d2d3f;
+            color: #ffffff;
+          }
 
-/* Modo claro para selects */
-[data-theme="light"] .form-select {
-  background-color: #ffffff;
-  color: #1a1a2e;
-  border-color: #e5e7eb;
-}
+          [data-theme="light"] .form-select {
+            background-color: #ffffff;
+            color: #1a1a2e;
+            border-color: #e5e7eb;
+          }
 
-[data-theme="light"] .form-select option {
-  background-color: #ffffff;
-  color: #1a1a2e;
-}
+          [data-theme="light"] .form-select option {
+            background-color: #ffffff;
+            color: #1a1a2e;
+          }
 
           .form-input:focus,
           .form-select:focus,
